@@ -26,31 +26,66 @@ int getMilliSpan(int nTimeStart) {
 	return nSpan;
 }
 
-void detectVertHorzLines(Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert, float horzThreshhold = 2, float vertThreshhold = 2){
+void detectVertHorzLines(Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
+		float horzThreshhold = 2, float vertThreshhold = 2) {
 	Mat dst;
 	vector<Vec4i> lines;
 
 	Canny(img, dst, 50, 200, 3);
 
-	HoughLinesP(dst, lines, 1, CV_PI / 180, 50, 50, 10);
+	HoughLinesP(dst, lines, 1, CV_PI / 180, 40, 70, 10);
 
 	for (size_t i = 0; i < lines.size(); i++) {
 		Vec4i l = lines[i];
 
-		int height = l[3]-l[1];
-		int width = l[2]-l[0];
+		int height = l[3] - l[1];
+		int width = l[2] - l[0];
 
-		bool isVert = width==0 || abs(height/float(width)) > horzThreshhold;
-		bool isHorz = height==0 || abs(width/float(height)) > vertThreshhold;
+		bool isVert = width == 0 || abs(height / float(width)) > horzThreshhold;
+		bool isHorz = height == 0
+				|| abs(width / float(height)) > vertThreshhold;
 
-		if(isVert){
+		if (isVert) {
 			vert.push_back(l);
-		}else if(isHorz){
+		} else if (isHorz) {
 			horz.push_back(l);
 		}
 
 		//cout << height << "||" <<width << "||" << height/width << "||" << width/height <<endl;
 	}
+}
+
+bool IsBetween(const double& x0, const double& x, const double& x1){
+   return (x >= x0) && (x <= x1);
+}
+
+bool FindIntersection(const double& x0, const double& y0,
+     const double& x1, const double& y1,
+     const double& a0, const double& b0,
+     const double& a1, const double& b1,
+     double& xy, double& ab) {
+   // four endpoints are x0, y0 & x1,y1 & a0,b0 & a1,b1
+   // returned values xy and ab are the fractional distance along xy and ab
+   // and are only defined when the result is true
+
+   bool partial = false;
+   double denom = (b0 - b1) * (x0 - x1) - (y0 - y1) * (a0 - a1);
+   if (denom == 0) {
+      xy = -1;
+      ab = -1;
+   } else {
+      xy = (a0 * (y1 - b1) + a1 * (b0 - y1) + x1 * (b1 - b0)) / denom;
+      partial = IsBetween(0, xy, 1);
+      if (partial) {
+         // no point calculating this unless xy is between 0 & 1
+         ab = (y1 * (x0 - a1) + b1 * (x1 - x0) + y0 * (a1 - x1)) / denom;
+      }
+   }
+   if ( partial && IsBetween(0, ab, 1)) {
+      ab = 1-ab;
+      xy = 1-xy;
+      return true;
+   }  else return false;
 }
 
 int main(int argc, char** argv) {
@@ -63,18 +98,43 @@ int main(int argc, char** argv) {
 
 	vector<Vec4i> horz, vert;
 
-	detectVertHorzLines(src,horz, vert, 2.5, 2.5);
+	detectVertHorzLines(src, horz, vert, 2.7, 2.7);
 
-	Scalar vertical = Scalar(0, 255, 0);
 	Mat cdst;
 	Canny(src, cdst, 50, 200, 3);
 	cvtColor(cdst, cdst, CV_GRAY2BGR);
 
-	for(auto h : horz){
-		line(cdst, Point(h[0], h[1]), Point(h[2], h[3]), Scalar(255, 0, 0), 3, CV_AA);
+	RNG rng(12345);
+	vector<Vec4i> horzUsed, vertUsed;
+	for (auto h : horz) {
+		int intersectionCount = 0;
+		for (auto v : vert) {
+			double a,b;
+			if(FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3], a,b))
+				intersectionCount++;
+
+			if (intersectionCount > 2) {
+				line(cdst, Point(h[0], h[1]), Point(h[2], h[3]), Scalar(0,255,0), 3,
+						CV_AA);
+				horzUsed.push_back(h);
+				break;
+			}
+		}
 	}
-	for(auto v : vert){
-		line(cdst, Point(v[0], v[1]), Point(v[2], v[3]), Scalar(0, 255, 000), 3, CV_AA);
+	for (auto v : vert) {
+		int intersectionCount = 0;
+		for (auto h : horz) {
+			double a,b;
+			if(FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3], a,b))
+				intersectionCount++;
+
+			if (intersectionCount > 2) {
+				line(cdst, Point(v[0], v[1]), Point(v[2], v[3]), Scalar(255, 0, 0), 3,
+						CV_AA);
+				vertUsed.push_back(v);
+				break;
+			}
+		}
 	}
 
 	cout << "Time consumed:" << getMilliSpan(t) << endl;
