@@ -55,6 +55,22 @@ void detectVertHorzLines(Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
 	}
 }
 
+double getAverageAngle(vector<Vec4i> lines) {
+	double angle = 0;
+	for (Vec4i l : lines) {
+
+		double height = l[3] - l[1];
+		double width = l[2] - l[0];
+
+		//cout << height << " -- " << width;
+
+		angle += 90 - atan(width / height) * 360 / 2 / M_PI;
+		//cout << angle << endl;
+	}
+	angle /= lines.size();
+	return angle;
+}
+
 bool IsBetween(const double& x0, const double& x, const double& x1) {
 	return (x >= x0) && (x <= x1);
 }
@@ -87,6 +103,60 @@ bool FindIntersection(const double& x0, const double& y0, const double& x1,
 		return false;
 }
 
+/**
+ * Rotate an image
+ */
+void rotate(Mat& src, Mat& dst, double angle) {
+	int len = max(src.cols, src.rows);
+	Point2f pt(len / 2., len / 2.);
+	Mat r = getRotationMatrix2D(pt, angle, 1.0);
+
+	warpAffine(src, dst, r, cv::Size(len, len));
+}
+
+bool refine(vector<Vec4i> &horz, vector<Vec4i> &vert) {
+
+	vector<Vec4i> horzTmp(horz), vertTmp(vert);
+
+	horz.clear();
+	vert.clear();
+
+	for (auto h : horzTmp) {
+		int intersectionCount = 0;
+		for (auto v : vertTmp) {
+			double a, b;
+			if (FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3],
+					a, b))
+				intersectionCount++;
+
+			if (intersectionCount > 4) {
+				horz.push_back(h);
+				break;
+			}
+		}
+	}
+
+	for (auto v : vertTmp) {
+		int intersectionCount = 0;
+		for (auto h : horzTmp) {
+			double a, b;
+			if (FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3],
+					a, b))
+				intersectionCount++;
+
+			if (intersectionCount > 4) {
+				vert.push_back(v);
+				break;
+			}
+		}
+	}
+
+	cout << "Eliminated " << horzTmp.size() - horz.size() << " horizontal and "
+			<< vertTmp.size() - vertTmp.size() << " vertical lines" << endl;
+	return horzTmp.size() - horz.size() + vertTmp.size() - vertTmp.size() != 0;
+
+}
+
 int main(int argc, char** argv) {
 	Mat src;
 	/// Load source image and convert it to gray
@@ -95,53 +165,55 @@ int main(int argc, char** argv) {
 
 	resize(src, src, Size(), 0.25, 0.25, INTER_LINEAR);
 
+	cout << "Time consumed  until resized:" << getMilliSpan(t) << endl;
+
 	vector<Vec4i> horz, vert;
 
 	detectVertHorzLines(src, horz, vert, 2.7, 2.7);
+
+	cout << "Time consumed until detected lines:" << getMilliSpan(t) << endl;
 
 	Mat cdst;
 	Canny(src, cdst, 50, 200, 3);
 	cvtColor(cdst, cdst, CV_GRAY2BGR);
 
 	RNG rng(12345);
-	vector<Vec4i> horzUsed, vertUsed;
 	for (auto h : horz) {
-		int intersectionCount = 0;
-		for (auto v : vert) {
-			double a, b;
-			if (FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3],
-					a, b))
-				intersectionCount++;
-
-			if (intersectionCount > 2) {
-				line(cdst, Point(h[0], h[1]), Point(h[2], h[3]),
-						Scalar(0, 255, 0), 3, CV_AA);
-				horzUsed.push_back(h);
-				break;
-			}
-		}
+//		line(cdst, Point(h[0], h[1]), Point(h[2], h[3]),
+//				Scalar(rng(255), rng(255), rng(255)), 3, CV_AA);
 	}
-	for (auto v : vert) {
-		int intersectionCount = 0;
-		for (auto h : horz) {
-			double a, b;
-			if (FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3],
-					a, b))
-				intersectionCount++;
-
-			if (intersectionCount > 2) {
-				line(cdst, Point(v[0], v[1]), Point(v[2], v[3]),
-						Scalar(255, 0, 0), 3, CV_AA);
-				vertUsed.push_back(v);
-				break;
-			}
-		}
+	for (auto h : vert) {
+//		line(cdst, Point(h[0], h[1]), Point(h[2], h[3]),
+//				Scalar(rng(255), rng(255), rng(255)), 3, CV_AA);
 	}
 
-	cout << "Time consumed:" << getMilliSpan(t) << endl;
+	while (refine(horz, vert))
+		cout << "Time consumed refining:" << getMilliSpan(t) << endl;
+	cout << "Time consumed refining:" << getMilliSpan(t) << endl;
+
+	double angle = getAverageAngle(horz);
+
+	cout << "Time consumed until got angle:" << getMilliSpan(t) << endl;
+
+	for (auto l : vert) {
+		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 0, 0), 3,
+				CV_AA);
+	}
+	for (auto l : horz) {
+		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 255, 0), 3,
+				CV_AA);
+	}
+
+	rotate(src, src, angle);
+	rotate(cdst, cdst, angle);
+
+	cout << "Time consumed until rotated:" << getMilliSpan(t) << endl;
+
+	cout << "Time consumed total:" << getMilliSpan(t) << endl;
 
 	imshow("source", src);
 	imshow("detected lines", cdst);
+	//imshow("rotated", foo);
 
 	waitKey();
 
