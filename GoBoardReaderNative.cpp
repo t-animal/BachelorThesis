@@ -55,37 +55,36 @@ void detectVertHorzLines(Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
 	}
 }
 
-bool IsBetween(const double& x0, const double& x, const double& x1){
-   return (x >= x0) && (x <= x1);
+bool IsBetween(const double& x0, const double& x, const double& x1) {
+	return (x >= x0) && (x <= x1);
 }
 
-bool FindIntersection(const double& x0, const double& y0,
-     const double& x1, const double& y1,
-     const double& a0, const double& b0,
-     const double& a1, const double& b1,
-     double& xy, double& ab) {
-   // four endpoints are x0, y0 & x1,y1 & a0,b0 & a1,b1
-   // returned values xy and ab are the fractional distance along xy and ab
-   // and are only defined when the result is true
+bool FindIntersection(const double& x0, const double& y0, const double& x1,
+		const double& y1, const double& a0, const double& b0, const double& a1,
+		const double& b1, double& xy, double& ab) {
+	// four endpoints are x0, y0 & x1,y1 & a0,b0 & a1,b1
+	// returned values xy and ab are the fractional distance along xy and ab
+	// and are only defined when the result is true
 
-   bool partial = false;
-   double denom = (b0 - b1) * (x0 - x1) - (y0 - y1) * (a0 - a1);
-   if (denom == 0) {
-      xy = -1;
-      ab = -1;
-   } else {
-      xy = (a0 * (y1 - b1) + a1 * (b0 - y1) + x1 * (b1 - b0)) / denom;
-      partial = IsBetween(0, xy, 1);
-      if (partial) {
-         // no point calculating this unless xy is between 0 & 1
-         ab = (y1 * (x0 - a1) + b1 * (x1 - x0) + y0 * (a1 - x1)) / denom;
-      }
-   }
-   if ( partial && IsBetween(0, ab, 1)) {
-      ab = 1-ab;
-      xy = 1-xy;
-      return true;
-   }  else return false;
+	bool partial = false;
+	double denom = (b0 - b1) * (x0 - x1) - (y0 - y1) * (a0 - a1);
+	if (denom == 0) {
+		xy = -1;
+		ab = -1;
+	} else {
+		xy = (a0 * (y1 - b1) + a1 * (b0 - y1) + x1 * (b1 - b0)) / denom;
+		partial = IsBetween(0, xy, 1);
+		if (partial) {
+			// no point calculating this unless xy is between 0 & 1
+			ab = (y1 * (x0 - a1) + b1 * (x1 - x0) + y0 * (a1 - x1)) / denom;
+		}
+	}
+	if (partial && IsBetween(0, ab, 1)) {
+		ab = 1 - ab;
+		xy = 1 - xy;
+		return true;
+	} else
+		return false;
 }
 
 int main(int argc, char** argv) {
@@ -109,13 +108,14 @@ int main(int argc, char** argv) {
 	for (auto h : horz) {
 		int intersectionCount = 0;
 		for (auto v : vert) {
-			double a,b;
-			if(FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3], a,b))
+			double a, b;
+			if (FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3],
+					a, b))
 				intersectionCount++;
 
 			if (intersectionCount > 2) {
-				line(cdst, Point(h[0], h[1]), Point(h[2], h[3]), Scalar(0,255,0), 3,
-						CV_AA);
+				line(cdst, Point(h[0], h[1]), Point(h[2], h[3]),
+						Scalar(0, 255, 0), 3, CV_AA);
 				horzUsed.push_back(h);
 				break;
 			}
@@ -124,13 +124,14 @@ int main(int argc, char** argv) {
 	for (auto v : vert) {
 		int intersectionCount = 0;
 		for (auto h : horz) {
-			double a,b;
-			if(FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3], a,b))
+			double a, b;
+			if (FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3],
+					a, b))
 				intersectionCount++;
 
 			if (intersectionCount > 2) {
-				line(cdst, Point(v[0], v[1]), Point(v[2], v[3]), Scalar(255, 0, 0), 3,
-						CV_AA);
+				line(cdst, Point(v[0], v[1]), Point(v[2], v[3]),
+						Scalar(255, 0, 0), 3, CV_AA);
 				vertUsed.push_back(v);
 				break;
 			}
