@@ -56,19 +56,27 @@ void detectVertHorzLines(Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
 }
 
 double getAverageAngle(vector<Vec4i> lines) {
-	double angle = 0;
+	double totalAngle = 0;
 	for (Vec4i l : lines) {
 
 		double height = l[3] - l[1];
 		double width = l[2] - l[0];
 
-		//cout << height << " -- " << width;
+		//soll = 90°
+		//=> bei kleiner 90 nach rechts rotieren
+		//=> bei groesser 90 nach links rotieren
+		//rotate macht bei pos. winkel rotation nach links (gg uzs)
+		double angle = atan(width / height) * 360 / 2 / M_PI;
 
-		angle += 90 - atan(width / height) * 360 / 2 / M_PI;
-		//cout << angle << endl;
+		if(angle>0){
+			totalAngle += 90-angle;
+		}else if(angle<0){
+			totalAngle -= 90+angle;
+		}
 	}
-	angle /= lines.size();
-	return angle;
+
+	totalAngle /= lines.size();
+	return totalAngle;
 }
 
 bool IsBetween(const double& x0, const double& x, const double& x1) {
@@ -152,8 +160,8 @@ bool refine(vector<Vec4i> &horz, vector<Vec4i> &vert) {
 	}
 
 	cout << "Eliminated " << horzTmp.size() - horz.size() << " horizontal and "
-			<< vertTmp.size() - vertTmp.size() << " vertical lines" << endl;
-	return horzTmp.size() - horz.size() + vertTmp.size() - vertTmp.size() != 0;
+			<< vertTmp.size() - vert.size() << " vertical lines" << endl;
+	return horzTmp.size() - horz.size() + vertTmp.size() - vert.size() != 0;
 
 }
 
@@ -203,6 +211,8 @@ int main(int argc, char** argv) {
 		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 255, 0), 3,
 				CV_AA);
 	}
+
+	cout << "Rotating by: " << angle << endl;
 
 	rotate(src, src, angle);
 	rotate(cdst, cdst, angle);
