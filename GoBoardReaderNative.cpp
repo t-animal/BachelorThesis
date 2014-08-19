@@ -203,19 +203,30 @@ int main(int argc, char** argv) {
 
 	cout << "Time consumed until got angle:" << getMilliSpan(t) << endl;
 
+	vector<Point> allPoints;
+
 	for (auto l : vert) {
 		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 0, 0), 3,
 				CV_AA);
+		allPoints.push_back(Point(l[0], l[1]));
+		allPoints.push_back(Point(l[2], l[3]));
 	}
 	for (auto l : horz) {
 		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 255, 0), 3,
 				CV_AA);
+		allPoints.push_back(Point(l[0], l[1]));
+		allPoints.push_back(Point(l[2], l[3]));
 	}
 
 	cout << "Rotating by: " << angle << endl;
 
 	rotate(src, src, angle);
 	rotate(cdst, cdst, angle);
+
+	Rect bounding = boundingRect(allPoints);
+
+	rectangle(cdst,bounding,Scalar(255,255,255), 3);
+	rectangle(src,bounding,Scalar(255,255,255), 3);
 
 	cout << "Time consumed until rotated:" << getMilliSpan(t) << endl;
 
