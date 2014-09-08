@@ -245,29 +245,59 @@ int main(int argc, char** argv) {
 	cout << "Time consumed until got angle:" << getMilliSpan(t) << endl;
 
 	vector<Point> allPoints;
-
+	Vec4i lines[vert.size() + horz.size()];
+	int i = 0;
 	for (auto l : vert) {
 		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 0, 0), 3,
 				CV_AA);
 		allPoints.push_back(Point(l[0], l[1]));
 		allPoints.push_back(Point(l[2], l[3]));
+
+		cv::Vec4i v = l;
+		lines[i][0] = 0;
+		lines[i][1] = ((float) v[1] - v[3]) / (v[0] - v[2]) * -v[0] + v[1];
+		lines[i][2] = src.cols;
+		lines[i++][3] = ((float) v[1] - v[3]) / (v[0] - v[2])
+				* (src.cols - v[2]) + v[3];
+
 	}
 	for (auto l : horz) {
 		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 255, 0), 3,
 				CV_AA);
 		allPoints.push_back(Point(l[0], l[1]));
 		allPoints.push_back(Point(l[2], l[3]));
+
+		cv::Vec4i v = l;
+		lines[i][0] = 0;
+		lines[i][1] = ((float) v[1] - v[3]) / (v[0] - v[2]) * -v[0] + v[1];
+		lines[i][2] = src.cols;
+		lines[i++][3] = ((float) v[1] - v[3]) / (v[0] - v[2])
+				* (src.cols - v[2]) + v[3];
 	}
+
+	for (auto l : lines) {
+		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 255, 0), 1,
+				CV_AA);
+	}
+	cout << "Detecting bounding area" << endl;
+
+	RotatedRect bounding = minAreaRect(allPoints);
+
+	Point2f points[4];
+	bounding.points(points);
+	for (int i = 0; i < 4; i++) {
+		line(cdst, points[i], points[(i + 1) % 4], Scalar(255, 255, 255), 3,
+				CV_AA);
+		line(src, points[i], points[(i + 1) % 4], Scalar(255, 255, 255), 3,
+				CV_AA);
+	}
+
+	cout << "Time consumed until got bounding:" << getMilliSpan(t) << endl;
 
 	cout << "Rotating by: " << angle << endl;
 
 	rotate(src, src, angle);
 	rotate(cdst, cdst, angle);
-
-	Rect bounding = boundingRect(allPoints);
-
-	rectangle(cdst,bounding,Scalar(255,255,255), 3);
-	rectangle(src,bounding,Scalar(255,255,255), 3);
 
 	cout << "Time consumed until rotated:" << getMilliSpan(t) << endl;
 
