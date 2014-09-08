@@ -111,6 +111,21 @@ bool FindIntersection(const double& x0, const double& y0, const double& x1,
 		return false;
 }
 
+cv::Point2f computeIntersect(cv::Vec4i a, cv::Vec4i b) {
+	int x1 = a[0], y1 = a[1], x2 = a[2], y2 = a[3];
+	int x3 = b[0], y3 = b[1], x4 = b[2], y4 = b[3];
+
+	if (float d = ((float) (x1 - x2) * (y3 - y4)) - ((y1 - y2) * (x3 - x4))) {
+		cv::Point2f pt;
+		pt.x = ((x1 * y2 - y1 * x2) * (x3 - x4)
+				- (x1 - x2) * (x3 * y4 - y3 * x4)) / d;
+		pt.y = ((x1 * y2 - y1 * x2) * (y3 - y4)
+				- (y1 - y2) * (x3 * y4 - y3 * x4)) / d;
+		return pt;
+	} else
+		return cv::Point2f(-1, -1);
+}
+
 /**
  * Rotate an image
  */
@@ -166,6 +181,8 @@ bool refine(vector<Vec4i> &horz, vector<Vec4i> &vert) {
 }
 
 int main(int argc, char** argv) {
+	RNG rng(12345);
+
 	Mat src;
 	/// Load source image and convert it to gray
 	src = imread(argv[1], 1);
@@ -185,7 +202,31 @@ int main(int argc, char** argv) {
 	Canny(src, cdst, 50, 200, 3);
 	cvtColor(cdst, cdst, CV_GRAY2BGR);
 
-	RNG rng(12345);
+	vector<Point2f> intersections;
+	for (auto h : horz) {
+		for (auto v : vert) {
+			Point2f intersection = computeIntersect(h, v);
+			intersections.push_back(intersection);
+		}
+	}
+
+	cout << "Time consumed until got all points:" << getMilliSpan(t) << endl;
+
+	for(int i=0; i<intersections.size(); i++){
+		for(int j=0; j<intersections.size(); j++){
+			if(i!=j && norm(intersections[i]-intersections[j])<10){
+				intersections[j] = Point(-1, -1);
+			}
+		}
+	}
+
+	cout << "Time consumed until refined all points:" << getMilliSpan(t) << endl;
+
+	for(auto p : intersections ){
+		circle(src, p, 5, Scalar(rng.next(),rng.next(),rng.next()), 2, 8);
+		circle(cdst, p, 5, Scalar(rng.next(),rng.next(),rng.next()), 2, 8);
+	}
+
 	for (auto h : horz) {
 //		line(cdst, Point(h[0], h[1]), Point(h[2], h[3]),
 //				Scalar(rng(255), rng(255), rng(255)), 3, CV_AA);
