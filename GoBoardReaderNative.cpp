@@ -68,10 +68,10 @@ double getAverageAngle(vector<Vec4i> lines) {
 		//rotate macht bei pos. winkel rotation nach links (gg uzs)
 		double angle = atan(width / height) * 360 / 2 / M_PI;
 
-		if(angle>0){
-			totalAngle += 90-angle;
-		}else if(angle<0){
-			totalAngle -= 90+angle;
+		if (angle > 0) {
+			totalAngle += 90 - angle;
+		} else if (angle < 0) {
+			totalAngle -= 90 + angle;
 		}
 	}
 
