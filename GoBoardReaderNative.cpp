@@ -199,6 +199,10 @@ void getIntersections(vector<Point2f> &intersections, const vector<Vec4i> &horz,
 	}
 }
 
+bool sortFunction(pair<double, Point2f> a, pair<double, Point2f> b){
+	return a.first<b.first;
+}
+
 int main(int argc, char** argv) {
 	RNG rng(12345);
 
@@ -224,13 +228,35 @@ int main(int argc, char** argv) {
 	vector<Point2f> intersections;
 	getIntersections(intersections, horz, vert);
 
+	vector<pair<double, Point2f> > distances;
+	Point2f center(src.cols/2, src.rows/2);
+	for (auto p : intersections) {
+		distances.push_back(pair<double, Point2f>(norm(center-p), p));
+	}
+
+	sort(distances.begin(), distances.end(), sortFunction);
+
+	vector<Point2f> innerIntersections;
+	pair<double, Point2f> last = distances.front();
+	for(auto d : distances){
+		if(d.first-last.first > 100)
+			break;
+		last = d;
+		innerIntersections.push_back(d.second);
+	}
+
 	cout << "Time consumed until refined all points:" << getMilliSpan(t)
 			<< endl;
 
+	for (auto p : innerIntersections) {
+		circle(cdst, p, 5, Scalar(0, 255, 255), 5, 8);
+		circle(cdst, p, 5, Scalar(0, 255, 255), 5, 8);
+	}
 	for (auto p : intersections) {
 		circle(src, p, 5, Scalar(rng.next(), rng.next(), rng.next()), 2, 8);
 		circle(cdst, p, 5, Scalar(rng.next(), rng.next(), rng.next()), 2, 8);
 	}
+	circle(cdst, center, 5, Scalar(0, 0, 255), 5, 8);
 
 	for (auto h : horz) {
 //		line(cdst, Point(h[0], h[1]), Point(h[2], h[3]),
