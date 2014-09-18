@@ -180,6 +180,25 @@ bool refine(vector<Vec4i> &horz, vector<Vec4i> &vert) {
 
 }
 
+void getIntersections(vector<Point2f> &intersections, const vector<Vec4i> &horz,
+		const vector<Vec4i> &vert) {
+
+	for (auto h : horz) {
+		for (auto v : vert) {
+			Point2f newIntersect = computeIntersect(h, v);
+
+			bool add = true;
+			for (auto existingIntersect : intersections) {
+				if (norm(existingIntersect - newIntersect) < 10) {
+					add = false;
+				}
+			}
+			if(add)
+				intersections.push_back(newIntersect);
+		}
+	}
+}
+
 int main(int argc, char** argv) {
 	RNG rng(12345);
 
@@ -194,7 +213,7 @@ int main(int argc, char** argv) {
 
 	vector<Vec4i> horz, vert;
 
-	detectVertHorzLines(src, horz, vert, 2.7, 2.7);
+	detectVertHorzLines(src, horz, vert, 2,2);
 
 	cout << "Time consumed until detected lines:" << getMilliSpan(t) << endl;
 
@@ -203,28 +222,14 @@ int main(int argc, char** argv) {
 	cvtColor(cdst, cdst, CV_GRAY2BGR);
 
 	vector<Point2f> intersections;
-	for (auto h : horz) {
-		for (auto v : vert) {
-			Point2f intersection = computeIntersect(h, v);
-			intersections.push_back(intersection);
-		}
-	}
+	getIntersections(intersections, horz, vert);
 
-	cout << "Time consumed until got all points:" << getMilliSpan(t) << endl;
+	cout << "Time consumed until refined all points:" << getMilliSpan(t)
+			<< endl;
 
-	for(int i=0; i<intersections.size(); i++){
-		for(int j=0; j<intersections.size(); j++){
-			if(i!=j && norm(intersections[i]-intersections[j])<10){
-				intersections[j] = Point(-1, -1);
-			}
-		}
-	}
-
-	cout << "Time consumed until refined all points:" << getMilliSpan(t) << endl;
-
-	for(auto p : intersections ){
-		circle(src, p, 5, Scalar(rng.next(),rng.next(),rng.next()), 2, 8);
-		circle(cdst, p, 5, Scalar(rng.next(),rng.next(),rng.next()), 2, 8);
+	for (auto p : intersections) {
+		circle(src, p, 5, Scalar(rng.next(), rng.next(), rng.next()), 2, 8);
+		circle(cdst, p, 5, Scalar(rng.next(), rng.next(), rng.next()), 2, 8);
 	}
 
 	for (auto h : horz) {
@@ -235,73 +240,6 @@ int main(int argc, char** argv) {
 //		line(cdst, Point(h[0], h[1]), Point(h[2], h[3]),
 //				Scalar(rng(255), rng(255), rng(255)), 3, CV_AA);
 	}
-
-	while (refine(horz, vert))
-		cout << "Time consumed refining:" << getMilliSpan(t) << endl;
-	cout << "Time consumed refining:" << getMilliSpan(t) << endl;
-
-	double angle = getAverageAngle(horz);
-
-	cout << "Time consumed until got angle:" << getMilliSpan(t) << endl;
-
-	vector<Point> allPoints;
-	Vec4i lines[vert.size() + horz.size()];
-	int i = 0;
-	for (auto l : vert) {
-		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 0, 0), 3,
-				CV_AA);
-		allPoints.push_back(Point(l[0], l[1]));
-		allPoints.push_back(Point(l[2], l[3]));
-
-		cv::Vec4i v = l;
-		lines[i][0] = 0;
-		lines[i][1] = ((float) v[1] - v[3]) / (v[0] - v[2]) * -v[0] + v[1];
-		lines[i][2] = src.cols;
-		lines[i++][3] = ((float) v[1] - v[3]) / (v[0] - v[2])
-				* (src.cols - v[2]) + v[3];
-
-	}
-	for (auto l : horz) {
-		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 255, 0), 3,
-				CV_AA);
-		allPoints.push_back(Point(l[0], l[1]));
-		allPoints.push_back(Point(l[2], l[3]));
-
-		cv::Vec4i v = l;
-		lines[i][0] = 0;
-		lines[i][1] = ((float) v[1] - v[3]) / (v[0] - v[2]) * -v[0] + v[1];
-		lines[i][2] = src.cols;
-		lines[i++][3] = ((float) v[1] - v[3]) / (v[0] - v[2])
-				* (src.cols - v[2]) + v[3];
-	}
-
-	for (auto l : lines) {
-		line(cdst, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(255, 255, 0), 1,
-				CV_AA);
-	}
-	cout << "Detecting bounding area" << endl;
-
-	RotatedRect bounding = minAreaRect(allPoints);
-
-	Point2f points[4];
-	bounding.points(points);
-	for (int i = 0; i < 4; i++) {
-		line(cdst, points[i], points[(i + 1) % 4], Scalar(255, 255, 255), 3,
-				CV_AA);
-		line(src, points[i], points[(i + 1) % 4], Scalar(255, 255, 255), 3,
-				CV_AA);
-	}
-
-	cout << "Time consumed until got bounding:" << getMilliSpan(t) << endl;
-
-	cout << "Rotating by: " << angle << endl;
-
-	rotate(src, src, angle);
-	rotate(cdst, cdst, angle);
-
-	cout << "Time consumed until rotated:" << getMilliSpan(t) << endl;
-
-	cout << "Time consumed total:" << getMilliSpan(t) << endl;
 
 	imshow("source", src);
 	imshow("detected lines", cdst);
