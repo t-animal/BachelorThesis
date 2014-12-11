@@ -1,0 +1,77 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{german}
+\usepackage{times}
+\usepackage{hyperref}
+\usepackage{xspace}
+\usepackage{microtype}
+%\usepackage{doublespace}
+%------------------------------------------------------------------------------
+%\setstretch{1.0}
+\voffset-5mm
+\hoffset-5mm
+\textwidth17cm
+\textheight24cm
+\headsep0mm
+\headheight0mm
+\oddsidemargin0.3mm
+\pagestyle{empty}
+\parindent0mm
+\parskip1ex
+%------------------------------------------------------------------------------
+%==============================================================================
+
+\providecommand{\etal}[1]{#1\emph{~et~al.\xspace}}
+\renewcommand\refname{References}
+
+\begin{document}
+
+
+\begin{center}
+Bachelor Thesis at the Pattern Recognition Lab, FAU Erlangen-Nuremberg \hfill Nr.: ????\\[5mm]
+
+\mbox{}\\
+{\Large Android app for abstract recording of Go matches}
+\end{center}
+
+The game Go has multiple properties that make recording it interesting.
+It is often played across country borders and even non-simultaneously (similar to correspondence chess). Even though a
+notation similar to the one used in chess would be possible, it is not costumary. Thus one has to resort to digital
+boards, e.g. on websites. An interface to fast recognize and transfer a player's move facilitates the use of real
+pieces and at the same time allows for simple transfer of moves over large distances.
+
+To improve one's play it is furthermore useful to record games and analyze them afterwards. Flaws in one's style of play
+can be found this way and even games replayed from a specific state, in order to assess the impact of a particular
+mistake. This is especially useful for unexperienced players.
+
+This work should:
+\begin{itemize}
+	\item recognize a Go-Board  as soon as it is fairly in the center of the camera vision of an Android phone
+	\item detect the current game state
+	\item detect new moves
+	\item save the game state in a compact form abstracting from the video
+	\item consider robustness against shaking and movement of the camera
+	\item tolerate at least part time occlusion of the board, because at least while putting down a piece or removing
+	 some the board is inevitably occluded
+\end{itemize}
+
+Several methods of detection should be explored, especially regarding detection of the Go-Board (hough-lines and
+LSD\cite{von2010lsd} or EDLines\cite{akinlar2011edlines} detection should be tested, as well as corner detection where
+\cite{rosten2010faster} could be a good starting point). The effect of pre-processing steps such as denoising and
+perspective correction should be explored (similar to \cite{jagannathan2005perspective}).
+
+To evaluate the methods a data set has to be created. The algorithms should be evaluated against detection speed (fps)
+and quality.
+
+\begin{tabular}{ll}
+\emph{Supervisors:} & Dipl.\,Inf.~V.~Christlein, Prof.\,Dr.\,-Ing.\ Joachim Hornegger\\
+\emph{Student:} & Tilman Adler \\
+\emph{Start:} & January 1st, 2015\\
+\emph{End:} & June 1st, 2015\\
+\end{tabular}
+\nopagebreak[4]
+\small
+\bibliographystyle{unsrt}
+\bibliography{ausschreibung}
+
+\end{document}
+%==============================================================================
