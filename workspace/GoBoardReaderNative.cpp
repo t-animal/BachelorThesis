@@ -238,9 +238,17 @@ int main(int argc, char** argv) {
 
 	vector<Point2f> innerIntersections;
 	pair<double, Point2f> last = distances.front();
+	double lastFirstDeriv  = 0;
+	double lastSecondDeriv = 0;
 	for(auto d : distances){
-		if(d.first-last.first > 100)
+		double curFirstDeriv  = d.first-last.first;
+		double curSecondDeriv = curFirstDeriv - lastFirstDeriv;
+
+		if(lastSecondDeriv-curSecondDeriv > 50)
 			break;
+
+		lastFirstDeriv = curFirstDeriv;
+		lastSecondDeriv = curSecondDeriv;
 		last = d;
 		innerIntersections.push_back(d.second);
 	}
@@ -249,12 +257,12 @@ int main(int argc, char** argv) {
 			<< endl;
 
 	for (auto p : innerIntersections) {
-		circle(cdst, p, 5, Scalar(0, 255, 255), 5, 8);
+		circle(src, p, 5, Scalar(0, 255, 255), 5, 8);
 		circle(cdst, p, 5, Scalar(0, 255, 255), 5, 8);
 	}
 	for (auto p : intersections) {
-		circle(src, p, 5, Scalar(rng.next(), rng.next(), rng.next()), 2, 8);
-		circle(cdst, p, 5, Scalar(rng.next(), rng.next(), rng.next()), 2, 8);
+		circle(src, p, 5, Scalar(180, 180, 180), 2, 8);
+		circle(cdst, p, 5, Scalar(180, 180, 180), 2, 8);
 	}
 	circle(cdst, center, 5, Scalar(0, 0, 255), 5, 8);
 
