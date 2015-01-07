@@ -5,137 +5,14 @@
 
 #include <iostream>
 #include <stdio.h>
-#include <stdlib.h>
 
-#include <sys/timeb.h>
+#include "lineDetection.h"
+#include "intersectionDetection.h"
+#include "util.h"
 
 using namespace cv;
 using namespace std;
 
-int getMilliCount() {
-	timeb tb;
-	ftime(&tb);
-	int nCount = tb.millitm + (tb.time & 0xfffff) * 1000;
-	return nCount;
-}
-
-int getMilliSpan(int nTimeStart) {
-	int nSpan = getMilliCount() - nTimeStart;
-	if (nSpan < 0)
-		nSpan += 0x100000 * 1000;
-	return nSpan;
-}
-
-void detectVertHorzLines(Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
-		float horzThreshhold = 2, float vertThreshhold = 2) {
-	Mat dst;
-	vector<Vec4i> lines;
-
-	Canny(img, dst, 50, 200, 3);
-
-	HoughLinesP(dst, lines, 1, CV_PI / 180, 40, 70, 10);
-
-	for (size_t i = 0; i < lines.size(); i++) {
-		Vec4i l = lines[i];
-
-		int height = l[3] - l[1];
-		int width = l[2] - l[0];
-
-		bool isVert = width == 0 || abs(height / float(width)) > horzThreshhold;
-		bool isHorz = height == 0
-				|| abs(width / float(height)) > vertThreshhold;
-
-		if (isVert) {
-			vert.push_back(l);
-		} else if (isHorz) {
-			horz.push_back(l);
-		}
-
-		//cout << height << "||" <<width << "||" << height/width << "||" << width/height <<endl;
-	}
-}
-
-double getAverageAngle(vector<Vec4i> lines) {
-	double totalAngle = 0;
-	for (Vec4i l : lines) {
-
-		double height = l[3] - l[1];
-		double width = l[2] - l[0];
-
-		//soll = 90°
-		//=> bei kleiner 90 nach rechts rotieren
-		//=> bei groesser 90 nach links rotieren
-		//rotate macht bei pos. winkel rotation nach links (gg uzs)
-		double angle = atan(width / height) * 360 / 2 / M_PI;
-
-		if (angle > 0) {
-			totalAngle += 90 - angle;
-		} else if (angle < 0) {
-			totalAngle -= 90 + angle;
-		}
-	}
-
-	totalAngle /= lines.size();
-	return totalAngle;
-}
-
-bool IsBetween(const double& x0, const double& x, const double& x1) {
-	return (x >= x0) && (x <= x1);
-}
-
-bool FindIntersection(const double& x0, const double& y0, const double& x1,
-		const double& y1, const double& a0, const double& b0, const double& a1,
-		const double& b1, double& xy, double& ab) {
-	// four endpoints are x0, y0 & x1,y1 & a0,b0 & a1,b1
-	// returned values xy and ab are the fractional distance along xy and ab
-	// and are only defined when the result is true
-
-	bool partial = false;
-	double denom = (b0 - b1) * (x0 - x1) - (y0 - y1) * (a0 - a1);
-	if (denom == 0) {
-		xy = -1;
-		ab = -1;
-	} else {
-		xy = (a0 * (y1 - b1) + a1 * (b0 - y1) + x1 * (b1 - b0)) / denom;
-		partial = IsBetween(0, xy, 1);
-		if (partial) {
-			// no point calculating this unless xy is between 0 & 1
-			ab = (y1 * (x0 - a1) + b1 * (x1 - x0) + y0 * (a1 - x1)) / denom;
-		}
-	}
-	if (partial && IsBetween(0, ab, 1)) {
-		ab = 1 - ab;
-		xy = 1 - xy;
-		return true;
-	} else
-		return false;
-}
-
-cv::Point2f computeIntersect(cv::Vec4i a, cv::Vec4i b) {
-	int x1 = a[0], y1 = a[1], x2 = a[2], y2 = a[3];
-	int x3 = b[0], y3 = b[1], x4 = b[2], y4 = b[3];
-
-	if (float d = ((float) (x1 - x2) * (y3 - y4)) - ((y1 - y2) * (x3 - x4))) {
-		cv::Point2f pt;
-		pt.x = ((x1 * y2 - y1 * x2) * (x3 - x4)
-				- (x1 - x2) * (x3 * y4 - y3 * x4)) / d;
-		pt.y = ((x1 * y2 - y1 * x2) * (y3 - y4)
-				- (y1 - y2) * (x3 * y4 - y3 * x4)) / d;
-		return pt;
-	} else
-		return cv::Point2f(-1, -1);
-}
-
-/**
- * Rotate an image
- */
-void rotate(Mat& src, Mat& dst, double angle) {
-	int len = max(src.cols, src.rows);
-	Point2f pt(len / 2., len / 2.);
-	Mat r = getRotationMatrix2D(pt, angle, 1.0);
-
-	warpAffine(src, dst, r, cv::Size(len, len));
-}
 
 bool refine(vector<Vec4i> &horz, vector<Vec4i> &vert) {
 
