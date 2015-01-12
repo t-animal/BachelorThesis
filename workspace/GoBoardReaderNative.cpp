@@ -13,50 +13,6 @@
 using namespace cv;
 using namespace std;
 
-
-bool refine(vector<Vec4i> &horz, vector<Vec4i> &vert) {
-
-	vector<Vec4i> horzTmp(horz), vertTmp(vert);
-
-	horz.clear();
-	vert.clear();
-
-	for (auto h : horzTmp) {
-		int intersectionCount = 0;
-		for (auto v : vertTmp) {
-			double a, b;
-			if (FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3],
-					a, b))
-				intersectionCount++;
-
-			if (intersectionCount > 4) {
-				horz.push_back(h);
-				break;
-			}
-		}
-	}
-
-	for (auto v : vertTmp) {
-		int intersectionCount = 0;
-		for (auto h : horzTmp) {
-			double a, b;
-			if (FindIntersection(h[0], h[1], h[2], h[3], v[0], v[1], v[2], v[3],
-					a, b))
-				intersectionCount++;
-
-			if (intersectionCount > 4) {
-				vert.push_back(v);
-				break;
-			}
-		}
-	}
-
-	cout << "Eliminated " << horzTmp.size() - horz.size() << " horizontal and "
-			<< vertTmp.size() - vert.size() << " vertical lines" << endl;
-	return horzTmp.size() - horz.size() + vertTmp.size() - vert.size() != 0;
-
-}
-
 int main(int argc, char** argv) {
 	RNG rng(12345);
 
