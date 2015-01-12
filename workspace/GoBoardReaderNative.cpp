@@ -57,29 +57,6 @@ bool refine(vector<Vec4i> &horz, vector<Vec4i> &vert) {
 
 }
 
-void getIntersections(vector<Point2f> &intersections, const vector<Vec4i> &horz,
-		const vector<Vec4i> &vert) {
-
-	for (auto h : horz) {
-		for (auto v : vert) {
-			Point2f newIntersect = computeIntersect(h, v);
-
-			bool add = true;
-			for (auto existingIntersect : intersections) {
-				if (norm(existingIntersect - newIntersect) < 10) {
-					add = false;
-				}
-			}
-			if(add)
-				intersections.push_back(newIntersect);
-		}
-	}
-}
-
-bool sortFunction(pair<double, Point2f> a, pair<double, Point2f> b){
-	return a.first<b.first;
-}
-
 int main(int argc, char** argv) {
 	RNG rng(12345);
 

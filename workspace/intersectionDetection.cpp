@@ -1,5 +1,8 @@
 #include "intersectionDetection.h"
 
+using namespace std;
+using namespace cv;
+
 bool IsBetween(const double& x0, const double& x, const double& x1) {
 	return (x >= x0) && (x <= x1);
 }
@@ -32,17 +35,37 @@ bool FindIntersection(const double& x0, const double& y0, const double& x1,
 		return false;
 }
 
-cv::Point2f computeIntersect(cv::Vec4i a, cv::Vec4i b) {
+Point2f computeIntersect(Vec4i a, Vec4i b) {
 	int x1 = a[0], y1 = a[1], x2 = a[2], y2 = a[3];
 	int x3 = b[0], y3 = b[1], x4 = b[2], y4 = b[3];
 
 	if (float d = ((float) (x1 - x2) * (y3 - y4)) - ((y1 - y2) * (x3 - x4))) {
-		cv::Point2f pt;
+		Point2f pt;
 		pt.x = ((x1 * y2 - y1 * x2) * (x3 - x4)
 				- (x1 - x2) * (x3 * y4 - y3 * x4)) / d;
 		pt.y = ((x1 * y2 - y1 * x2) * (y3 - y4)
 				- (y1 - y2) * (x3 * y4 - y3 * x4)) / d;
 		return pt;
 	} else
-		return cv::Point2f(-1, -1);
+		return Point2f(-1, -1);
+}
+
+
+void getIntersections(vector<Point2f> &intersections, const vector<Vec4i> &horz,
+		const vector<Vec4i> &vert, int maxOffset) {
+
+	for (auto h : horz) {
+		for (auto v : vert) {
+			Point2f newIntersect = computeIntersect(h, v);
+
+			bool add = true;
+			for (auto existingIntersect : intersections) {
+				if (norm(existingIntersect - newIntersect) < maxOffset) {
+					add = false;
+				}
+			}
+			if(add)
+				intersections.push_back(newIntersect);
+		}
+	}
 }

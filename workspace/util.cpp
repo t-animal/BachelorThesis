@@ -1,6 +1,8 @@
 #include "util.h"
 
 using namespace cv;
+using namespace std;
+
 
 int getMilliCount() {
 	timeb tb;
@@ -16,10 +18,10 @@ int getMilliSpan(int nTimeStart) {
 	return nSpan;
 }
 
+bool sortFunction(pair<double, Point2f> a, pair<double, Point2f> b){
+	return a.first<b.first;
+}
 
-/**
- * Rotate an image
- */
 void rotate(Mat& src, Mat& dst, double angle) {
 	int len = max(src.cols, src.rows);
 	Point2f pt(len / 2., len / 2.);

@@ -3,6 +3,7 @@
 using namespace std;
 using namespace cv;
 
+
 void detectVertHorzLines(Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
 		float horzThreshhold, float vertThreshhold) {
 	Mat dst;
@@ -43,6 +44,7 @@ double getAverageAngle(vector<Vec4i> lines) {
 		//=> bei kleiner 90 nach rechts rotieren
 		//=> bei groesser 90 nach links rotieren
 		//rotate macht bei pos. winkel rotation nach links (gg uzs)
+		//TODO: assert height !=0
 		double angle = atan(width / height) * 360 / 2 / M_PI;
 
 		if (angle > 0) {
