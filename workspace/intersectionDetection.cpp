@@ -69,3 +69,46 @@ void getIntersections(vector<Point2f> &intersections, const vector<Vec4i> &horz,
 		}
 	}
 }
+
+void selectBoardIntersections(Mat &src, vector<Point2f> intersections, vector<Point2f> &selectedIntersections){
+	double curDist, closestDistance = 9999, secondClosestDistance = 9999;
+	Point2f firstIntersection, nextIntersection;
+	Point2f center(src.cols/2, src.rows/2);
+	for (auto p : intersections) {
+		if((curDist = norm(center-p)) < closestDistance){
+			nextIntersection = firstIntersection;
+			firstIntersection = p;
+			secondClosestDistance = closestDistance;
+			closestDistance = curDist;
+		}else if(curDist < secondClosestDistance){
+			secondClosestDistance = curDist;
+			nextIntersection = p;
+		}
+	}
+
+	selectedIntersections.push_back(firstIntersection);
+	selectedIntersections.push_back(nextIntersection);
+	int curAverageDistance = norm(firstIntersection - nextIntersection);
+
+	unsigned int curLength;
+	do {
+		curLength = selectedIntersections.size();
+		for(auto si : selectedIntersections){
+			for(auto i : intersections){
+				if(norm(si-i) < curAverageDistance*1.5){
+					bool select = true;
+					for(auto si2:selectedIntersections){
+						if(i == si2){
+							select = false;
+							//cout << "not select" << endl;
+						}
+					}
+					if(select)
+						selectedIntersections.push_back(i);
+				}
+			}
+		}
+
+	}while(curLength != selectedIntersections.size());
+
+}

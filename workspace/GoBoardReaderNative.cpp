@@ -23,58 +23,37 @@ int main(int argc, char** argv) {
 
 	resize(src, src, Size(), 0.25, 0.25, INTER_LINEAR);
 
+	Mat displayImage;
+	Canny(src, displayImage, 50, 200, 3);
+	cvtColor(displayImage, displayImage, CV_GRAY2BGR);
+
 	cout << "Time consumed  until resized:" << getMilliSpan(t) << endl;
 
 	vector<Vec4i> horz, vert;
 
-	detectVertHorzLines(src, horz, vert, 2,2);
+	detectVertHorzLines(src, horz, vert, 2, 2);
 
 	cout << "Time consumed until detected lines:" << getMilliSpan(t) << endl;
-
-	Mat cdst;
-	Canny(src, cdst, 50, 200, 3);
-	cvtColor(cdst, cdst, CV_GRAY2BGR);
 
 	vector<Point2f> intersections;
 	getIntersections(intersections, horz, vert);
 
-	vector<pair<double, Point2f> > distances;
-	Point2f center(src.cols/2, src.rows/2);
-	for (auto p : intersections) {
-		distances.push_back(pair<double, Point2f>(norm(center-p), p));
-	}
+	cout << "Time consumend until all intersections found: " << getMilliSpan(t) << endl;
 
-	sort(distances.begin(), distances.end(), sortFunction);
 
-	vector<Point2f> innerIntersections;
-	pair<double, Point2f> last = distances.front();
-	double lastFirstDeriv  = 0;
-	double lastSecondDeriv = 0;
-	for(auto d : distances){
-		double curFirstDeriv  = d.first-last.first;
-		double curSecondDeriv = curFirstDeriv - lastFirstDeriv;
+	vector<Point2f> selectedIntersections;
+	selectBoardIntersections(src, intersections, selectedIntersections);
+	cout << "Time consumed until refined all points:" << getMilliSpan(t) << endl;
 
-		if(lastSecondDeriv-curSecondDeriv > 50)
-			break;
-
-		lastFirstDeriv = curFirstDeriv;
-		lastSecondDeriv = curSecondDeriv;
-		last = d;
-		innerIntersections.push_back(d.second);
-	}
-
-	cout << "Time consumed until refined all points:" << getMilliSpan(t)
-			<< endl;
-
-	for (auto p : innerIntersections) {
+	for (auto p : selectedIntersections) {
 		circle(src, p, 5, Scalar(0, 255, 255), 5, 8);
-		circle(cdst, p, 5, Scalar(0, 255, 255), 5, 8);
+		circle(displayImage, p, 5, Scalar(0, 255, 255), 5, 8);
 	}
 	for (auto p : intersections) {
 		circle(src, p, 5, Scalar(180, 180, 180), 2, 8);
-		circle(cdst, p, 5, Scalar(180, 180, 180), 2, 8);
+		circle(displayImage, p, 5, Scalar(180, 180, 180), 2, 8);
 	}
-	circle(cdst, center, 5, Scalar(0, 0, 255), 5, 8);
+	circle(displayImage, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
 
 	for (auto h : horz) {
 //		line(cdst, Point(h[0], h[1]), Point(h[2], h[3]),
@@ -86,7 +65,7 @@ int main(int argc, char** argv) {
 	}
 
 	imshow("source", src);
-	imshow("detected lines", cdst);
+	imshow("detected lines", displayImage);
 	//imshow("rotated", foo);
 
 	waitKey();

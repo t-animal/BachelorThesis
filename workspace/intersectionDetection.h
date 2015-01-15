@@ -32,3 +32,15 @@ void getIntersections(
 		const int maxOffset = 10                 //!< distance in norm2 within which two intersections are
 		                                         //!<   considered the same
 		);
+
+/**
+ * Selects those intersections that are part of the go-board. Starts at the center of the image, computes the distance
+ * between the two intersection closest to it and then repeatedly selects all the intersections closer than this
+ * distance to a previously selected one.
+ */
+void selectBoardIntersections(
+		cv::Mat &src,                                     //!< the src image
+		std::vector<cv::Point2f> intersections,           //!< the input intersections
+		std::vector<cv::Point2f> &selectedIntersections   //!< output vector for the filtered intersections
+		);
+
