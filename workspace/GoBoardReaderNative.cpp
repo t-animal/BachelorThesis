@@ -36,7 +36,7 @@ inline void vector_Point2f_to_Mat(vector<Point2f>& v_rect, Mat& mat){
 void detect(Mat &mgray, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections){
 	int t = getMilliCount();
 	Mat src;
-	resize(mgray, src, Size(), 1, 1, INTER_LINEAR); //TODO: resize to exact size
+	resize(mgray, src, Size(800,480), 0,0, INTER_LINEAR);
 	LOGD("Time consumed  until resized: %d", getMilliSpan(t));
 	cout << "Time consumed  until resized:" << getMilliSpan(t) << endl;
 
@@ -60,9 +60,11 @@ void detect(Mat &mgray, vector<Point2f> &intersections, vector<Point2f> &selecte
 int main(int argc, char** argv) {
 	RNG rng(12345);
 
+
 	Mat src;
 	/// Load source image and convert it to gray
 	src = imread(argv[1], 1);
+	resize(src, src, Size(800,480), 0,0, INTER_LINEAR);
 
 	Mat displayImage;
 	Canny(src, displayImage, 50, 200, 3);
