@@ -11,6 +11,7 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -21,8 +22,11 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 
 	private static final String TAG = "T_ANIMAL::GBR::DetectorActivity";
 	private static final Scalar RED = new Scalar(255, 0, 0, 255);
+	private static final Scalar WHITE = new Scalar(255, 255, 255, 255);
+	private static final Scalar YELLOW = new Scalar(255, 255, 0, 255);
 
-	private Mat image;
+	private Mat grayImage;
+	private Mat colorImage;
 	private CameraBridgeViewBase mOpenCvCameraView;
 
 	/**
@@ -67,42 +71,40 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 
 	@Override
 	public void onCameraViewStarted(int width, int height) {
-		image = new Mat();
+		grayImage = new Mat();
+		colorImage = new Mat();
 	}
 
 	@Override
 	public void onCameraViewStopped() {
-		image.release();
+		grayImage.release();
+		colorImage.release();
 	}
 
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-		image = inputFrame.gray();
+		grayImage = inputFrame.gray();
+		Imgproc.cvtColor(grayImage, colorImage, Imgproc.COLOR_GRAY2RGB);
 
 		MatOfPoint2f intersections = new MatOfPoint2f();
 		MatOfPoint2f selectedIntersections = new MatOfPoint2f();
 
-		detect(image.getNativeObjAddr(), intersections.getNativeObjAddr(),
+		detect(grayImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
 				selectedIntersections.getNativeObjAddr());
-
-		Log.i(TAG, "intersrows:" + intersections.rows());
-		Log.i(TAG, "interscols:" + intersections.cols());
 
 		for (int i = 0; i < intersections.rows(); i++) {
 			double[] p = intersections.get(i, 0);
-			Core.circle(image, new Point(p[0], p[1]), 10, RED);
+			Core.circle(colorImage, new Point(p[0], p[1]), 10, WHITE);
 		}
 
-		for (int i = 0; i < intersections.cols(); i++) {
-			double[] p = intersections.get(0, i);
-			if (p == null)
-				continue;
-			Core.circle(image, new Point(p[0], p[1]), 10, RED);
+		for (int i = 0; i < selectedIntersections.rows(); i++) {
+			double[] p = selectedIntersections.get(i, 0);
+			Core.circle(colorImage, new Point(p[0], p[1]), 10, YELLOW, 3);
 		}
 
-		Core.line(image, new Point(0, 0), new Point(100, 100), RED, 10);
+		Core.circle(colorImage, new Point(colorImage.width() / 2, colorImage.height() / 2), 10, RED, 3);
 
-		return image;
+		return colorImage;
 	}
 
 	/**

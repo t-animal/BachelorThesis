@@ -16,8 +16,8 @@ void detectVertHorzLines(
 		cv::Mat &img,                   //!< the image to analyse
 		std::vector<cv::Vec4i> &horz,   //!< output of horizontal lines
 		std::vector<cv::Vec4i> &vert,   //!< output of vertical lines
-		float horzThreshhold = 2,       //!< max absolute pitch against the x-axis of horizontal lines
-		float vertThreshhold = 2        //!< max absolute pitch against the y-axis of vertical lines
+		float horzThreshhold = 2,       //!< min absolute pitch against the x-axis of horizontal lines
+		float vertThreshhold = 2        //!< min absolute pitch against the y-axis of vertical lines
 		);
 
 /**

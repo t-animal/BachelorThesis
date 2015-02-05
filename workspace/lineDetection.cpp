@@ -20,8 +20,7 @@ void detectVertHorzLines(Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
 		int width = l[2] - l[0];
 
 		bool isVert = width == 0 || abs(height / float(width)) > horzThreshhold;
-		bool isHorz = height == 0
-				|| abs(width / float(height)) > vertThreshhold;
+		bool isHorz = height == 0 || abs(width / float(height)) > vertThreshhold;
 
 		if (isVert) {
 			vert.push_back(l);
