@@ -34,18 +34,20 @@ inline void vector_Point2f_to_Mat(vector<Point2f>& v_rect, Mat& mat){
 void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections){
 	int t = getMilliCount();
 //	Mat src;
-//	resize(mgray, src, Size(800,800*mgray.cols/mgray.rows), 0,0, INTER_LINEAR);
+	resize(src, src, Size(), 0.75,0.75, INTER_LINEAR);
 //	LOGD("Time consumed  until resized: %d", getMilliSpan(t));
 
 	vector<Vec4i> horz, vert;
 	detectVertHorzLines(src, horz, vert, 2, 2);
 	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
 
+	//TODO: Linien muessen irgendwie zusammengefuehrt werden
+
 	getIntersections(intersections, horz, vert);
 	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
 
 	selectBoardIntersections(src, intersections, selectedIntersections);
-	LOGD("Time consumed until refined all points:%d", getMilliSpan(t));
+	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
 
 	LOGD("intersectionsCount: %d", intersections.size());
 	LOGD("selectedIntersectionsCount: %d", selectedIntersections.size());
@@ -67,7 +69,7 @@ int main(int argc, char** argv) {
 	//paint the points onto another image
 	Mat displayImage;
 	Canny(src, displayImage, 50, 200, 3);
-	cvtColor(displayImage, displayImage, CV_GRAY2BGR);
+	cvtColor(displayImage, displayImage, COLOR_GRAY2BGR);
 
 	for (auto p : selectedIntersections) {
 		circle(src, p, 5, Scalar(0, 255, 255), 5, 8);
@@ -79,8 +81,10 @@ int main(int argc, char** argv) {
 	}
 	circle(displayImage, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
 
+	namedWindow("detectedlines", WINDOW_NORMAL);
+	namedWindow("source", WINDOW_NORMAL);
 	imshow("source", src);
-	imshow("detected lines", displayImage);
+	imshow("detectedlines", displayImage);
 
 	waitKey();
 
