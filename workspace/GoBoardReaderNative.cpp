@@ -6,11 +6,9 @@
 #include <iostream>
 #include <stdio.h>
 
-
 #include "lineDetection.h"
 #include "intersectionDetection.h"
 #include "util.h"
-
 
 using namespace cv;
 using namespace std;
@@ -34,14 +32,12 @@ inline void vector_Point2f_to_Mat(vector<Point2f>& v_rect, Mat& mat){
 void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections){
 	int t = getMilliCount();
 //	Mat src;
-	resize(src, src, Size(), 0.75,0.75, INTER_LINEAR);
+//	resize(src, src, Size(), 0.75,0.75, INTER_LINEAR);
 //	LOGD("Time consumed  until resized: %d", getMilliSpan(t));
 
 	vector<Vec4i> horz, vert;
 	detectVertHorzLines(src, horz, vert, 2, 2);
 	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
-
-	//TODO: Linien muessen irgendwie zusammengefuehrt werden
 
 	getIntersections(intersections, horz, vert);
 	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
@@ -81,8 +77,8 @@ int main(int argc, char** argv) {
 	}
 	circle(displayImage, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
 
-	namedWindow("detectedlines", WINDOW_NORMAL);
-	namedWindow("source", WINDOW_NORMAL);
+	namedWindow("detectedlines", WINDOW_AUTOSIZE);
+	namedWindow("source", WINDOW_AUTOSIZE);
 	imshow("source", src);
 	imshow("detectedlines", displayImage);
 

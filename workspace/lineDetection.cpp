@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "lineDetection.h"
+#include "backported/lsd.hpp"
 
 using namespace std;
 using namespace cv;
