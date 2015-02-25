@@ -47,6 +47,37 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 
 	LOGD("intersectionsCount: %d", intersections.size());
 	LOGD("selectedIntersectionsCount: %d", selectedIntersections.size());
+
+
+	vector<Vec3f> darkCircles,lightCircles;
+	Mat dst;
+	cvtColor(src, dst, CV_BGR2GRAY);
+	GaussianBlur(dst, dst, Size(3, 3), 0.7);
+	threshold(dst, dst, 15, 255, THRESH_BINARY);
+	HoughCircles(dst, darkCircles, CV_HOUGH_GRADIENT, 3, 15, 900, 20, 8, 15);
+	LOGD("circles found %d", darkCircles.size())
+	LOGD("Time consumed until found dark circles: %d", getMilliSpan(t));
+
+	cvtColor(src, dst, CV_BGR2GRAY);
+	GaussianBlur(dst, dst, Size(3, 3), 0.7);
+	threshold(dst, dst, 190, 255, THRESH_BINARY);
+	HoughCircles(dst, lightCircles, CV_HOUGH_GRADIENT, 3, 15, 900, 27, 8, 15);
+	LOGD("circles found %d", darkCircles.size())
+	LOGD("Time consumed until found light circles: %d", getMilliSpan(t));
+
+	for (auto c : darkCircles) {
+		circle(src, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
+	}
+	for (auto c : lightCircles) {
+		circle(src, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2, 8);
+	}
+
+	Mat disp = dst.clone();
+	Mat disp2 = dst.clone();
+	Canny(dst, disp, 900, 450, 3);
+	imshow("circledingsi", disp);
+	imshow("circledingsi2", disp2);
+
 }
 
 int main(int argc, char** argv) {
@@ -67,15 +98,15 @@ int main(int argc, char** argv) {
 	Canny(src, displayImage, 50, 200, 3);
 	cvtColor(displayImage, displayImage, COLOR_GRAY2BGR);
 
-	for (auto p : selectedIntersections) {
-		circle(src, p, 5, Scalar(0, 255, 255), 5, 8);
-		circle(displayImage, p, 5, Scalar(0, 255, 255), 5, 8);
-	}
-	for (auto p : intersections) {
-		circle(src, p, 5, Scalar(180, 180, 180), 2, 8);
-		circle(displayImage, p, 5, Scalar(180, 180, 180), 2, 8);
-	}
-	circle(displayImage, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
+//	for (auto p : selectedIntersections) {
+//		circle(src, p, 5, Scalar(0, 255, 255), 5, 8);
+//		circle(displayImage, p, 5, Scalar(0, 255, 255), 5, 8);
+//	}
+//	for (auto p : intersections) {
+//		circle(src, p, 5, Scalar(180, 180, 180), 2, 8);
+//		circle(displayImage, p, 5, Scalar(180, 180, 180), 2, 8);
+//	}
+//	circle(displayImage, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
 
 	namedWindow("detectedlines", WINDOW_AUTOSIZE);
 	namedWindow("source", WINDOW_AUTOSIZE);

@@ -231,8 +231,6 @@ void detectVertHorzLines_HOUGH (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &ve
 	Mat dst;
 	vector<Vec4i> lines;
 
-
-
 	Canny(img, dst, 50, 200, 3);
 
 	HoughLinesP(dst, lines, 1, CV_PI / 180, 40, 70, 10);
