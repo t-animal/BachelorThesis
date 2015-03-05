@@ -24,79 +24,125 @@ using namespace std;
 inline void vector_Point2f_to_Mat(vector<Point2f>& v_rect, Mat& mat){
 	mat = Mat(v_rect, true);
 }
+inline void vector_Point3f_to_Mat(vector<Point3f>& v_rect, Mat& mat){
+	mat = Mat(v_rect, true);
+}
+
+#define imshow(...) ""
 
 #else
 	#define LOGD(...) fprintf(stdout, __VA_ARGS__); cout << endl;
 #endif
 
-void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections){
+void drawHistogram(Mat &src){
+	Mat hist;
+	int channels[] = {0};
+	float range[] = {0,255};
+	const float* ranges[] = {range};
+	int histsize[] = {255};
+	calcHist(&src, 1, channels, Mat(), hist, 1, histsize, ranges, true, false);
+
+	int bin_w = cvRound( (double) src.cols/255);
+	normalize(hist, hist, 0, src.rows, NORM_MINMAX, -1, Mat() );
+	for( int i = 1; i < 255; i++ ){
+		line(src, Point( bin_w*(i-1), src.rows - cvRound(hist.at<float>(i-1)) ) ,
+		           Point(bin_w * i,    src.rows - cvRound(hist.at<float>(i)) ),
+		           Scalar( 255, 255, 255), 2, 8, 0  );
+	}
+}
+
+void detectCircles(Mat &src, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles){
+
+//	Mat disp;
+//	cvtColor(src, disp, COLOR_HSV2BGR);
+//	Mat disp2 = disp.clone();
+
+	Mat dst, dst2;
+	vector<Mat> channels;
+	split(src, channels);
+	Mat h = channels[0];
+	Mat s = channels[1];
+	Mat v = channels[2];
+
+	equalizeHist(v, v);
+	equalizeHist(s, s);
+	GaussianBlur(v, v, Size(7,7), 0);
+	threshold(v, v, 30, 255, THRESH_BINARY);
+	HoughCircles(v, darkCircles, CV_HOUGH_GRADIENT, 3, 15, 900, src.rows/12, src.rows/12, src.rows/11);
+
+	GaussianBlur(s, s, Size(7,7), 0);
+	threshold(s, s, 20, 255, THRESH_BINARY);
+	HoughCircles(s, lightCircles, CV_HOUGH_GRADIENT, 3, 15, 900, src.rows/12, src.rows/12, src.rows/11);
+
+//	for (Vec3f  c : darkCircles) {
+//		circle(disp2, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
+//	}
+//	for (Vec3f c : lightCircles) {
+//		circle(disp2, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2, 8);
+//	}
+//
+//	threshold(dst, src, 160, 255, THRESH_BINARY);
+//	Canny(dst, disp, 900, 450, 3);
+//	imshow("circledingsi", disp);
+	imshow("circledingsi2", v);
+}
+
+void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles){
 	int t = getMilliCount();
-//	Mat src;
-//	resize(src, src, Size(), 0.75,0.75, INTER_LINEAR);
+	Mat gray, hsv;
+	cvtColor(src, gray, COLOR_BGR2GRAY);
+	cvtColor(src, hsv, COLOR_BGR2HSV);
+//	resize(src, gray, Size(), 0.75,0.75, INTER_LINEAR);
 //	LOGD("Time consumed  until resized: %d", getMilliSpan(t));
 
-	vector<Vec4i> horz, vert;
-	detectVertHorzLines(src, horz, vert, 2, 2);
-	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
+//	vector<Vec4i> horz, vert;
+//	detectVertHorzLines(src, horz, vert, 2, 2);
+//	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
+//
+//	getIntersections(intersections, horz, vert);
+//	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
+//
+//	selectBoardIntersections(src, intersections, selectedIntersections);
+//	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
+//
+//	LOGD("intersectionsCount: %d", intersections.size());
+//	LOGD("selectedIntersectionsCount: %d", selectedIntersections.size());
 
-	getIntersections(intersections, horz, vert);
-	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
-
-	selectBoardIntersections(src, intersections, selectedIntersections);
-	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
-
-	LOGD("intersectionsCount: %d", intersections.size());
-	LOGD("selectedIntersectionsCount: %d", selectedIntersections.size());
-
-
-	vector<Vec3f> darkCircles,lightCircles;
-	Mat dst;
-	cvtColor(src, dst, CV_BGR2GRAY);
-	GaussianBlur(dst, dst, Size(3, 3), 0.7);
-	threshold(dst, dst, 15, 255, THRESH_BINARY);
-	HoughCircles(dst, darkCircles, CV_HOUGH_GRADIENT, 3, 15, 900, 20, 8, 15);
-	LOGD("circles found %d", darkCircles.size())
-	LOGD("Time consumed until found dark circles: %d", getMilliSpan(t));
-
-	cvtColor(src, dst, CV_BGR2GRAY);
-	GaussianBlur(dst, dst, Size(3, 3), 0.7);
-	threshold(dst, dst, 190, 255, THRESH_BINARY);
-	HoughCircles(dst, lightCircles, CV_HOUGH_GRADIENT, 3, 15, 900, 27, 8, 15);
-	LOGD("circles found %d", darkCircles.size())
-	LOGD("Time consumed until found light circles: %d", getMilliSpan(t));
-
-	for (auto c : darkCircles) {
-		circle(src, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
-	}
-	for (auto c : lightCircles) {
-		circle(src, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2, 8);
-	}
-
-	Mat disp = dst.clone();
-	Mat disp2 = dst.clone();
-	Canny(dst, disp, 900, 450, 3);
-	imshow("circledingsi", disp);
-	imshow("circledingsi2", disp2);
-
+	detectCircles(hsv, darkCircles, lightCircles);
+	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
+	LOGD("dark circles found %d", darkCircles.size());
+	LOGD("light circles found %d", lightCircles.size());
+	LOGD("====");
+	LOGD("====");
 }
 
 int main(int argc, char** argv) {
 	RNG rng(12345);
 	Mat src;
 
-	//load source image and convert it to gray
-	src = imread(argv[1], 1);
+	//load source image and store "as is" (rgb or bgr?) with alpha
+	src = imread(argv[1], -1);
 
 	//resize roughly to nexus4 camera size
 	resize(src, src, Size(800, src.rows*800.0/src.cols), 0,0, INTER_LINEAR);
 
 	vector<Point2f> selectedIntersections, intersections;
-	detect(src, intersections, selectedIntersections);
+	vector<Point3f> darkCircles, lightCircles;
+
+	detect(src, intersections, selectedIntersections, darkCircles, lightCircles);
 
 	//paint the points onto another image
 	Mat displayImage;
-	Canny(src, displayImage, 50, 200, 3);
+	cvtColor(src, displayImage, COLOR_BGR2GRAY);
+	Canny(displayImage, displayImage, 50, 200, 3);
 	cvtColor(displayImage, displayImage, COLOR_GRAY2BGR);
+
+	for (Vec3f  c : darkCircles) {
+		circle(displayImage, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
+	}
+	for (Vec3f c : lightCircles) {
+		circle(displayImage, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2, 8);
+	}
 
 //	for (auto p : selectedIntersections) {
 //		circle(src, p, 5, Scalar(0, 255, 255), 5, 8);
@@ -123,16 +169,20 @@ int main(int argc, char** argv) {
 
 extern "C"{
 	JNIEXPORT void JNICALL Java_de_t_1animal_goboardreader_DetectorActivity_detect(
-			JNIEnv * jenv, jobject  obj, jlong mgray, jlong java_intersections, jlong java_selectedIntersections){
+			JNIEnv * jenv, jobject  obj, jlong src, jlong java_intersections, jlong java_selectedIntersections,
+			jlong java_darkCircles, jlong java_lightCircles){
 
 		vector<Point2f> selectedIntersections, intersections;
+		vector<Point3f> darkCircles, lightCircles;
 
-		detect(*(Mat*) mgray, intersections, selectedIntersections);
+		detect(*(Mat*) src, intersections, selectedIntersections, darkCircles, lightCircles);
 
 		LOGD("outside intersectionsCount: %d", intersections.size());
 		LOGD("outside selectedIntersectionsCount: %d", selectedIntersections.size());
 		vector_Point2f_to_Mat(selectedIntersections, *((Mat*)java_selectedIntersections));
 		vector_Point2f_to_Mat(intersections, *((Mat*)java_intersections));
+		vector_Point3f_to_Mat(darkCircles, *((Mat*)java_darkCircles));
+		vector_Point3f_to_Mat(lightCircles, *((Mat*)java_lightCircles));
 	}
 }
 #endif
