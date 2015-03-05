@@ -1,0 +1,4 @@
+# Building
+
+addpackage android-ndk
+ndk-build
