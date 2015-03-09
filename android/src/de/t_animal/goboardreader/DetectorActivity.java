@@ -1,5 +1,9 @@
 package de.t_animal.goboardreader;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
@@ -12,11 +16,13 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
+import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.WindowManager;
 
 public class DetectorActivity extends Activity implements CvCameraViewListener2 {
@@ -30,6 +36,7 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 
 	private Mat grayImage, colorImage;
 	private CameraBridgeViewBase mOpenCvCameraView;
+	private boolean saveNextImage = false;
 
 	/**
 	 * Begin app lifecycle callbacks
@@ -69,6 +76,16 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	}
 
 	/**
+	 * Begin user interaction callbacks
+	 */
+
+	public void saveNextImage(View v) {
+		synchronized (this) {
+			saveNextImage = true;
+		}
+	}
+
+	/**
 	 * Begin OpenCV callbacks
 	 */
 
@@ -88,7 +105,28 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		colorImage = inputFrame.rgba();
 		grayImage = inputFrame.gray();
-		Imgproc.cvtColor(grayImage, colorImage, Imgproc.COLOR_GRAY2RGB);
+		Imgproc.cvtColor(grayImage, grayImage, Imgproc.COLOR_GRAY2RGB);
+
+		boolean saveThisImage = false;
+		synchronized (this) {
+			if (saveNextImage) {
+				saveThisImage = true;
+				saveNextImage = false;
+			}
+		}
+		String filename = "";
+		File storagePath = getExternalFilesDir(null);
+		if (saveThisImage) {
+			Mat rgbImage = new Mat();
+			Imgproc.cvtColor(colorImage, rgbImage, Imgproc.COLOR_BGR2RGBA);
+			filename = android.os.Build.PRODUCT + "_(" + android.os.Build.MANUFACTURER + "-" + android.os.Build.MODEL
+					+ ")_" + android.os.Build.DISPLAY + "_"
+					+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+
+			Highgui.imwrite(new File(storagePath, filename + "_unprocessed.png").getPath(), rgbImage);
+			rgbImage.release();
+		}
+
 
 		MatOfPoint2f intersections = new MatOfPoint2f();
 		MatOfPoint2f selectedIntersections = new MatOfPoint2f();
@@ -98,7 +136,6 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 		detect(colorImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
 				selectedIntersections.getNativeObjAddr(), darkCircles.getNativeObjAddr(),
 				lightCircles.getNativeObjAddr());
-		Imgproc.cvtColor(grayImage, colorImage, Imgproc.COLOR_GRAY2RGB);
 
 		for (int i = 0; i < intersections.rows(); i++) {
 			double[] p = intersections.get(i, 0);
@@ -121,6 +158,17 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 		}
 
 		Core.circle(colorImage, new Point(colorImage.width() / 2, colorImage.height() / 2), 10, RED, 3);
+
+		if (saveThisImage) {
+			Mat rgbImage = new Mat();
+			Imgproc.cvtColor(colorImage, rgbImage, Imgproc.COLOR_BGR2RGB);
+
+			Highgui.imwrite(new File(storagePath, filename + "_processed.png").getPath(), rgbImage);
+			Core.subtract(Mat.ones(colorImage.size(), colorImage.type()).setTo(new Scalar(255)), colorImage, colorImage);
+
+			rgbImage.release();
+
+		}
 
 		return colorImage;
 	}

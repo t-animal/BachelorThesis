@@ -3,9 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <org.opencv.android.JavaCameraView
+    <de.t_animal.goboardreader.CameraManipulatingView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/detector_activity_surface_view" />
+        android:id="@+id/detector_activity_surface_view" 
+        android:onClick="saveNextImage"/>
 
 </LinearLayout>
