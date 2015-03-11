@@ -5,7 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
@@ -20,6 +19,7 @@ import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.Imgproc;
 
 import android.app.Activity;
+import android.hardware.Camera;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -35,7 +35,7 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	private static final Scalar YELLOW = new Scalar(255, 255, 0, 20);
 
 	private Mat grayImage, colorImage;
-	private CameraBridgeViewBase mOpenCvCameraView;
+	private CameraManipulatingView mOpenCvCameraView;
 	private boolean saveNextImage = false;
 
 	/**
@@ -50,7 +50,7 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 
 		setContentView(R.layout.detector_activity);
 
-		mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.detector_activity_surface_view);
+		mOpenCvCameraView = (CameraManipulatingView) findViewById(R.id.detector_activity_surface_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		mOpenCvCameraView.enableFpsMeter();
 	}
@@ -93,6 +93,14 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	public void onCameraViewStarted(int width, int height) {
 		grayImage = new Mat();
 		colorImage = new Mat();
+
+		Camera.Parameters camParams = mOpenCvCameraView.getCameraParameters();
+
+		// Log.i(TAG, "is auto exposure lock supported:" + camParams.isAutoExposureLockSupported());
+		// Log.i(TAG, "is auto whitebalance lock supported:" + camParams.isAutoWhiteBalanceLockSupported());
+		// camParams.setAutoExposureLock(true);
+		// camParams.setAutoWhiteBalanceLock(true);
+		mOpenCvCameraView.setCameraParameters(camParams);
 	}
 
 	@Override
@@ -126,7 +134,6 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 			Highgui.imwrite(new File(storagePath, filename + "_unprocessed.png").getPath(), rgbImage);
 			rgbImage.release();
 		}
-
 
 		MatOfPoint2f intersections = new MatOfPoint2f();
 		MatOfPoint2f selectedIntersections = new MatOfPoint2f();
