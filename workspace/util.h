@@ -41,3 +41,10 @@ void rotate(cv::Mat& src, cv::Mat& dst, double angle);
  * \returns a.first < b.first
  */
 bool sortFunction(std::pair<double, cv::Point2f> a, std::pair<double, cv::Point2f> b);
+
+/**
+ * Returns the opencv type of the Matrix as a human readable String
+ *
+ * \param type: an opencv type
+ */
+std::string type2str(int type);

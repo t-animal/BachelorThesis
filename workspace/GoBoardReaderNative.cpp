@@ -55,44 +55,70 @@ void drawHistogram(const Mat &src, Mat &dst){
 
 void detectCircles(Mat &src, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles){
 
-	Mat disp;
-	cvtColor(src, disp, COLOR_HSV2BGR);
-	Mat disp2 = disp.clone();
+	LOGD("src is a %s", type2str(src.type()).c_str());
 
-	Mat dst, dst2;
+	Mat disp;
+	src.convertTo(disp, CV_8UC3);
+	cvtColor(disp, disp, COLOR_HSV2BGR);
+
 	vector<Mat> channels;
 	split(src, channels);
 	Mat h = channels[0];
 	Mat s = channels[1];
 	Mat v = channels[2];
 
-	Mat h1,s1,v1;
-	drawHistogram(h, h1);
-	drawHistogram(s, s1);
-	drawHistogram(v, v1);
-//	imshow("vPre", v1);
-//	imshow("sPre", s1);
-//	imshow("hPre", h1);
+//	drawHistogram(h, h1);
+//	drawHistogram(s, s1);
+//	drawHistogram(v, v1);
+	//THE OPENCV DOCU HERE IS CRAP! => 0 ≤ v ≤ 255; 0 ≤ s ≤ 1; 0 ≤ h ≤ 360
+	imshow("vPre", v/255);
+	imshow("sPre", s);
+	imshow("hPre", h/360);
 
-	equalizeHist(v, v);
-	equalizeHist(s, s);
-	equalizeHist(h, h);
+//	equalizeHist(v, v);
+//	equalizeHist(s, s);
+//	equalizeHist(h, h);
 	GaussianBlur(v, v, Size(13,13), 0);
 	GaussianBlur(s, s, Size(25,25), 0);
 	GaussianBlur(h, h, Size(25,25), 0);
 
-	threshold(v, v, 30, 255, THRESH_BINARY);
-	dilate(s, s, Mat(), Point(-1,-1), 3);
-	erode(s, s, Mat(), Point(-1,-1), 3);
-	HoughCircles(v, darkCircles, CV_HOUGH_GRADIENT, 3, 25, 900, src.rows/20, src.rows/20, src.rows/15.2);
+	threshold(v, v, 90, 255, THRESH_BINARY);
+	threshold(s, s, 0.17, 1, THRESH_BINARY);
+	threshold(h, h, 180, 360, THRESH_BINARY_INV);
 
-	threshold(s, s, 10, 255, THRESH_BINARY);
-	threshold(h, h, 210, 255, THRESH_BINARY_INV);
-	s = s/2 + h/2;
-	threshold(s,s, 254, 255, THRESH_BINARY);
-	dilate(s, s, Mat(), Point(-1,-1), 3);
-	erode(s, s, Mat(), Point(-1,-1), 3);
-	HoughCircles(s, lightCircles, CV_HOUGH_GRADIENT, 3, 25, 900, src.rows/20, src.rows/20, src.rows/15.2);
+	dilate(h, h, Mat(), Point(-1,-1), 5);
+	dilate(s, s, Mat(), Point(-1,-1), 5);
+	dilate(v, v, Mat(), Point(-1,-1), 5);
+	erode(h, h, Mat(), Point(-1,-1), 5);
+	erode(s, s, Mat(), Point(-1,-1), 5);
+	erode(v, v, Mat(), Point(-1,-1), 5);
+
+	imshow("hPost", h/360);
+	imshow("sPost", s);
+	imshow("vPost", v/255);
+
+	h.convertTo((h/=360)*=255, CV_8UC1); //0.70833=255/360
+	s.convertTo(s*=255, CV_8UC1);
+	v.convertTo(v, CV_8UC1);
+
+	imshow("h8UC1", h);
+	imshow("s8UC1", s);
+	imshow("v8UC1", v);
+	Mat h1;
+	s.copyTo(h1);
+//	Canny(h1, h1, 900, 450);
+
+	//          (Input, Output,   method,            dp, minDist,  param1=100, param2=100, minRadius=0, maxRadius=0 )
+	vector<Vec3f> lightCircles1, lightCircles2;
+	HoughCircles(h, lightCircles1, CV_HOUGH_GRADIENT, 3, src.rows/13,    900,   50 ,        src.rows/30, src.rows/11);
+	HoughCircles(s, lightCircles2, CV_HOUGH_GRADIENT, 3, src.rows/13,    900,   50 ,        src.rows/30, src.rows/11);
+	HoughCircles(v, darkCircles,   CV_HOUGH_GRADIENT, 3, src.rows/15,    900,   50 ,        src.rows/20, src.rows/11);
+
+	LOGD("lc1 %d", lightCircles1.size());
+	LOGD("lc2 %d", lightCircles2.size());
+
+	lightCircles.insert(lightCircles.end(), lightCircles1.begin(), lightCircles1.end());
+	lightCircles.insert(lightCircles.end(), lightCircles2.begin(), lightCircles2.end());
 
 //	for(Point3f &c: lightCircles){
 //		if(c.x == -1)
@@ -112,18 +138,13 @@ void detectCircles(Mat &src, vector<Point3f> &darkCircles, vector<Point3f> &ligh
 //	}
 
 	for (Vec3f  c : darkCircles) {
-		circle(disp2, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
+		circle(disp, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
 	}
 	for (Vec3f c : lightCircles) {
-		circle(disp2, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2, 8);
+		circle(disp, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2, 8);
 	}
-//
-//	threshold(dst, src, 160, 255, THRESH_BINARY);
-//	Canny(s, s, 900, 450, 3);
-	imshow("circledingsi", disp2);
-//	imshow("vPost", v);
-	imshow("sPost", s);
-//	imshow("hPost", h);
+
+	imshow("result", disp);
 }
 
 void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles){
@@ -155,13 +176,12 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 
 int main(int argc, char** argv) {
 	RNG rng(12345);
-	Mat src;
+	Mat4f src;
 
 	//load source image and store "as is" (rgb or bgr?) with alpha
 	src = imread(argv[1], -1);
 
-	//resize roughly to nexus4 camera size
-	//resize(src, src, Size(800, src.rows*800.0/src.cols), 0,0, INTER_LINEAR);
+	LOGD("src is a %s", type2str(src.type()).c_str());
 
 	vector<Point2f> selectedIntersections, intersections;
 	vector<Point3f> darkCircles, lightCircles;
@@ -170,7 +190,8 @@ int main(int argc, char** argv) {
 
 	//paint the points onto another image
 	Mat displayImage;
-	cvtColor(src, displayImage, COLOR_BGR2GRAY);
+	src.convertTo(displayImage, CV_8UC3);
+	cvtColor(displayImage, displayImage, COLOR_BGR2GRAY);
 	Canny(displayImage, displayImage, 50, 200, 3);
 	cvtColor(displayImage, displayImage, COLOR_GRAY2BGR);
 

@@ -10,6 +10,7 @@ import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.MatOfPoint3f;
@@ -113,7 +114,9 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		colorImage = inputFrame.rgba();
 		grayImage = inputFrame.gray();
+		Mat detectionImage = new Mat();
 		Imgproc.cvtColor(grayImage, grayImage, Imgproc.COLOR_GRAY2RGB);
+		colorImage.convertTo(detectionImage, CvType.CV_32FC4);
 
 		boolean saveThisImage = false;
 		synchronized (this) {
@@ -140,7 +143,7 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 		MatOfPoint3f darkCircles = new MatOfPoint3f();
 		MatOfPoint3f lightCircles = new MatOfPoint3f();
 
-		detect(colorImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
+		detect(detectionImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
 				selectedIntersections.getNativeObjAddr(), darkCircles.getNativeObjAddr(),
 				lightCircles.getNativeObjAddr());
 
