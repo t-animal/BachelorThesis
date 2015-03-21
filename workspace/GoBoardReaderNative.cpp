@@ -184,12 +184,20 @@ void detect(Mat &src, vector<Point2f> &intersections,
 	LOGD("light circles found %d", lightCircles.size());
 }
 
-int main(int argc, char** argv) {
+void loadAndProcessImage(char *filename){
 	RNG rng(12345);
 	Mat4f src;
 
-	//load source image and store "as is" (rgb or bgr?) with alpha
-	src = imread(argv[1], -1);
+	if(filename[strlen(filename)-1] == 'l'){
+		FileStorage fs(filename, FileStorage::READ);
+
+		fs["matrix"] >> src;
+
+		fs.release();
+	}else{
+		//load source image and store "as is" (rgb or bgr?) with alpha
+		src = imread(filename, -1);
+	}
 
 	LOGD("src is a %s", type2str(src.type()).c_str());
 
@@ -230,6 +238,12 @@ int main(int argc, char** argv) {
 //	imshow("detectedlines", displayImage);
 
 	waitKey();
+}
+
+int main(int argc, char** argv) {
+	for(int i=1; i<argc; i++){
+		loadAndProcessImage(argv[i]);
+	}
 
 	return 0;
 }
