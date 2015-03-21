@@ -13,13 +13,13 @@ mkdir -p files/all/unprocessed
 mkdir -p files/all/processed
 mkdir -p files/$1/unprocessed
 mkdir -p files/$1/processed
-mv files/$1/*unprocessed.png files/$1/unprocessed
+mv files/$1/*unprocessed.{png,yml} files/$1/unprocessed
 mv files/$1/*processed.png files/$1/processed
 
 for i in files/$1/unprocessed/*; do
-	ln -s "$i" "files/all/unprocessed/`basename "$i"`"
+	ln -s "../../../$i" "files/all/unprocessed/"
 done
 
 for i in files/$1/processed/*; do
-	ln -s "$i" "files/all/processed/`basename "$i"`"
+	ln -s "../../../$i" "files/all/processed/"
 done

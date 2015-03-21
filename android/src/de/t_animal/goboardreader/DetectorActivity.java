@@ -35,7 +35,7 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	private static final Scalar LIGHT_GRAY = new Scalar(180, 180, 180, 20);
 	private static final Scalar YELLOW = new Scalar(255, 255, 0, 20);
 
-	private Mat grayImage, colorImage;
+	private Mat grayImage, colorImage, detectionImage;
 	private CameraManipulatingView mOpenCvCameraView;
 	private boolean saveNextImage = false;
 
@@ -94,6 +94,7 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	public void onCameraViewStarted(int width, int height) {
 		grayImage = new Mat();
 		colorImage = new Mat();
+		detectionImage = new Mat();
 
 		Camera.Parameters camParams = mOpenCvCameraView.getCameraParameters();
 
@@ -108,13 +109,13 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	public void onCameraViewStopped() {
 		grayImage.release();
 		colorImage.release();
+		detectionImage.release();
 	}
 
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		colorImage = inputFrame.rgba();
 		grayImage = inputFrame.gray();
-		Mat detectionImage = new Mat();
 		Imgproc.cvtColor(grayImage, grayImage, Imgproc.COLOR_GRAY2RGB);
 		colorImage.convertTo(detectionImage, CvType.CV_32FC4);
 
@@ -130,11 +131,14 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 		if (saveThisImage) {
 			Mat rgbImage = new Mat();
 			Imgproc.cvtColor(colorImage, rgbImage, Imgproc.COLOR_BGR2RGBA);
-			filename = android.os.Build.PRODUCT + "_(" + android.os.Build.MANUFACTURER + "-" + android.os.Build.MODEL
-					+ ")_" + android.os.Build.DISPLAY + "_"
-					+ new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+			filename = android.os.Build.PRODUCT.replace(" ", "-") + "__"
+					+ android.os.Build.MANUFACTURER.replace(" ", "-") + "-" + android.os.Build.MODEL.replace(" ", "-")
+					+ "__" + android.os.Build.DISPLAY.replace(" ", "-") + "_"
+					+ new SimpleDateFormat("yyyy-MM-dd--HH:mm:ss.SSS").format(new Date());
 
 			Highgui.imwrite(new File(storagePath, filename + "_unprocessed.png").getPath(), rgbImage);
+			saveAsYAML(detectionImage.getNativeObjAddr(),
+					new File(storagePath, filename + "_unprocessed.yml").getPath());
 			rgbImage.release();
 		}
 
@@ -206,4 +210,6 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 
 	public native void detect(long mgray, long intersections, long selectedIntersections, long darkCircles,
 			long lightCircles);
+
+	public native void saveAsYAML(long image, String filename);
 }
