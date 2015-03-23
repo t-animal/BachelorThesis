@@ -1,6 +1,5 @@
-/*!
- * \file util.h
- */
+#ifndef UTIL_H_
+#define UTIL_H_
 
 #include <stdlib.h>
 #include <sys/timeb.h>
@@ -48,3 +47,14 @@ bool sortFunction(std::pair<double, cv::Point2f> a, std::pair<double, cv::Point2
  * \param type: an opencv type
  */
 std::string type2str(int type);
+
+
+/**
+ * Draws a histogram of \p src onto \p dst
+ *
+ * \param src: the Mat to calculate the histogram of
+ * \param dest: the Mat to draw the histogram onto
+ */
+void drawHistogram(const cv::Mat &src, cv::Mat &dst);
+
+#endif

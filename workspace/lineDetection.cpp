@@ -6,7 +6,7 @@
 using namespace std;
 using namespace cv;
 
-#define detectVertHorzLines_LSD detectVertHorzLines
+#define detectVertHorzLines_HOUGH detectVertHorzLines
 
 //calculates the distance of the point P(x,y) from the line l
 inline double distance(Vec4i l, long x, long y){

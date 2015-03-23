@@ -1,6 +1,5 @@
-/*!
- * \file intersectionDetection.h
- */
+#ifndef INTERSECTIONDETECTION_H_
+#define INTERSECTIONDETECTION_H_
 
 #include <opencv2/core/core.hpp>
 
@@ -44,3 +43,5 @@ void selectBoardIntersections(
 		std::vector<cv::Point2f> &selectedIntersections   //!< output vector for the filtered intersections
 		);
 
+
+#endif

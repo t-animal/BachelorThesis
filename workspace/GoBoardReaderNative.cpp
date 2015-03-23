@@ -9,6 +9,7 @@
 #include "lineDetection.h"
 #include "intersectionDetection.h"
 #include "util.h"
+#include "pieceDetection.h"
 
 using namespace cv;
 using namespace std;

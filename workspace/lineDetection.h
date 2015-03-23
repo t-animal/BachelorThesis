@@ -1,6 +1,5 @@
-/*!
- * \file lineDetection.h
- */
+#ifndef LINEDETECTION_H_
+#define LINEDETECTION_H_
 
 #include <stdlib.h>
 #include <vector>
@@ -24,3 +23,5 @@ void detectVertHorzLines(
  * Get the averagle angle to the x axis of all entries of \p lines. The return value is in the range -90 < x < 90.
  */
 double getAverageAngle(std::vector<cv::Vec4i> lines);
+
+#endif

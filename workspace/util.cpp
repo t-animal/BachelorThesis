@@ -67,3 +67,22 @@ string type2str(int type) {
 
 	return r;
 }
+
+
+void drawHistogram(const Mat &src, Mat &dst) {
+	dst = src.clone();
+
+	Mat hist;
+	int channels[] = { 0 };
+	float range[] = { 0, 255 };
+	const float* ranges[] = { range };
+	int histsize[] = { 255 };
+	calcHist(&src, 1, channels, Mat(), hist, 1, histsize, ranges, true, false);
+
+	int bin_w = cvRound((double) src.cols / 255);
+	normalize(hist, hist, 0, src.rows, NORM_MINMAX, -1, Mat());
+	for (int i = 1; i < 255; i++) {
+		line(dst, Point(bin_w * (i - 1), src.rows - cvRound(hist.at<float>(i - 1))),
+				Point(bin_w * i, src.rows - cvRound(hist.at<float>(i))), Scalar(255, 255, 255), 2, 8, 0);
+	}
+}
