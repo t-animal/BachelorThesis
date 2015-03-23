@@ -47,16 +47,12 @@ void drawHistogram(const Mat &src, Mat &dst) {
 	int bin_w = cvRound((double) src.cols / 255);
 	normalize(hist, hist, 0, src.rows, NORM_MINMAX, -1, Mat());
 	for (int i = 1; i < 255; i++) {
-		line(dst,
-				Point(bin_w * (i - 1),
-						src.rows - cvRound(hist.at<float>(i - 1))),
-				Point(bin_w * i, src.rows - cvRound(hist.at<float>(i))),
-				Scalar(255, 255, 255), 2, 8, 0);
+		line(dst, Point(bin_w * (i - 1), src.rows - cvRound(hist.at<float>(i - 1))),
+				Point(bin_w * i, src.rows - cvRound(hist.at<float>(i))), Scalar(255, 255, 255), 2, 8, 0);
 	}
 }
 
-void detectCircles(Mat &src, vector<Point3f> &darkCircles,
-		vector<Point3f> &lightCircles) {
+void detectCircles(Mat &src, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles) {
 
 	LOGD("src is a %s", type2str(src.type()).c_str());
 
@@ -111,22 +107,17 @@ void detectCircles(Mat &src, vector<Point3f> &darkCircles,
 	s.copyTo(h1);
 //	Canny(h1, h1, 900, 450);
 
-	//          (Input, Output,   method,            dp, minDist,  param1=100, param2=100, minRadius=0, maxRadius=0 )
+	//          (Input, Output,   method,            dp, minDist,      param1, param2, minRad,  maxRad )
 	vector<Vec3f> lightCircles1, lightCircles2;
-	HoughCircles(h, lightCircles1, CV_HOUGH_GRADIENT, 3, src.rows / 13, 900, 50,
-			src.rows / 30, src.rows / 11);
-	HoughCircles(s, lightCircles2, CV_HOUGH_GRADIENT, 3, src.rows / 13, 900, 50,
-			src.rows / 30, src.rows / 11);
-	HoughCircles(v, darkCircles, CV_HOUGH_GRADIENT, 3, src.rows / 15, 900, 50,
-			src.rows / 20, src.rows / 11);
+	HoughCircles(h, lightCircles1, CV_HOUGH_GRADIENT, 3, src.rows / 13, 900, 50, src.rows / 30, src.rows / 11);
+	HoughCircles(s, lightCircles2, CV_HOUGH_GRADIENT, 3, src.rows / 13, 900, 50, src.rows / 30, src.rows / 11);
+	HoughCircles(v, darkCircles,   CV_HOUGH_GRADIENT, 3, src.rows / 15, 900, 50, src.rows / 20, src.rows / 11);
 
 	LOGD("lc1 %d", lightCircles1.size());
 	LOGD("lc2 %d", lightCircles2.size());
 
-	lightCircles.insert(lightCircles.end(), lightCircles1.begin(),
-			lightCircles1.end());
-	lightCircles.insert(lightCircles.end(), lightCircles2.begin(),
-			lightCircles2.end());
+	lightCircles.insert(lightCircles.end(), lightCircles1.begin(), lightCircles1.end());
+	lightCircles.insert(lightCircles.end(), lightCircles2.begin(), lightCircles2.end());
 
 //	for(Point3f &c: lightCircles){
 //		if(c.x == -1)
@@ -155,9 +146,8 @@ void detectCircles(Mat &src, vector<Point3f> &darkCircles,
 	imshow("result", disp);
 }
 
-void detect(Mat &src, vector<Point2f> &intersections,
-		vector<Point2f> &selectedIntersections, vector<Point3f> &darkCircles,
-		vector<Point3f> &lightCircles) {
+void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
+		vector<Point3f> &darkCircles, vector<Point3f> &lightCircles) {
 	int t = getMilliCount();
 	Mat gray, hsv;
 	cvtColor(src, gray, COLOR_BGR2GRAY);
@@ -184,17 +174,17 @@ void detect(Mat &src, vector<Point2f> &intersections,
 	LOGD("light circles found %d", lightCircles.size());
 }
 
-void loadAndProcessImage(char *filename){
+void loadAndProcessImage(char *filename) {
 	RNG rng(12345);
 	Mat4f src;
 
-	if(filename[strlen(filename)-1] == 'l'){
+	if (filename[strlen(filename) - 1] == 'l') {
 		FileStorage fs(filename, FileStorage::READ);
 
 		fs["matrix"] >> src;
 
 		fs.release();
-	}else{
+	} else {
 		//load source image and store "as is" (rgb or bgr?) with alpha
 		src = imread(filename, -1);
 	}
@@ -204,8 +194,7 @@ void loadAndProcessImage(char *filename){
 	vector<Point2f> selectedIntersections, intersections;
 	vector<Point3f> darkCircles, lightCircles;
 
-	detect(src, intersections, selectedIntersections, darkCircles,
-			lightCircles);
+	detect(src, intersections, selectedIntersections, darkCircles, lightCircles);
 
 	//paint the points onto another image
 	Mat displayImage;
@@ -218,8 +207,7 @@ void loadAndProcessImage(char *filename){
 		circle(displayImage, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
 	}
 	for (Vec3f c : lightCircles) {
-		circle(displayImage, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2,
-				8);
+		circle(displayImage, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2, 8);
 	}
 
 //	for (auto p : selectedIntersections) {
@@ -241,7 +229,7 @@ void loadAndProcessImage(char *filename){
 }
 
 int main(int argc, char** argv) {
-	for(int i=1; i<argc; i++){
+	for (int i = 1; i < argc; i++) {
 		loadAndProcessImage(argv[i]);
 	}
 
