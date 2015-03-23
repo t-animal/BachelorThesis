@@ -35,149 +35,33 @@ inline void vector_Point3f_to_Mat(vector<Point3f>& v_rect, Mat& mat) {
 #define LOGD(...) fprintf(stdout, __VA_ARGS__); cout << endl;
 #endif
 
-void drawHistogram(const Mat &src, Mat &dst) {
-	dst = src.clone();
-
-	Mat hist;
-	int channels[] = { 0 };
-	float range[] = { 0, 255 };
-	const float* ranges[] = { range };
-	int histsize[] = { 255 };
-	calcHist(&src, 1, channels, Mat(), hist, 1, histsize, ranges, true, false);
-
-	int bin_w = cvRound((double) src.cols / 255);
-	normalize(hist, hist, 0, src.rows, NORM_MINMAX, -1, Mat());
-	for (int i = 1; i < 255; i++) {
-		line(dst, Point(bin_w * (i - 1), src.rows - cvRound(hist.at<float>(i - 1))),
-				Point(bin_w * i, src.rows - cvRound(hist.at<float>(i))), Scalar(255, 255, 255), 2, 8, 0);
-	}
-}
-
-void detectCircles(Mat &src, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles) {
-
-	LOGD("src is a %s", type2str(src.type()).c_str());
-
-	Mat disp;
-	src.convertTo(disp, CV_8UC3);
-	cvtColor(disp, disp, COLOR_HSV2BGR);
-
-	vector<Mat> channels;
-	split(src, channels);
-	Mat h = channels[0];
-	Mat s = channels[1];
-	Mat v = channels[2];
-
-//	drawHistogram(h, h1);
-//	drawHistogram(s, s1);
-//	drawHistogram(v, v1);
-	//THE OPENCV DOCU HERE IS CRAP! => 0 ≤ v ≤ 255; 0 ≤ s ≤ 1; 0 ≤ h ≤ 360
-	imshow("vPre", v / 255);
-	imshow("sPre", s);
-	imshow("hPre", h / 360);
-
-//	equalizeHist(v, v);
-//	equalizeHist(s, s);
-//	equalizeHist(h, h);
-	GaussianBlur(v, v, Size(13, 13), 0);
-	GaussianBlur(s, s, Size(25, 25), 0);
-	GaussianBlur(h, h, Size(25, 25), 0);
-
-	threshold(v, v, 70, 255, THRESH_BINARY);
-	threshold(s, s, 0.17, 1, THRESH_BINARY);
-	threshold(h, h, 70, 360, THRESH_BINARY);
-
-	dilate(h, h, Mat(), Point(-1, -1), 5);
-	dilate(s, s, Mat(), Point(-1, -1), 5);
-	dilate(v, v, Mat(), Point(-1, -1), 5);
-	erode(h, h, Mat(), Point(-1, -1), 5);
-	erode(s, s, Mat(), Point(-1, -1), 5);
-	erode(v, v, Mat(), Point(-1, -1), 5);
-
-	imshow("hPost", h / 360);
-	imshow("sPost", s);
-	imshow("vPost", v / 255);
-
-	LOGD("non zero in h: %d (of %d) == %d%", countNonZero(h), h.rows*h.cols/3, 100*countNonZero(h)/h.rows/h.cols);
-	LOGD("non zero in s: %d (of %d) == %d%", countNonZero(s), s.rows*s.cols/3, 100*countNonZero(s)/s.rows/s.cols);
-	if(countNonZero(h) < h.rows*h.cols*4/5){ //wenn weniger als 80% weiss, discarde
-		LOGD("discarding h");
-		h = Mat::zeros(h.size(), h.type());
-	}
-	if(countNonZero(s) < s.rows*s.cols*4/5){ //wenn weniger als 80% weiss, discarde
-		LOGD("discarding s");
-		s = Mat::zeros(s.size(), s.type());
-	}
-
-	h.convertTo((h /= 360) *= 255, CV_8UC1); //0.70833=255/360
-	s.convertTo(s *= 255, CV_8UC1);
-	v.convertTo(v, CV_8UC1);
-
-	Mat h1;
-	s.copyTo(h1);
-//	Canny(h1, h1, 900, 450);
-
-	//          (Input, Output,   method,            dp, minDist,      param1, param2, minRad,  maxRad )
-	vector<Vec3f> lightCircles1, lightCircles2;
-	HoughCircles(h, lightCircles1, CV_HOUGH_GRADIENT, 3, src.rows / 13, 900, 50, src.rows / 30, src.rows / 11);
-	HoughCircles(s, lightCircles2, CV_HOUGH_GRADIENT, 3, src.rows / 13, 900, 50, src.rows / 30, src.rows / 11);
-	HoughCircles(v, darkCircles,   CV_HOUGH_GRADIENT, 3, src.rows / 15, 900, 50, src.rows / 20, src.rows / 11);
-
-	LOGD("lc1 %d", lightCircles1.size());
-	LOGD("lc2 %d", lightCircles2.size());
-
-	lightCircles.insert(lightCircles.end(), lightCircles1.begin(), lightCircles1.end());
-	lightCircles.insert(lightCircles.end(), lightCircles2.begin(), lightCircles2.end());
-
-//	for(Point3f &c: lightCircles){
-//		if(c.x == -1)
-//			continue;
-//
-//		for(Point3f &c1:lightCircles){
-//			if(c == c1 || c1.x == -1)
-//				continue;
-//			if(norm(Point2f(c.x, c.y)-Point2f(c1.x, c1.y)) < src.rows/16){
-//				c = (c+c1);
-//				c.x /= 2;
-//				c.y /= 2;
-//				c.z /= 2;
-//			}
-//			c1.x = -1;
-//		}
-//	}
-
-	for (Vec3f c : darkCircles) {
-		circle(disp, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
-	}
-	for (Vec3f c : lightCircles) {
-		circle(disp, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2, 8);
-	}
-
-	imshow("result", disp);
-}
 
 void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
 		vector<Point3f> &darkCircles, vector<Point3f> &lightCircles) {
 	int t = getMilliCount();
-	Mat gray, hsv;
-	cvtColor(src, gray, COLOR_BGR2GRAY);
-	cvtColor(src, hsv, COLOR_BGR2HSV);
-//	resize(src, gray, Size(), 0.75,0.75, INTER_LINEAR);
+
+//	resize(src, src, Size(), 0.75, 0.75, INTER_LINEAR);
 //	LOGD("Time consumed  until resized: %d", getMilliSpan(t));
 
-//	vector<Vec4i> horz, vert;
-//	detectVertHorzLines(src, horz, vert, 2, 2);
-//	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
-//
-//	getIntersections(intersections, horz, vert);
-//	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
-//
-//	selectBoardIntersections(src, intersections, selectedIntersections);
-//	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
-//
-//	LOGD("intersectionsCount: %d", intersections.size());
-//	LOGD("selectedIntersectionsCount: %d", selectedIntersections.size());
+	Mat gray, hsv, bgr;
+	cvtColor(src, gray, COLOR_BGR2GRAY);
+	cvtColor(src, hsv, COLOR_BGR2HSV);
+	src.convertTo(bgr, CV_8UC4);
 
-	detectCircles(hsv, darkCircles, lightCircles);
+	vector<Vec4i> horz, vert;
+	detectVertHorzLines(bgr, horz, vert, 2, 2);
+	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
+
+	getIntersections(intersections, horz, vert);
+	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
+
+	selectBoardIntersections(src, intersections, selectedIntersections);
+	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
+
+	LOGD("intersectionsCount: %d", intersections.size());
+	LOGD("selectedIntersectionsCount: %d", selectedIntersections.size());
+
+	detectPieces(hsv, darkCircles, lightCircles);
 	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
 	LOGD("dark circles found %d", darkCircles.size());
 	LOGD("light circles found %d", lightCircles.size());
@@ -206,33 +90,38 @@ void loadAndProcessImage(char *filename) {
 	detect(src, intersections, selectedIntersections, darkCircles, lightCircles);
 
 	//paint the points onto another image
-	Mat displayImage;
-	src.convertTo(displayImage, CV_8UC3);
-	cvtColor(displayImage, displayImage, COLOR_BGR2GRAY);
-	Canny(displayImage, displayImage, 50, 200, 3);
-	cvtColor(displayImage, displayImage, COLOR_GRAY2BGR);
+	Mat grayDisplay, colorDisplay;
+	src.convertTo(grayDisplay, CV_8UC3);
+	src.convertTo(colorDisplay, CV_8UC3);
+	cvtColor(colorDisplay, colorDisplay, COLOR_RGB2BGR);
+	cvtColor(grayDisplay, grayDisplay, COLOR_BGR2GRAY);
+	Canny(grayDisplay, grayDisplay, 50, 200, 3);
+	cvtColor(grayDisplay, grayDisplay, COLOR_GRAY2BGR);
 
 	for (Vec3f c : darkCircles) {
-		circle(displayImage, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
+		circle(colorDisplay, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
+		circle(grayDisplay, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
 	}
 	for (Vec3f c : lightCircles) {
-		circle(displayImage, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2, 8);
+		circle(colorDisplay, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2, 8);
+		circle(grayDisplay, Point(c[0], c[1]), c[2], Scalar(255, 255, 255), 2, 8);
 	}
 
-//	for (auto p : selectedIntersections) {
-//		circle(src, p, 5, Scalar(0, 255, 255), 5, 8);
-//		circle(displayImage, p, 5, Scalar(0, 255, 255), 5, 8);
-//	}
-//	for (auto p : intersections) {
-//		circle(src, p, 5, Scalar(180, 180, 180), 2, 8);
-//		circle(displayImage, p, 5, Scalar(180, 180, 180), 2, 8);
-//	}
-//	circle(displayImage, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
+	for (auto p : selectedIntersections) {
+		circle(colorDisplay, p, 5, Scalar(0, 255, 255), 5, 8);
+		circle(grayDisplay, p, 5, Scalar(0, 255, 255), 5, 8);
+	}
+	for (auto p : intersections) {
+		circle(colorDisplay, p, 5, Scalar(180, 180, 180), 2, 8);
+		circle(grayDisplay, p, 5, Scalar(180, 180, 180), 2, 8);
+	}
+	circle(grayDisplay, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
+	circle(colorDisplay, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
 
-//	namedWindow("detectedlines", WINDOW_AUTOSIZE);
-//	namedWindow("source", WINDOW_AUTOSIZE);
-//	imshow("source", src);
-//	imshow("detectedlines", displayImage);
+	namedWindow("detectedlines", WINDOW_AUTOSIZE);
+	namedWindow("source", WINDOW_AUTOSIZE);
+	imshow("source", colorDisplay);
+	imshow("detectedlines", grayDisplay);
 
 	waitKey();
 }
