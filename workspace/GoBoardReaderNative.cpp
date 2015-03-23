@@ -55,16 +55,24 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 	getIntersections(intersections, horz, vert);
 	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
 
+	detectPieces(hsv, darkCircles, lightCircles);
+	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
+	LOGD("dark circles found %d", darkCircles.size());
+	LOGD("light circles found %d", lightCircles.size());
+
+	for(auto c : darkCircles){
+		intersections.push_back(Point2f(c.x, c.y));
+	}
+	for(auto c : lightCircles){
+		intersections.push_back(Point2f(c.x, c.y));
+	}
+
 	selectBoardIntersections(src, intersections, selectedIntersections);
 	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
 
 	LOGD("intersectionsCount: %d", intersections.size());
 	LOGD("selectedIntersectionsCount: %d", selectedIntersections.size());
 
-	detectPieces(hsv, darkCircles, lightCircles);
-	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
-	LOGD("dark circles found %d", darkCircles.size());
-	LOGD("light circles found %d", lightCircles.size());
 }
 
 void loadAndProcessImage(char *filename) {
