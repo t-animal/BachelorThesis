@@ -81,9 +81,9 @@ void detectCircles(Mat &src, vector<Point3f> &darkCircles, vector<Point3f> &ligh
 	GaussianBlur(s, s, Size(25, 25), 0);
 	GaussianBlur(h, h, Size(25, 25), 0);
 
-	threshold(v, v, 90, 255, THRESH_BINARY);
+	threshold(v, v, 70, 255, THRESH_BINARY);
 	threshold(s, s, 0.17, 1, THRESH_BINARY);
-	threshold(h, h, 180, 360, THRESH_BINARY_INV);
+	threshold(h, h, 70, 360, THRESH_BINARY);
 
 	dilate(h, h, Mat(), Point(-1, -1), 5);
 	dilate(s, s, Mat(), Point(-1, -1), 5);
@@ -96,13 +96,21 @@ void detectCircles(Mat &src, vector<Point3f> &darkCircles, vector<Point3f> &ligh
 	imshow("sPost", s);
 	imshow("vPost", v / 255);
 
+	LOGD("non zero in h: %d (of %d) == %d%", countNonZero(h), h.rows*h.cols/3, 100*countNonZero(h)/h.rows/h.cols);
+	LOGD("non zero in s: %d (of %d) == %d%", countNonZero(s), s.rows*s.cols/3, 100*countNonZero(s)/s.rows/s.cols);
+	if(countNonZero(h) < h.rows*h.cols*4/5){ //wenn weniger als 80% weiss, discarde
+		LOGD("discarding h");
+		h = Mat::zeros(h.size(), h.type());
+	}
+	if(countNonZero(s) < s.rows*s.cols*4/5){ //wenn weniger als 80% weiss, discarde
+		LOGD("discarding s");
+		s = Mat::zeros(s.size(), s.type());
+	}
+
 	h.convertTo((h /= 360) *= 255, CV_8UC1); //0.70833=255/360
 	s.convertTo(s *= 255, CV_8UC1);
 	v.convertTo(v, CV_8UC1);
 
-	imshow("h8UC1", h);
-	imshow("s8UC1", s);
-	imshow("v8UC1", v);
 	Mat h1;
 	s.copyTo(h1);
 //	Canny(h1, h1, 900, 450);
