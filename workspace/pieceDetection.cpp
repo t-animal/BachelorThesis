@@ -1,4 +1,5 @@
 #include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include "lineDetection.h"
 #include "intersectionDetection.h"
@@ -43,12 +44,11 @@ void detectPieces(Mat &src, vector<Point3f> &darkPieces, vector<Point3f> &lightP
 	s.convertTo(s *= 255, CV_8UC1);
 	v.convertTo(v, CV_8UC1);
 
-	//          (Input, Output,   method,            dp, minDist,      param1, param2, minRad,  maxRad )
-	vector<Vec3f> lightCircles1, lightCircles2;
-	HoughCircles(h, lightCircles1, CV_HOUGH_GRADIENT, 3, src.rows / 13, 900, 50, src.rows / 30, src.rows / 11);
-	HoughCircles(s, lightCircles2, CV_HOUGH_GRADIENT, 3, src.rows / 13, 900, 50, src.rows / 30, src.rows / 11);
-	HoughCircles(v, darkPieces,   CV_HOUGH_GRADIENT, 3, src.rows / 15, 900, 50, src.rows / 20, src.rows / 11);
+	//improve performance by only performing detection once
+	//TODO: increase performance further, evtl only one houghcircle somehow?
+	bitwise_and(s, h, h);
 
-	lightPieces.insert(lightPieces.end(), lightCircles1.begin(), lightCircles1.end());
-	lightPieces.insert(lightPieces.end(), lightCircles2.begin(), lightCircles2.end());
+	//          (Input, Output,   method,            dp, minDist,      param1, param2, minRad,  maxRad )
+	HoughCircles(h, lightPieces, CV_HOUGH_GRADIENT, 3, src.rows / 13, 900, 50, src.rows / 30, src.rows / 11);
+	HoughCircles(v, darkPieces,   CV_HOUGH_GRADIENT, 3, src.rows / 15, 900, 50, src.rows / 20, src.rows / 11);
 }

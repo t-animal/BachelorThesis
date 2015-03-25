@@ -2,6 +2,7 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
 
 #include <iostream>
 #include <stdio.h>
@@ -35,6 +36,27 @@ inline void vector_Point3f_to_Mat(vector<Point3f>& v_rect, Mat& mat) {
 #define LOGD(...) fprintf(stdout, __VA_ARGS__); cout << endl;
 #endif
 
+void generateReferenceKeypoints(vector<Point2f> &object, int squareLength){
+	for(int i=0; i<squareLength; i++){
+		for(int j=0; j<squareLength; j++){
+			object.push_back(Point2f(i*56, j*56));
+		}
+	}
+}
+
+void removeDuplicateIntersections(vector<Point2f> &intersections){
+	for(Point2f &i : intersections){
+		for(Point2f &j : intersections){
+			if(i == j || i.x < 0 || j.x < 0)
+				continue;
+
+			if(norm(i-j)< 20){
+				j.x = -100;
+				j.y = -100;
+			}
+		}
+	}
+}
 
 void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
 		vector<Point3f> &darkCircles, vector<Point3f> &lightCircles) {
@@ -57,8 +79,6 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 
 	detectPieces(hsv, darkCircles, lightCircles);
 	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
-	LOGD("dark circles found %d", darkCircles.size());
-	LOGD("light circles found %d", lightCircles.size());
 
 	for(auto c : darkCircles){
 		intersections.push_back(Point2f(c.x, c.y));
@@ -67,13 +87,13 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 		intersections.push_back(Point2f(c.x, c.y));
 	}
 
+	removeDuplicateIntersections(intersections);
+	LOGD("Time consumed until removed duplicates: %d", getMilliSpan(t));
+
 	selectBoardIntersections(src, intersections, selectedIntersections);
 	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
-
-	LOGD("intersectionsCount: %d", intersections.size());
-	LOGD("selectedIntersectionsCount: %d", selectedIntersections.size());
-
 }
+
 
 void loadAndProcessImage(char *filename) {
 	RNG rng(12345);
@@ -88,6 +108,7 @@ void loadAndProcessImage(char *filename) {
 	} else {
 		//load source image and store "as is" (rgb or bgr?) with alpha
 		src = imread(filename, -1);
+		src.convertTo(src, CV_RGBA2BGRA);
 	}
 
 	LOGD("src is a %s", type2str(src.type()).c_str());
@@ -125,6 +146,19 @@ void loadAndProcessImage(char *filename) {
 	}
 	circle(grayDisplay, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
 	circle(colorDisplay, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
+
+
+	vector<Point2f> object, scene;
+	generateReferenceKeypoints(object, sqrt(selectedIntersections.size()));
+	generateReferenceKeypoints(scene, 11);
+
+	Mat H = findHomography(object, selectedIntersections, RANSAC);
+	perspectiveTransform(object, scene, H);
+	warpPerspective(colorDisplay, colorDisplay, H, colorDisplay.size());
+
+	for(auto p : scene){
+		circle(colorDisplay, p, 8, Scalar(0,0,255), 2, 8);
+	}
 
 	namedWindow("detectedlines", WINDOW_AUTOSIZE);
 	namedWindow("source", WINDOW_AUTOSIZE);

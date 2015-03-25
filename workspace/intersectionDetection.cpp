@@ -70,7 +70,7 @@ void getIntersections(vector<Point2f> &intersections, const vector<Vec4i> &horz,
 	}
 }
 
-void selectBoardIntersections(Mat &src, vector<Point2f> intersections, vector<Point2f> &selectedIntersections){
+void selectBoardIntersections_old(Mat &src, vector<Point2f> intersections, vector<Point2f> &selectedIntersections){
 	double curDist, closestDistance = 9999, secondClosestDistance = 9999;
 	Point2f firstIntersection, nextIntersection;
 	Point2f center(src.cols/2, src.rows/2);
@@ -105,10 +105,46 @@ void selectBoardIntersections(Mat &src, vector<Point2f> intersections, vector<Po
 					}
 					if(select)
 						selectedIntersections.push_back(i);
+					if(selectedIntersections.size() == 9*9)
+						break;
 				}
 			}
+			if(selectedIntersections.size() == 9*9)
+				break;
 		}
 
-	}while(curLength != selectedIntersections.size());
+	}while(curLength != selectedIntersections.size() && selectedIntersections.size() != 9*9);
 
+}
+
+class MiddlePointSorter{
+private:
+	Point2f mp;
+
+public:
+	MiddlePointSorter(Point2f mp){
+		this->mp = mp;
+	}
+
+	bool operator() (Point2f a, Point2f b){ return norm(Mat(mp-a), NORM_L2) < norm(Mat(mp-b), NORM_L2); }
+};
+
+bool UpperLeftPointSorter(Point2f a, Point2f b){
+	if(abs(a.y-b.y) < 10){
+		return a.x < b.x;
+	}else{
+		return a.y < b.y;
+	}
+}
+
+#include <iostream>
+void selectBoardIntersections(Mat &src, vector<Point2f> intersections, vector<Point2f> &selectedIntersections){
+	sort(intersections, MiddlePointSorter(Point2f(src.cols/2, src.rows/2)));
+
+	for(int i=0; i<3*3; i++){
+		std::cout << intersections[i].x << endl;
+		selectedIntersections.push_back(intersections[i]);
+	}
+
+	sort(selectedIntersections, UpperLeftPointSorter);
 }
