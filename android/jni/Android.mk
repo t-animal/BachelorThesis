@@ -7,7 +7,7 @@ include $(CLEAR_VARS)
 #OPENCV_LIB_TYPE:=SHARED
 include /home/cip/nf/ar79yxiw/ciptmp/BA/opencv-android-sdk-2.4.10/native/jni/OpenCV.mk
 
-LOCAL_SRC_FILES  := GoBoardReaderNative.cpp  intersectionDetection.cpp  lineDetection.cpp  util.cpp backported/lsd.cpp
+LOCAL_SRC_FILES  := GoBoardReaderNative.cpp  intersectionDetection.cpp  lineDetection.cpp  util.cpp backported/lsd.cpp pieceDetection.cpp
 LOCAL_C_INCLUDES += $(LOCAL_PATH)
 LOCAL_LDLIBS     += -llog -ldl
 

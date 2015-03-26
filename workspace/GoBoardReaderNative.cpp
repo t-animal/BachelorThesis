@@ -36,10 +36,11 @@ inline void vector_Point3f_to_Mat(vector<Point3f>& v_rect, Mat& mat) {
 #define LOGD(...) fprintf(stdout, __VA_ARGS__); cout << endl;
 #endif
 
-void generateReferenceKeypoints(vector<Point2f> &object, int squareLength){
+void generateReferenceKeypoints(vector<Point2f> &object, int squareLength, Point2f &mp){
+	int offset = (squareLength-1)/2;
 	for(int i=0; i<squareLength; i++){
 		for(int j=0; j<squareLength; j++){
-			object.push_back(Point2f(i*56, j*56));
+			object.push_back(Point2f(mp.x+(offset-i)*50, mp.y+(offset-j)*50));
 		}
 	}
 }
@@ -144,20 +145,27 @@ void loadAndProcessImage(char *filename) {
 		circle(colorDisplay, p, 5, Scalar(180, 180, 180), 2, 8);
 		circle(grayDisplay, p, 5, Scalar(180, 180, 180), 2, 8);
 	}
+	Point2f center(src.cols/2, src.rows/2);
 	circle(grayDisplay, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
 	circle(colorDisplay, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
 
 
 	vector<Point2f> object, scene;
-	generateReferenceKeypoints(object, sqrt(selectedIntersections.size()));
-	generateReferenceKeypoints(scene, 11);
+	while(selectedIntersections.size() < 25)
+		selectedIntersections.push_back(Point2f(-100, -100));
+	generateReferenceKeypoints(object, sqrt(selectedIntersections.size()), center);
+	generateReferenceKeypoints(scene, 9, center);
 
-	Mat H = findHomography(object, selectedIntersections, RANSAC);
-	perspectiveTransform(object, scene, H);
-	warpPerspective(colorDisplay, colorDisplay, H, colorDisplay.size());
+	if(object.size() != selectedIntersections.size()){
+		LOGD("homography detection impossible: object: %d, intersections: %d", object.size(), selectedIntersections.size());
+	}else{
+		Mat H = findHomography(object, selectedIntersections, RANSAC);
+		perspectiveTransform(scene, scene, H);
+		//warpPerspective(colorDisplay, colorDisplay, H, colorDisplay.size());
 
-	for(auto p : scene){
-		circle(colorDisplay, p, 8, Scalar(0,0,255), 2, 8);
+		for(auto p : scene){
+			circle(colorDisplay, p, 8, Scalar(0,0,255), 2, 8);
+		}
 	}
 
 	namedWindow("detectedlines", WINDOW_AUTOSIZE);

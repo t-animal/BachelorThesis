@@ -126,7 +126,7 @@ public:
 		this->mp = mp;
 	}
 
-	bool operator() (Point2f a, Point2f b){ return norm(Mat(mp-a), NORM_L2) < norm(Mat(mp-b), NORM_L2); }
+	bool operator() (Point2f a, Point2f b){ return norm(Mat(mp-a), NORM_L1) < norm(Mat(mp-b), NORM_L1); }
 };
 
 bool UpperLeftPointSorter(Point2f a, Point2f b){
@@ -139,11 +139,12 @@ bool UpperLeftPointSorter(Point2f a, Point2f b){
 
 #include <iostream>
 void selectBoardIntersections(Mat &src, vector<Point2f> intersections, vector<Point2f> &selectedIntersections){
-	sort(intersections, MiddlePointSorter(Point2f(src.cols/2, src.rows/2)));
+	Point2f mp(src.cols/2, src.rows/2);
+	//sort(intersections, MiddlePointSorter(mp));
 
-	for(int i=0; i<3*3; i++){
-		std::cout << intersections[i].x << endl;
-		selectedIntersections.push_back(intersections[i]);
+	for(auto i : intersections){
+		if(abs(mp.x-i.x) < 150 && abs(mp.y - i.y) < 150)
+			selectedIntersections.push_back(i);
 	}
 
 	sort(selectedIntersections, UpperLeftPointSorter);
