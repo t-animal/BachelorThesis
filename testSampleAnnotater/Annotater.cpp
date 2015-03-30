@@ -30,7 +30,8 @@ void drawCirclesAndDisplay(Mat &src){
 	int index = 0;
 	for(auto v : allPieces){
 		for(auto e : *v){
-			circle(paintImage, e, 10, colors[index], 3);
+			circle(paintImage, e, 7, Scalar(100,100,100), 4);
+			circle(paintImage, e, 7, colors[index], 2.5);
 		}
 		index++;
 	}
@@ -45,12 +46,14 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata){
 
 	if(event == EVENT_MBUTTONUP){
 		colorSelect = (colorSelect+1)%3;
-		circle(paintImage, Point(x,y), 10, colors[colorSelect], 3);
+		circle(paintImage, Point(x,y), 7, Scalar(100,100,100), 4);
+		circle(paintImage, Point(x,y), 7, colors[colorSelect], 2.5);
 		setTrackbarPos("0=empty intersect, 1=white, 2=black", "Annotate", colorSelect);
 	}
 
 	if(event == EVENT_MOUSEMOVE){
-		circle(paintImage, Point(x,y), 10, colors[colorSelect], 3);
+		circle(paintImage, Point(x,y), 7, Scalar(100,100,100), 4);
+		circle(paintImage, Point(x,y), 7, colors[colorSelect], 2.5);
 	}
 
 	if(event == EVENT_RBUTTONUP){
