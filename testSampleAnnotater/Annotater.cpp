@@ -21,6 +21,7 @@ vector<Point2f> emptyIntersects;
 vector<Point2f> blackPieces;
 vector<Point2f> whitePieces;
 vector<Point2f> *allPieces[] = {&emptyIntersects, &whitePieces, &blackPieces};
+vector<Point2f> *newestPoint = &emptyIntersects;
 Scalar colors[] = {Scalar(160,160,160), Scalar(255,255,255), Scalar(0,0,0)};
 
 void drawCirclesAndDisplay(Mat &src){
@@ -48,7 +49,6 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata){
 		colorSelect = (colorSelect+1)%3;
 		circle(paintImage, Point(x,y), 7, Scalar(100,100,100), 4);
 		circle(paintImage, Point(x,y), 7, colors[colorSelect], 2.5);
-		setTrackbarPos("0=empty intersect, 1=white, 2=black", "Annotate", colorSelect);
 	}
 
 	if(event == EVENT_MOUSEMOVE){
@@ -56,7 +56,7 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata){
 		circle(paintImage, Point(x,y), 7, colors[colorSelect], 2.5);
 	}
 
-	if(event == EVENT_RBUTTONUP){
+	if(event == EVENT_LBUTTONUP || event == EVENT_RBUTTONUP){
 		int closestIndex = -1;
 
 		double closestDistance = INT_MAX;
@@ -83,6 +83,7 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata){
 
 	if(event == EVENT_LBUTTONUP){
 		allPieces[colorSelect]->push_back(Point2f(x,y));
+		newestPoint = allPieces[colorSelect];
 	}
 
 	drawCirclesAndDisplay(paintImage);
@@ -104,8 +105,6 @@ void loadAndProcessImage(char *filename){
 
 	readStorage.release();
 
-	cout << blackPieces << endl;
-
 	if (filename[strlen(filename) - 1] == 'l') {
 		FileStorage fs(filename, FileStorage::READ);
 		fs["matrix"] >> input;
@@ -121,7 +120,6 @@ void loadAndProcessImage(char *filename){
 
 	namedWindow("Annotate",  CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO );
 	resizeWindow("Annotate", 1200, 850);
-	createTrackbar("0=empty intersect, 1=white, 2=black", "Annotate", &colorSelect, 2);
 	setMouseCallback("Annotate", mouseCallback, ((void*)&image));
 
 	drawCirclesAndDisplay(image);
@@ -130,21 +128,35 @@ void loadAndProcessImage(char *filename){
 	while((keyCode = waitKey(0)) != ESC_KEY){
 		switch(keyCode){
 		case SHIFT_KEY:
-			setTrackbarPos("0=empty intersect, 1=white, 2=black", "Annotate", 1);
+			colorSelect = 1;
 			break;
 		case CTRL_KEY:
-			setTrackbarPos("0=empty intersect, 1=white, 2=black", "Annotate", 2);
+			colorSelect = 2;
 			break;
 		case TAB_KEY:
-			setTrackbarPos("0=empty intersect, 1=white, 2=black", "Annotate", 0);
+			colorSelect = 0;
 			break;
 		case 1048691: //s-key
 			colorSelect = (colorSelect+1)%3;
-			setTrackbarPos("0=empty intersect, 1=white, 2=black", "Annotate", colorSelect);
 			break;
 		case 1048673: //a-key
 			colorSelect = (colorSelect+2)%3;
-			setTrackbarPos("0=empty intersect, 1=white, 2=black", "Annotate", colorSelect);
+			break;
+		case 1113938: //up
+			newestPoint->back().y--;
+			drawCirclesAndDisplay(image);
+			break;
+		case 1113937: //left
+			newestPoint->back().x--;
+			drawCirclesAndDisplay(image);
+			break;
+		case 1113940: //down
+			newestPoint->back().y++;
+			drawCirclesAndDisplay(image);
+			break;
+		case 1113939: //right
+			newestPoint->back().x++;
+			drawCirclesAndDisplay(image);
 			break;
 		}
 	}
