@@ -1,1 +1,1 @@
-../../workspace/GoBoardReaderNative.cpp
+../../nativeCode/GoBoardReaderNative.cpp
