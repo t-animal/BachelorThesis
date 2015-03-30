@@ -130,7 +130,7 @@ public:
 };
 
 bool UpperLeftPointSorter(Point2f a, Point2f b){
-	if(abs(a.y-b.y) < 10){
+	if(abs(a.y-b.y) < 15){
 		return a.x < b.x;
 	}else{
 		return a.y < b.y;
@@ -142,6 +142,7 @@ void selectBoardIntersections(Mat &src, vector<Point2f> intersections, vector<Po
 	Point2f mp(src.cols/2, src.rows/2);
 	//sort(intersections, MiddlePointSorter(mp));
 
+	//select all intersections within 150px of the center of the image
 	for(auto i : intersections){
 		if(abs(mp.x-i.x) < 150 && abs(mp.y - i.y) < 150)
 			selectedIntersections.push_back(i);
