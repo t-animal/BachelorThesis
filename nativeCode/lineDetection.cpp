@@ -14,8 +14,8 @@ inline double distance(Vec4i l, long x, long y){
 }
 
 void mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
-	int prev;
-		do{
+	unsigned int prev;
+		do {
 			prev = horz.size()+vert.size();
 			vector<Vec4i> horzStitched;
 			for(Vec4i &l1 : horz){
@@ -129,7 +129,7 @@ void mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
 			}
 			horz = horzStitched;
 			vert = vertStitched;
-		}while(prev!=horz.size()+vert.size());
+		}while(prev != horz.size()+vert.size());
 
 		vector<Vec4i> horzLong, vertLong;
 		for(auto l :horz){

@@ -48,13 +48,10 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 	lastY = intersections[0].y;
 	int smallestX = intersections[0].x;
 
-	int foo = 0;
-
 	bool firstLine = true;
 	int col=0, row=0;
 	int rowsAboveCenter=0, colsLeftOfCenter=0;
 	for(auto i: intersections){
-//		putText(src, to_string(foo++), Point(i.x+10,i.y), 0, 0.5, Scalar(255,255,255), 2);
 		if(i.x - lastX < 0){
 			//new line
 			if(lastY < mp.y)
@@ -137,11 +134,7 @@ void fillGaps(vector<Point2f> intersections, vector<Point2f> &filledIntersection
 		//warpPerspective(colorDisplay, colorDisplay, H, colorDisplay.size());
 
 		for(auto p : object){
-//			putText(colorDisplay, to_string(foo++), Point(p.x+10,p.y+10), 0, 0.5, Scalar(0,0,255), 2);
 			circle(src, p, 8, Scalar(0,0,180), 2, 8);
-		}
-		for(auto p : filledIntersections){
-			circle(src, p, 8, Scalar(0,0,255), 1, 4);
 		}
 	}
 }

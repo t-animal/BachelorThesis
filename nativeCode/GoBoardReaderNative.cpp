@@ -5,6 +5,7 @@
 #include <opencv2/calib3d/calib3d.hpp>
 
 #include <iostream>
+#include <iomanip>
 #include <stdio.h>
 
 #include "lineDetection.h"
@@ -38,7 +39,7 @@ inline void vector_Point3f_to_Mat(vector<Point3f>& v_rect, Mat& mat) {
 #endif
 
 void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
-		vector<Point3f> &darkCircles, vector<Point3f> &lightCircles) {
+		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles) {
 	int t = getMilliCount();
 
 //	resize(src, src, Size(), 0.75, 0.75, INTER_LINEAR);
@@ -71,6 +72,67 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 
 	selectBoardIntersections(src, intersections, selectedIntersections);
 	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
+
+	fillGaps(selectedIntersections, filledIntersections, src);
+}
+
+void checkCorrectness(vector<Point2f> intersections, char* filename, Mat src){
+	vector<Point2f> emptyIntersects;
+	vector<Point2f> blackPieces;
+	vector<Point2f> whitePieces;
+	vector<Point2f> allIntersects;
+
+	char annotFilename[strlen(filename)+7];
+	strcpy(annotFilename, filename);
+	strcpy(&annotFilename[strlen(filename)-4], "_annot.yml");
+
+	FileStorage readStorage(annotFilename, FileStorage::READ);
+
+	readStorage["emptyIntersects"] >> emptyIntersects;
+	readStorage["blackPieces"] >> blackPieces;
+	readStorage["whitePieces"] >> whitePieces;
+
+	readStorage.release();
+
+	allIntersects.reserve(emptyIntersects.size()+whitePieces.size()+blackPieces.size());
+	allIntersects.insert(allIntersects.end(), emptyIntersects.begin(), emptyIntersects.end());
+	allIntersects.insert(allIntersects.end(), blackPieces.begin(), blackPieces.end());
+	allIntersects.insert(allIntersects.end(), whitePieces.begin(), whitePieces.end());
+
+	int matchedCount=0;
+	int unmatchedCount = 0;
+	for(auto desired : allIntersects){
+		bool matched = false;
+		for(auto is : intersections){
+			if(norm(desired-is) <= 10){
+				matched = true;
+				break;
+			}
+		}
+		if(!matched){
+			cout << "Desired intersect " << desired << " has not been matched!" << endl;
+			circle(src, desired, 10, Scalar(0, 0, 255), 4);
+			unmatchedCount++;
+		}else{
+			circle(src, desired, 10, Scalar(0, 255, 0), 4);
+			matchedCount++;
+		}
+	}
+
+	if(allIntersects.size() == 0){
+		cout << "There's no reference points";
+		if(intersections.size() != 0) cout << " but keypoints have been found! == FAIL ==" << endl;
+		else cout << " and no keypoints have been found. == SUCCESS == " << endl;
+	}else{
+		float percentage = matchedCount*100.0/allIntersects.size();
+		cout << "Matched " << matchedCount << " out of " << allIntersects.size() << " reference points. (";
+		cout << std::setprecision( 3 ) << percentage << "%) ";
+		if(percentage >= 99){
+			cout << "== SUCCESS ==" << endl;
+		}else{
+			cout << "== FAIL == " << endl;
+		}
+	}
 }
 
 
@@ -94,10 +156,11 @@ void loadAndProcessImage(char *filename) {
 
 	LOGD("src is a %s", type2str(src.type()).c_str());
 
-	vector<Point2f> selectedIntersections, intersections;
+	vector<Point2f> selectedIntersections, intersections, filledIntersections;
 	vector<Point3f> darkCircles, lightCircles;
 
-	detect(src, intersections, selectedIntersections, darkCircles, lightCircles);
+	detect(src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles);
+
 
 	//paint the points onto another image
 	Mat grayDisplay, colorDisplay;
@@ -118,19 +181,20 @@ void loadAndProcessImage(char *filename) {
 	}
 
 	for (auto p : selectedIntersections) {
-		circle(colorDisplay, p, 5, Scalar(0, 255, 255), 5, 8);
 		circle(grayDisplay, p, 5, Scalar(0, 255, 255), 5, 8);
 	}
 	for (auto p : intersections) {
-		circle(colorDisplay, p, 5, Scalar(180, 180, 180), 2, 8);
 		circle(grayDisplay, p, 5, Scalar(180, 180, 180), 2, 8);
 	}
 
 	circle(grayDisplay, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
 	circle(colorDisplay, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
 
-	vector<Point2f> filledIntersections;
-	fillGaps(selectedIntersections, filledIntersections, grayDisplay);
+	for(auto p : filledIntersections){
+		circle(grayDisplay, p, 8, Scalar(0,0,255), 1, 4);
+	}
+
+	checkCorrectness(filledIntersections, filename, colorDisplay);
 
 	namedWindow("detectedlines", WINDOW_AUTOSIZE);
 	namedWindow("source", WINDOW_AUTOSIZE);
