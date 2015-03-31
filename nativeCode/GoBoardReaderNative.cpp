@@ -78,16 +78,18 @@ void loadAndProcessImage(char *filename) {
 	RNG rng(12345);
 	Mat4f src;
 
-	if (filename[strlen(filename) - 1] == 'l') {
+	if (strcmp(filename+strlen(filename)-4, ".yml") == 0) {
 		FileStorage fs(filename, FileStorage::READ);
 
 		fs["matrix"] >> src;
 
 		fs.release();
-	} else {
+	} else if(strcmp(filename+strlen(filename)-4, ".png") == 0) {
 		//load source image and store "as is" (rgb or bgr?) with alpha
 		src = imread(filename, -1);
 		src.convertTo(src, CV_RGBA2BGRA);
+	}else {
+		return;
 	}
 
 	LOGD("src is a %s", type2str(src.type()).c_str());
