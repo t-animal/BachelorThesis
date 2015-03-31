@@ -150,3 +150,18 @@ void selectBoardIntersections(Mat &src, vector<Point2f> intersections, vector<Po
 
 	sort(selectedIntersections, UpperLeftPointSorter);
 }
+
+
+void removeDuplicateIntersections(vector<Point2f> &intersections){
+	for(Point2f &i : intersections){
+		for(Point2f &j : intersections){
+			if(i == j || i.x < 0 || j.x < 0)
+				continue;
+
+			if(norm(i-j)< 20){
+				j.x = -100;
+				j.y = -100;
+			}
+		}
+	}
+}

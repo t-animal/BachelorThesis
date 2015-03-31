@@ -43,5 +43,10 @@ void selectBoardIntersections(
 		std::vector<cv::Point2f> &selectedIntersections   //!< output vector for the filtered intersections
 		);
 
-
+/**
+ * Removes duplicates, ie intersections closer to each other than a specific threshhold
+ */
+void removeDuplicateIntersections(
+		std::vector<cv::Point2f> &intersections  //!< all the intersections
+		);
 #endif
