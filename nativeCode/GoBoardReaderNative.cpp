@@ -74,8 +74,10 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
 
 	fillGaps(selectedIntersections, filledIntersections, src);
+	LOGD("Time consumed until filled gaps: %d", getMilliSpan(t));
 }
 
+#ifndef JNI
 void checkCorrectness(vector<Point2f> intersections, char* filename, Mat src){
 	vector<Point2f> emptyIntersects;
 	vector<Point2f> blackPieces;
@@ -134,7 +136,7 @@ void checkCorrectness(vector<Point2f> intersections, char* filename, Mat src){
 		}
 	}
 }
-
+#endif
 
 void loadAndProcessImage(char *filename) {
 	RNG rng(12345);
@@ -160,7 +162,6 @@ void loadAndProcessImage(char *filename) {
 	vector<Point3f> darkCircles, lightCircles;
 
 	detect(src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles);
-
 
 	//paint the points onto another image
 	Mat grayDisplay, colorDisplay;
@@ -194,7 +195,9 @@ void loadAndProcessImage(char *filename) {
 		circle(grayDisplay, p, 8, Scalar(0,0,255), 1, 4);
 	}
 
+#ifndef JNI
 	checkCorrectness(filledIntersections, filename, colorDisplay);
+#endif
 
 	namedWindow("detectedlines", WINDOW_AUTOSIZE);
 	namedWindow("source", WINDOW_AUTOSIZE);
@@ -217,17 +220,18 @@ int main(int argc, char** argv) {
 extern "C" {
 	JNIEXPORT void JNICALL Java_de_t_1animal_goboardreader_DetectorActivity_detect(
 			JNIEnv * jenv, jobject obj, jlong src, jlong java_intersections, jlong java_selectedIntersections,
-			jlong java_darkCircles, jlong java_lightCircles) {
+			jlong java_filledIntersections, jlong java_darkCircles, jlong java_lightCircles) {
 
-		vector<Point2f> selectedIntersections, intersections;
+		vector<Point2f> selectedIntersections, intersections, filledIntersections;
 		vector<Point3f> darkCircles, lightCircles;
 
-		detect(*(Mat*) src, intersections, selectedIntersections, darkCircles, lightCircles);
+		detect(*(Mat*) src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles);
 
-		LOGD("outside intersectionsCount: %d", intersections.size());
+		LOGD("outside intersectionsCount: %d", filledIntersections.size());
 		LOGD("outside selectedIntersectionsCount: %d", selectedIntersections.size());
 		vector_Point2f_to_Mat(selectedIntersections, *((Mat*)java_selectedIntersections));
 		vector_Point2f_to_Mat(intersections, *((Mat*)java_intersections));
+		vector_Point2f_to_Mat(filledIntersections, *((Mat*)java_filledIntersections));
 		vector_Point3f_to_Mat(darkCircles, *((Mat*)java_darkCircles));
 		vector_Point3f_to_Mat(lightCircles, *((Mat*)java_lightCircles));
 	}

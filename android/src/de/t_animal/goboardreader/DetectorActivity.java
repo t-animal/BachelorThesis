@@ -30,6 +30,7 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 
 	private static final String TAG = "T_ANIMAL::GBR::DetectorActivity";
 	private static final Scalar RED = new Scalar(255, 0, 0, 255);
+	private static final Scalar DARK_RED = new Scalar(180, 0, 0, 255);
 	private static final Scalar WHITE = new Scalar(255, 255, 255, 255);
 	private static final Scalar DARK_GRAY = new Scalar(80, 80, 80, 255);
 	private static final Scalar LIGHT_GRAY = new Scalar(180, 180, 180, 20);
@@ -144,12 +145,13 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 
 		MatOfPoint2f intersections = new MatOfPoint2f();
 		MatOfPoint2f selectedIntersections = new MatOfPoint2f();
+		MatOfPoint3f filledIntersections = new MatOfPoint3f();
 		MatOfPoint3f darkCircles = new MatOfPoint3f();
 		MatOfPoint3f lightCircles = new MatOfPoint3f();
 
 		detect(detectionImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
-				selectedIntersections.getNativeObjAddr(), darkCircles.getNativeObjAddr(),
-				lightCircles.getNativeObjAddr());
+				selectedIntersections.getNativeObjAddr(), filledIntersections.getNativeObjAddr(),
+				darkCircles.getNativeObjAddr(), lightCircles.getNativeObjAddr());
 
 		for (int i = 0; i < intersections.rows(); i++) {
 			double[] p = intersections.get(i, 0);
@@ -163,12 +165,17 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 
 		for (int i = 0; i < darkCircles.rows(); i++) {
 			double[] p = darkCircles.get(i, 0);
-			Core.circle(colorImage, new Point(p[0], p[1]), (int) p[2], DARK_GRAY, 3);
+			Core.circle(colorImage, new Point(p[0], p[1]), (int) p[2], DARK_GRAY, 1);
 		}
 
 		for (int i = 0; i < lightCircles.rows(); i++) {
 			double[] p = lightCircles.get(i, 0);
-			Core.circle(colorImage, new Point(p[0], p[1]), (int) p[2], WHITE, 3);
+			Core.circle(colorImage, new Point(p[0], p[1]), (int) p[2], WHITE, 1);
+		}
+
+		for (int i = 0; i < filledIntersections.rows(); i++) {
+			double[] p = filledIntersections.get(i, 0);
+			Core.circle(colorImage, new Point(p[0], p[1]), 10, DARK_RED, 3);
 		}
 
 		Core.circle(colorImage, new Point(colorImage.width() / 2, colorImage.height() / 2), 10, RED, 3);
@@ -208,8 +215,8 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 		}
 	};
 
-	public native void detect(long mgray, long intersections, long selectedIntersections, long darkCircles,
-			long lightCircles);
+	public native void detect(long mgray, long intersections, long selectedIntersections, long filledIntersections,
+			long darkCircles, long lightCircles);
 
 	public native void saveAsYAML(long image, String filename);
 }
