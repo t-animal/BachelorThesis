@@ -8,7 +8,7 @@ class AnnotaterWindow(Gtk.Window):
 
 	def launchAnnotater(self, button):
 		if self.filename:
-			subprocess.Popen(["/home/cip/nf/ar79yxiw/uni/sem_09/BA/testSampleAnnotater/Debug/TestSampleAnnotater", self.filename])
+			subprocess.Popen(["~/BA/testSampleAnnotater/Debug/TestSampleAnnotater", self.filename])
 
 	def chooseFile(self, widget):
 		dialog = Gtk.FileChooserDialog("Please choose a file", self,
