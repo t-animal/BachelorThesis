@@ -32,6 +32,8 @@ void getIntersections(
 		                                         //!<   considered the same
 		);
 
+void getIntersections_FAST(std::vector<cv::Point2f> &intersections, cv::Mat src);
+
 /**
  * Selects those intersections that are part of the go-board. Starts at the center of the image, computes the distance
  * between the two intersection closest to it and then repeatedly selects all the intersections closer than this

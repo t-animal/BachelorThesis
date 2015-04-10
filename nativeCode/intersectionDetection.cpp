@@ -1,3 +1,6 @@
+#include <opencv2/features2d/features2d.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 #include "intersectionDetection.h"
 
 using namespace std;
@@ -67,6 +70,34 @@ void getIntersections(vector<Point2f> &intersections, const vector<Vec4i> &horz,
 			if(add)
 				intersections.push_back(newIntersect);
 		}
+	}
+}
+
+void getIntersections_FAST(vector<Point2f> &intersections, Mat src){
+	vector<KeyPoint> keypoints;
+	Mat dst;
+	cvtColor(src, dst, COLOR_BGR2GRAY);
+	GaussianBlur(dst, dst, Size(3,3), 2);
+	FASTX(dst, keypoints, 20, true, FastFeatureDetector::TYPE_9_16);
+
+	for(KeyPoint kp : keypoints){
+		intersections.push_back(kp.pt);
+	}
+}
+
+
+void getIntersections_ORB(vector<Point2f> &intersections, Mat src){
+	vector<KeyPoint> keypoints;
+	Mat dst;
+	cvtColor(src, dst, COLOR_BGR2GRAY);
+	GaussianBlur(dst, dst, Size(3,3), 2);
+
+
+	ORB orb;
+	orb(dst, Mat::ones(dst.size(), CV_8U), keypoints, noArray());
+
+	for(KeyPoint kp : keypoints){
+		intersections.push_back(kp.pt);
 	}
 }
 

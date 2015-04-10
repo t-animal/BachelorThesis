@@ -34,15 +34,16 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
 
 	getIntersections(intersections, horz, vert);
+//	getIntersections_FAST(intersections, bgr);
 	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
 
 	detectPieces(hsv, darkCircles, lightCircles);
 	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
 
-	for(auto c : darkCircles){
+	for (auto c : darkCircles) {
 		intersections.push_back(Point2f(c.x, c.y));
 	}
-	for(auto c : lightCircles){
+	for (auto c : lightCircles) {
 		intersections.push_back(Point2f(c.x, c.y));
 	}
 
