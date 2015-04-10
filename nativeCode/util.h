@@ -7,6 +7,28 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
+#ifdef USE_JNI
+
+#include <jni.h>
+#include <android/log.h>
+
+#define LOG_TAG "T_ANIMAL::GBR::NativeComponent"
+#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
+
+inline void vector_Point2f_to_Mat(std::vector<cv::Point2f>& v_rect, cv::Mat& mat) {
+	mat = cv::Mat(v_rect, true);
+}
+inline void vector_Point3f_to_Mat(std::vector<cv::Point3f>& v_rect, cv::Mat& mat) {
+	mat = cv::Mat(v_rect, true);
+}
+
+#define imshow(...) ""
+
+#else
+#define LOGD(...) fprintf(stdout, __VA_ARGS__); cout << endl;
+#endif
+
+
 /*
  * Get the current milliseconds since the epoch
  */

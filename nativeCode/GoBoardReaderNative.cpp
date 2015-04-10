@@ -17,27 +17,6 @@
 using namespace cv;
 using namespace std;
 
-#ifdef USE_JNI
-
-#include <jni.h>
-#include <android/log.h>
-
-#define LOG_TAG "T_ANIMAL::GBR::NativeComponent"
-#define LOGD(...) ((void)__android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__))
-
-inline void vector_Point2f_to_Mat(vector<Point2f>& v_rect, Mat& mat) {
-	mat = Mat(v_rect, true);
-}
-inline void vector_Point3f_to_Mat(vector<Point3f>& v_rect, Mat& mat) {
-	mat = Mat(v_rect, true);
-}
-
-#define imshow(...) ""
-
-#else
-#define LOGD(...) fprintf(stdout, __VA_ARGS__); cout << endl;
-#endif
-
 void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
 		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles) {
 	int t = getMilliCount();
