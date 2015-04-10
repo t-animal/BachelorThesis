@@ -5,7 +5,6 @@
 #include <opencv2/calib3d/calib3d.hpp>
 
 #include <iostream>
-#include <iomanip>
 #include <stdio.h>
 
 #include "lineDetection.h"
@@ -13,6 +12,7 @@
 #include "util.h"
 #include "pieceDetection.h"
 #include "gapsFilling.h"
+#include "evaluation.h"
 
 using namespace cv;
 using namespace std;
@@ -56,82 +56,21 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 	LOGD("Time consumed until filled gaps: %d", getMilliSpan(t));
 }
 
-#ifndef JNI
-void checkCorrectness(vector<Point2f> intersections, char* filename, Mat src){
-	vector<Point2f> emptyIntersects;
-	vector<Point2f> blackPieces;
-	vector<Point2f> whitePieces;
-	vector<Point2f> allIntersects;
-
-	char annotFilename[strlen(filename)+7];
-	strcpy(annotFilename, filename);
-	strcpy(&annotFilename[strlen(filename)-4], "_annot.yml");
-
-	FileStorage readStorage(annotFilename, FileStorage::READ);
-
-	readStorage["emptyIntersects"] >> emptyIntersects;
-	readStorage["blackPieces"] >> blackPieces;
-	readStorage["whitePieces"] >> whitePieces;
-
-	readStorage.release();
-
-	allIntersects.reserve(emptyIntersects.size()+whitePieces.size()+blackPieces.size());
-	allIntersects.insert(allIntersects.end(), emptyIntersects.begin(), emptyIntersects.end());
-	allIntersects.insert(allIntersects.end(), blackPieces.begin(), blackPieces.end());
-	allIntersects.insert(allIntersects.end(), whitePieces.begin(), whitePieces.end());
-
-	int matchedCount=0;
-	int unmatchedCount = 0;
-	for(auto desired : allIntersects){
-		bool matched = false;
-		for(auto is : intersections){
-			if(norm(desired-is) <= 15){
-				matched = true;
-				break;
-			}
-		}
-		if(!matched){
-			//cout << "Desired intersect " << desired << " has not been matched!" << endl;
-			circle(src, desired, 10, Scalar(0, 0, 255), 4);
-			unmatchedCount++;
-		}else{
-			circle(src, desired, 10, Scalar(0, 255, 0), 4);
-			matchedCount++;
-		}
-	}
-
-	if(allIntersects.size() == 0){
-		cout << "There's no reference points";
-		if(intersections.size() != 0) cout << " but keypoints have been found! == FAIL ==" << endl;
-		else cout << " and no keypoints have been found. == SUCCESS == " << endl;
-	}else{
-		float percentage = matchedCount*100.0/allIntersects.size();
-		cout << "Matched " << matchedCount << " out of " << allIntersects.size() << " reference points. (";
-		cout << std::setprecision( 3 ) << percentage << "%) ";
-		if(percentage >= 99){
-			cout << "== SUCCESS ==" << endl;
-		}else{
-			cout << "== FAIL == " << endl;
-		}
-	}
-}
-#endif
-
 void loadAndProcessImage(char *filename) {
 	RNG rng(12345);
 	Mat4f src;
 
-	if (strcmp(filename+strlen(filename)-4, ".yml") == 0) {
+	if (strcmp(filename + strlen(filename) - 4, ".yml") == 0) {
 		FileStorage fs(filename, FileStorage::READ);
 
 		fs["matrix"] >> src;
 
 		fs.release();
-	} else if(strcmp(filename+strlen(filename)-4, ".png") == 0) {
+	} else if (strcmp(filename + strlen(filename) - 4, ".png") == 0) {
 		//load source image and store "as is" (rgb or bgr?) with alpha
 		src = imread(filename, -1);
 		src.convertTo(src, CV_RGBA2BGRA);
-	}else {
+	} else {
 		return;
 	}
 
@@ -141,6 +80,8 @@ void loadAndProcessImage(char *filename) {
 
 	vector<Point2f> selectedIntersections, intersections, filledIntersections;
 	vector<Point3f> darkCircles, lightCircles;
+
+	Evaluater eval(filename);
 
 	detect(src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles);
 
@@ -168,16 +109,17 @@ void loadAndProcessImage(char *filename) {
 		circle(grayDisplay, p, 5, Scalar(180, 180, 180), 2, 8);
 	}
 
-	circle(grayDisplay, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
-	circle(colorDisplay, Point2f(src.cols/2, src.rows/2), 5, Scalar(0, 0, 255), 5, 8);
+	circle(grayDisplay, Point2f(src.cols / 2, src.rows / 2), 5, Scalar(0, 0, 255), 5, 8);
+	circle(colorDisplay, Point2f(src.cols / 2, src.rows / 2), 5, Scalar(0, 0, 255), 5, 8);
 
-	for(auto p : filledIntersections){
-		circle(grayDisplay, p, 8, Scalar(0,0,255), 1, 4);
+	for (auto p : filledIntersections) {
+		circle(grayDisplay, p, 8, Scalar(0, 0, 255), 1, 4);
 	}
 
-#ifndef JNI
-	checkCorrectness(filledIntersections, filename, colorDisplay);
-#endif
+	eval.setImage(colorDisplay);
+	eval.checkIntersectionCorrectness(intersections);
+//	eval.checkOverallCorrectness(filledIntersections);
+
 
 	namedWindow("detectedlines", WINDOW_AUTOSIZE);
 	namedWindow("source", WINDOW_AUTOSIZE);
