@@ -34,10 +34,10 @@ void detectPieces(Mat &src, vector<Point3f> &darkPieces, vector<Point3f> &lightP
 	erode(v, v, Mat(), Point(-1, -1), 5);
 
 	if(countNonZero(h) < h.rows*h.cols*4/5){ //wenn weniger als 80% weiss, discarde
-		h = Mat::zeros(h.size(), h.type());
+		h = Mat::ones(h.size(), h.type())*360;
 	}
 	if(countNonZero(s) < s.rows*s.cols*4/5){ //wenn weniger als 80% weiss, discarde
-		s = Mat::zeros(s.size(), s.type());
+		s = Mat::ones(s.size(), s.type());
 	}
 
 	h.convertTo((h /= 360) *= 255, CV_8UC1); //0.70833=255/360
