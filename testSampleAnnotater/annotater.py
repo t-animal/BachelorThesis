@@ -3,12 +3,15 @@
 
 from gi.repository import Gtk
 import subprocess
+from os.path import expanduser
+
+home = expanduser("~")
 
 class AnnotaterWindow(Gtk.Window):
 
 	def launchAnnotater(self, button):
 		if self.filename:
-			subprocess.Popen(["~/BA/testSampleAnnotater/Debug/TestSampleAnnotater", self.filename])
+			subprocess.Popen([home+"/BA/testSampleAnnotater/Debug/TestSampleAnnotater", self.filename])
 
 	def chooseFile(self, widget):
 		dialog = Gtk.FileChooserDialog("Please choose a file", self,
