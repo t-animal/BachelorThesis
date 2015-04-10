@@ -1,9 +1,11 @@
-#include "gapsFilling.h"
-
 #include <opencv2/core/core.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 
 #include <iostream>
+#include <string>
+
+#include "gapsFilling.h"
+#include "util.h"
 
 using namespace std;
 using namespace cv;
@@ -41,9 +43,6 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 	assert(count != 0);
 	averageDistance /= count;
 
-	cout << "average distance:" << averageDistance << endl;
-
-	//todo: luecken in y-richtung!
 	lastX = intersections[0].x;
 	lastY = intersections[0].y;
 	int smallestX = intersections[0].x;
@@ -61,15 +60,15 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 			row++;
 			col = 0;
 
-			if(i.x < smallestX - averageDistance*0.15){
+			if(i.x < smallestX - averageDistance*0.5){
 				//we have an outlier to the left => shift all others one to the right
 				//TODO: support outliers by multiple averageDistances
 				for(Point2f &kp : keypoints){
 					kp.x += KPDIST;
 				}
 				smallestX = i.x;
-			}else if(i.x > smallestX + averageDistance*0.15){
-				cout << "missing start in next line!";
+				colsLeftOfCenter++;
+			}else if(i.x > smallestX + averageDistance*0.5){
 				//we have a missing intersection at the beginning of the line
 				while(smallestX + col * averageDistance < i.x){
 					col++;//todo rechnerisch bestimmen
@@ -81,33 +80,28 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 
 			col++;
 			firstLine = false;
-			cout << endl << "1 ";
 			continue;
 		}
 
 		while(i.x - lastX > averageDistance*1.15){
 			//"skip" one keypoint
 			lastX += averageDistance;
-			if(lastX < mp.x && firstLine)
+			if(lastX < mp.x - 0.5*averageDistance && firstLine)
 				colsLeftOfCenter++;
-
-			cout << "0 ";
 
 			col++;
 		}
 
 		keypoints.push_back(Point2f(col*KPDIST, row*KPDIST));
-		cout << "1 ";
 
 		lastX = i.x;
 		lastY = i.y;
 
-		if(i.x < mp.x && firstLine)
+		if(i.x < mp.x - 0.5*averageDistance && firstLine)
 			colsLeftOfCenter++;
 
 		col++;
 	}
-	cout << endl;
 	row++;
 
 	cout << "Left of center:" << colsLeftOfCenter << " above center:" << rowsAboveCenter << endl;
