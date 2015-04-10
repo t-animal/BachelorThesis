@@ -12,8 +12,6 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.MatOfPoint3f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.highgui.Highgui;
@@ -143,40 +141,40 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 			rgbImage.release();
 		}
 
-		MatOfPoint2f intersections = new MatOfPoint2f();
-		MatOfPoint2f selectedIntersections = new MatOfPoint2f();
-		MatOfPoint3f filledIntersections = new MatOfPoint3f();
-		MatOfPoint3f darkCircles = new MatOfPoint3f();
-		MatOfPoint3f lightCircles = new MatOfPoint3f();
+		// MatOfPoint2f intersections = new MatOfPoint2f();
+		// MatOfPoint2f selectedIntersections = new MatOfPoint2f();
+		// MatOfPoint3f filledIntersections = new MatOfPoint3f();
+		// MatOfPoint3f darkCircles = new MatOfPoint3f();
+		// MatOfPoint3f lightCircles = new MatOfPoint3f();
 
-		detect(detectionImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
-				selectedIntersections.getNativeObjAddr(), filledIntersections.getNativeObjAddr(),
-				darkCircles.getNativeObjAddr(), lightCircles.getNativeObjAddr());
-
-		for (int i = 0; i < intersections.rows(); i++) {
-			double[] p = intersections.get(i, 0);
-			Core.circle(colorImage, new Point(p[0], p[1]), 10, LIGHT_GRAY, 1);
-		}
-
-		for (int i = 0; i < selectedIntersections.rows(); i++) {
-			double[] p = selectedIntersections.get(i, 0);
-			Core.circle(colorImage, new Point(p[0], p[1]), 10, YELLOW, 1);
-		}
-
-		for (int i = 0; i < darkCircles.rows(); i++) {
-			double[] p = darkCircles.get(i, 0);
-			Core.circle(colorImage, new Point(p[0], p[1]), (int) p[2], DARK_GRAY, 1);
-		}
-
-		for (int i = 0; i < lightCircles.rows(); i++) {
-			double[] p = lightCircles.get(i, 0);
-			Core.circle(colorImage, new Point(p[0], p[1]), (int) p[2], WHITE, 1);
-		}
-
-		for (int i = 0; i < filledIntersections.rows(); i++) {
-			double[] p = filledIntersections.get(i, 0);
-			Core.circle(colorImage, new Point(p[0], p[1]), 10, DARK_RED, 3);
-		}
+		// detect(detectionImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
+		// selectedIntersections.getNativeObjAddr(), filledIntersections.getNativeObjAddr(),
+		// darkCircles.getNativeObjAddr(), lightCircles.getNativeObjAddr());
+		//
+		// for (int i = 0; i < intersections.rows(); i++) {
+		// double[] p = intersections.get(i, 0);
+		// Core.circle(colorImage, new Point(p[0], p[1]), 10, LIGHT_GRAY, 1);
+		// }
+		//
+		// for (int i = 0; i < selectedIntersections.rows(); i++) {
+		// double[] p = selectedIntersections.get(i, 0);
+		// Core.circle(colorImage, new Point(p[0], p[1]), 10, YELLOW, 1);
+		// }
+		//
+		// for (int i = 0; i < darkCircles.rows(); i++) {
+		// double[] p = darkCircles.get(i, 0);
+		// Core.circle(colorImage, new Point(p[0], p[1]), (int) p[2], DARK_GRAY, 1);
+		// }
+		//
+		// for (int i = 0; i < lightCircles.rows(); i++) {
+		// double[] p = lightCircles.get(i, 0);
+		// Core.circle(colorImage, new Point(p[0], p[1]), (int) p[2], WHITE, 1);
+		// }
+		//
+		// for (int i = 0; i < filledIntersections.rows(); i++) {
+		// double[] p = filledIntersections.get(i, 0);
+		// Core.circle(colorImage, new Point(p[0], p[1]), 10, DARK_RED, 3);
+		// }
 
 		Core.circle(colorImage, new Point(colorImage.width() / 2, colorImage.height() / 2), 10, RED, 3);
 
