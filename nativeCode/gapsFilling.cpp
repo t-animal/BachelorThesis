@@ -119,13 +119,12 @@ void fillGaps(vector<Point2f> intersections, vector<Point2f> &filledIntersection
 	generateCorrespondingKeypoints(object, intersections, center);
 	generateReferenceKeypoints(filledIntersections, 9);
 
-	if(intersections.size() == 0 || object.size() != intersections.size()){
-		cout << "homography detection impossible: object: %d, intersections: %d", object.size(), intersections.size();
+	if(intersections.size() < 4 || object.size() != intersections.size()){
+		LOGD("homography detection impossible: object: %d, intersections: %d", object.size(), intersections.size());
 	}else{
 		Mat H = findHomography(object, intersections, RANSAC, 5);
 		perspectiveTransform(filledIntersections, filledIntersections, H);
 		perspectiveTransform(object, object, H);
-		//warpPerspective(colorDisplay, colorDisplay, H, colorDisplay.size());
 
 		for(auto p : object){
 			circle(src, p, 8, Scalar(0,0,180), 2, 8);
