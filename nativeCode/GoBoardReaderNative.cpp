@@ -135,6 +135,8 @@ void loadAndProcessImage(char *filename) {
 		return;
 	}
 
+	cvtColor(src, src, COLOR_RGBA2BGRA);
+
 	LOGD("src is a %s", type2str(src.type()).c_str());
 
 	vector<Point2f> selectedIntersections, intersections, filledIntersections;
@@ -146,7 +148,6 @@ void loadAndProcessImage(char *filename) {
 	Mat grayDisplay, colorDisplay;
 	src.convertTo(grayDisplay, CV_8UC3);
 	src.convertTo(colorDisplay, CV_8UC3);
-	cvtColor(colorDisplay, colorDisplay, COLOR_RGB2BGR);
 	cvtColor(grayDisplay, grayDisplay, COLOR_BGR2GRAY);
 	Canny(grayDisplay, grayDisplay, 50, 200, 3);
 	cvtColor(grayDisplay, grayDisplay, COLOR_GRAY2BGR);
