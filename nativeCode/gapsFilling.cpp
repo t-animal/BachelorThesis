@@ -16,7 +16,7 @@ void generateReferenceKeypoints(vector<Point2f> &object, int squareLength){
 	int offset = (squareLength-1)/2;
 	for(int i=0; i<squareLength; i++){
 		for(int j=0; j<squareLength; j++){
-			object.push_back(Point2f((offset-i)*KPDIST, (offset-j)*KPDIST));
+			object.push_back(Point2f((offset-i)*KPDIST+400, (offset-j)*KPDIST+240));
 		}
 	}
 }
@@ -76,7 +76,7 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 				col--;
 			}
 
-			keypoints.push_back(Point2f(col*KPDIST, row*KPDIST));
+			keypoints.push_back(Point2f(col*KPDIST+400, row*KPDIST+240));//todo 400 und 240 durch mittelpunktskoordinaten ersetzen
 
 			col++;
 			firstLine = false;
@@ -92,7 +92,7 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 			col++;
 		}
 
-		keypoints.push_back(Point2f(col*KPDIST, row*KPDIST));
+		keypoints.push_back(Point2f(col*KPDIST+400, row*KPDIST+240));
 
 		lastX = i.x;
 		lastY = i.y;
