@@ -85,13 +85,13 @@ void checkCorrectness(vector<Point2f> intersections, char* filename, Mat src){
 	for(auto desired : allIntersects){
 		bool matched = false;
 		for(auto is : intersections){
-			if(norm(desired-is) <= 10){
+			if(norm(desired-is) <= 15){
 				matched = true;
 				break;
 			}
 		}
 		if(!matched){
-			cout << "Desired intersect " << desired << " has not been matched!" << endl;
+			//cout << "Desired intersect " << desired << " has not been matched!" << endl;
 			circle(src, desired, 10, Scalar(0, 0, 255), 4);
 			unmatchedCount++;
 		}else{
