@@ -17,6 +17,35 @@
 using namespace cv;
 using namespace std;
 
+void getColors(const vector<Point2f> &intersections, char *pieces, Mat hsv){
+
+	vector<Mat> channels;
+	split(hsv, channels);
+	Mat1f h = channels[0];
+	Mat1f s = channels[1];
+	Mat1f v = channels[2];
+
+	int curPiece = 0;
+	for(auto i : intersections){
+		Mat1f subPix;
+		getRectSubPix(v, Size(10,10), i, subPix);
+//		imshow(to_string(curPiece).append("piece"), subPix/255);
+//		waitKey(200);
+		if((sum(subPix)[0]/100) < 50){
+			pieces[curPiece++] = sum(subPix)[0]/100;
+			continue;
+		}
+
+		getRectSubPix(s, Size(10,10), i, subPix);
+		if((sum(subPix*255)[0]/100) < 50){
+			pieces[curPiece++] = sum(subPix*255)[0]/100*(-1);
+			continue;
+		}
+
+		pieces[curPiece++] = 0;
+	}
+}
+
 void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
 		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles) {
 	int t = getMilliCount();
@@ -55,6 +84,16 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 
 	fillGaps(selectedIntersections, filledIntersections, src);
 	LOGD("Time consumed until filled gaps: %d", getMilliSpan(t));
+
+	char pieces[81];
+	getColors(filledIntersections, pieces, hsv);
+
+	for(int i=8; i>=0; i--){
+		for(int j=8; j>=0; j--){
+			cout << to_string(pieces[j*9+i]) << "\t" ;
+		}
+		cout << endl;
+	}
 }
 
 void loadAndProcessImage(char *filename) {
