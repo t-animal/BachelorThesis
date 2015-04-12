@@ -2,6 +2,7 @@
 
 #include "lineDetection.h"
 #include "backported/lsd.hpp"
+#include "evaluation.h"
 
 using namespace std;
 using namespace cv;
@@ -231,11 +232,21 @@ void detectVertHorzLines_HOUGH (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &ve
 	Mat dst;
 	vector<Vec4i> lines;
 
-	GaussianBlur(img, dst, Size(3, 3), 2);
+	int kernelSize = Evaluater::conf("LINES_HOUGH_GAUSSKERNEL", 3L);
+	double sigma = Evaluater::conf("LINES_HOUGH_GAUSSSIGMA", 2.);
+	double cannyThresh1 = Evaluater::conf("LINES_HOUGH_CANNYTHRESH1", 50.);
+	double cannyThresh2 = Evaluater::conf("LINES_HOUGH_CANNYTHRESH2", 200.);
+	int aperture = Evaluater::conf("LINES_HOUGH_CANNYAPERTURE", 3L);
 
-	Canny(dst, dst, 50, 200, 3);
+	int angleResolution = Evaluater::conf("LINES_HOUGH_ANGLERES", 180L);
+	int houghThresh = Evaluater::conf("LINES_HOUGH_HOUGHTHRESH", 40L);
+	int minLength = Evaluater::conf("LINES_HOUGH_HOUGHMINLENGTH", 70.);
+	int maxGap = Evaluater::conf("LINES_HOUGH_HOUGHMAXGAP", 10.);
 
-	HoughLinesP(dst, lines, 1, CV_PI / 180, 40, 70, 10);
+	GaussianBlur(img, dst, Size(kernelSize, kernelSize), sigma);
+	Canny(dst, dst, cannyThresh1, cannyThresh2, aperture);
+
+	HoughLinesP(dst, lines, 1, CV_PI/angleResolution, houghThresh, minLength, maxGap);
 
 	for (size_t i = 0; i < lines.size(); i++) {
 		Vec4i l = lines[i];

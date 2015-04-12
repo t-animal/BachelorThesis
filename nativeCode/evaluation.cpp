@@ -3,18 +3,25 @@
 
 #include <iostream>
 #include <iomanip>
+#include <string>
+#include <sstream>
+#include <unordered_map>
+#include <sys/time.h>
+#include <time.h>
 
 #include "evaluation.h"
 
 using namespace std;
 using namespace cv;
 
+vector<pair<string, string>> Evaluater::usedValues = vector<pair<string, string>>();
 
 Evaluater::Evaluater(const char *filename, Mat &image) : Evaluater(filename){
 	this->image = image;
 }
 
 Evaluater::Evaluater(const char *filename){
+	this->filename = string(filename);
 	char annotFilename[strlen(filename) + 7];
 	strcpy(annotFilename, filename);
 	strcpy(&annotFilename[strlen(filename) - 4], "_annot.yml");
@@ -31,6 +38,32 @@ Evaluater::Evaluater(const char *filename){
 	allIntersects.insert(allIntersects.end(), emptyIntersects.begin(), emptyIntersects.end());
 	allIntersects.insert(allIntersects.end(), blackPieces.begin(), blackPieces.end());
 	allIntersects.insert(allIntersects.end(), whitePieces.begin(), whitePieces.end());
+}
+
+FileStorage Evaluater::getFileStorage(){
+	timeval curTime;
+	gettimeofday(&curTime, NULL);
+
+	char buffer[80];
+	strftime(buffer, 80, "%Y-%m-%d--%T.", localtime(&curTime.tv_sec));
+
+	string outputFilename("run_");
+	outputFilename.append(buffer);
+	outputFilename.append(to_string(curTime.tv_usec / 1000));
+
+	FileStorage fs(outputFilename, FileStorage::WRITE);
+	fs << "runTime" << buffer;
+	fs << "filename" << filename;
+
+	return fs;
+}
+
+void Evaluater::saveParameters(FileStorage fs){
+
+	fs << "usedParams" << "============= Line intentionally left blank ===========";
+	for(auto current : usedValues){
+		fs << current.first << current.second;
+	}
 }
 
 void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersections){
@@ -62,6 +95,17 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 
 		}
 	}
+
+	FileStorage fs = getFileStorage();
+
+	fs << "intersectionCorrectness" << (int)(matched/(float)allIntersects.size()*100);
+	fs << "availableIntersects" << (int)allIntersects.size();
+	fs << "matched" << matched;
+	fs << "bogus" << insideKeypoints - matched;
+
+	saveParameters(fs);
+
+	fs.release();
 
 	cout << endl << matched << " intersections have been correctly found. " << endl
 		<< allIntersects.size() - matched << " intersections are missing a keypoint." << endl
@@ -105,4 +149,31 @@ void Evaluater::checkOverallCorrectness(const vector<Point2f> &intersections) {
 			cout << "== FAIL == " << endl;
 		}
 	}
+}
+
+long Evaluater::conf(String name, long defaultVal){
+	char* value = getenv(name.c_str());
+	long returnVal = value!=NULL? stol(value) : defaultVal;
+
+	usedValues.push_back(pair<string, string>(name, to_string(returnVal)));
+
+	return returnVal;
+}
+
+double Evaluater::conf(String name, double defaultVal){
+	char* value = getenv(name.c_str());
+	double returnVal = value!=NULL? stod(value) : defaultVal;
+
+	usedValues.push_back(pair<string, string>(name, to_string(returnVal)));
+
+	return returnVal;
+}
+
+String Evaluater::conf(String name, String defaultVal){
+	char* value = getenv(name.c_str());
+	String returnVal = value!=NULL? String(value) : defaultVal;
+
+	usedValues.push_back(pair<string, string>(name, returnVal));
+
+	return returnVal;
 }
