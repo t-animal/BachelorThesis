@@ -17,6 +17,8 @@
 using namespace cv;
 using namespace std;
 
+Evaluater *globEval;
+
 void getColors(const vector<Point2f> &intersections, char *pieces, Mat hsv){
 
 	vector<Mat> channels;
@@ -65,6 +67,8 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 	getIntersections(intersections, horz, vert);
 //	getIntersections_FAST(intersections, bgr);
 	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
+
+//	globEval -> checkIntersectionCorrectness(intersections);
 
 	detectPieces(hsv, darkCircles, lightCircles);
 	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
@@ -122,6 +126,7 @@ void loadAndProcessImage(char *filename) {
 	vector<Point3f> darkCircles, lightCircles;
 
 	Evaluater eval(filename);
+	globEval = &eval;
 
 	detect(src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles);
 
@@ -132,6 +137,8 @@ void loadAndProcessImage(char *filename) {
 	cvtColor(grayDisplay, grayDisplay, COLOR_BGR2GRAY);
 	Canny(grayDisplay, grayDisplay, 50, 200, 3);
 	cvtColor(grayDisplay, grayDisplay, COLOR_GRAY2BGR);
+
+
 
 	for (Vec3f c : darkCircles) {
 		circle(colorDisplay, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
@@ -157,9 +164,8 @@ void loadAndProcessImage(char *filename) {
 	}
 
 	eval.setImage(colorDisplay);
-	eval.checkIntersectionCorrectness(intersections);
-//	eval.checkOverallCorrectness(filledIntersections);
-
+//	eval.checkIntersectionCorrectness(intersections);
+	eval.checkOverallCorrectness(filledIntersections);
 
 	namedWindow("detectedlines", WINDOW_AUTOSIZE);
 	namedWindow("source", WINDOW_AUTOSIZE);
