@@ -91,6 +91,8 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 	int insideKeypoints = 0;
 
 	for(Point2f i : intersections){
+		i.x += xOffset;
+		i.y += yOffset;
 		if(pointPolygonTest(contour, i, true) >= -15){
 			insideKeypoints++;
 

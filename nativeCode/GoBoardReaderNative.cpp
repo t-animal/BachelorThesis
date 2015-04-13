@@ -48,7 +48,7 @@ void getColors(const vector<Point2f> &intersections, char *pieces, Mat hsv){
 	}
 }
 
-void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
+void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
 		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles) {
 	int t = getMilliCount();
 
@@ -60,6 +60,43 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 	cvtColor(src, hsv, COLOR_BGR2HSV);
 	src.convertTo(bgr, CV_8UC4);
 
+	Rect bounding = Rect();
+	Mat threshed, mask;
+	mask = Mat1i(Size(src.cols+2, src.rows+2));
+
+	gray.convertTo(threshed, CV_8UC1);
+	adaptiveThreshold(threshed, threshed, 255, ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY, 31, 1);
+	threshed.convertTo(threshed, CV_8UC3);
+
+	rectangle(threshed, Point(src.cols/2-20, src.rows/2-20), Point(src.cols/2+20, src.rows/2+20), Scalar(0,0,0), -1);
+	floodFill(threshed, noArray(), Point(src.cols/2, src.rows/2), Scalar(120), &bounding);
+	imshow("thrte", threshed);
+
+	bounding.x -= 10;
+	bounding.y -= 10;
+	bounding.height += 20;
+	bounding.width += 20;
+
+	if(bounding.x < 0){
+		bounding.height += bounding.x; bounding.x=0;
+	}
+	if(bounding.y < 0){
+		bounding.width += bounding.y; bounding.y=0;
+	}
+	if(bounding.x + bounding.width > src.cols){
+		bounding.width = src.cols-bounding.x;
+	}
+	if(bounding.y+bounding.height > src.rows){
+		bounding.height = src.rows-bounding.y;
+	}
+
+	src = src(bounding);
+	gray = gray(bounding);
+	hsv = hsv(bounding);
+	bgr = bgr(bounding);
+
+	imshow("bgr", bgr);
+
 	vector<Vec4i> horz, vert;
 	detectVertHorzLines(bgr, horz, vert, 2, 2);
 //	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
@@ -68,7 +105,7 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 //	getIntersections_FAST(intersections, bgr);
 //	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
 
-	globEval -> checkIntersectionCorrectness(intersections);
+	globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
 
 	detectPieces(hsv, darkCircles, lightCircles);
 //	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
@@ -98,7 +135,24 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 //		}
 //		cout << endl;
 //	}
+
+	for(auto &i : filledIntersections){
+		i.x+=bounding.x; i.y+=bounding.y;
+	}
+	for(auto &i : selectedIntersections){
+		i.x+=bounding.x; i.y+=bounding.y;
+	}
+	for(auto &i : intersections){
+		i.x+=bounding.x; i.y+=bounding.y;
+	}
+	for(auto &i : darkCircles){
+		i.x+=bounding.x; i.y+=bounding.y;
+	}
+	for(auto &i : lightCircles){
+		i.x+=bounding.x; i.y+=bounding.y;
+	}
 }
+
 
 void loadAndProcessImage(char *filename) {
 	RNG rng(12345);

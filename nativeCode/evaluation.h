@@ -26,7 +26,7 @@ public:
 	Evaluater(const char *, cv::Mat&);
 
 	void setImage(cv::Mat &image){ this->image = image; }
-	void checkIntersectionCorrectness(const std::vector<cv::Point2f>&);
+	void checkIntersectionCorrectness(const std::vector<cv::Point2f>&, int xOffset, int yOffset);
 	void checkOverallCorrectness(const std::vector<cv::Point2f>&);
 
 	static long conf(string name, long defaultVal);
