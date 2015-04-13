@@ -62,16 +62,16 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 
 	vector<Vec4i> horz, vert;
 	detectVertHorzLines(bgr, horz, vert, 2, 2);
-	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
+//	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
 
 	getIntersections(intersections, horz, vert);
 //	getIntersections_FAST(intersections, bgr);
-	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
+//	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
 
-//	globEval -> checkIntersectionCorrectness(intersections);
+	globEval -> checkIntersectionCorrectness(intersections);
 
 	detectPieces(hsv, darkCircles, lightCircles);
-	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
+//	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
 
 	for (auto c : darkCircles) {
 		intersections.push_back(Point2f(c.x, c.y));
@@ -81,23 +81,23 @@ void detect(Mat &src, vector<Point2f> &intersections, vector<Point2f> &selectedI
 	}
 
 	removeDuplicateIntersections(intersections);
-	LOGD("Time consumed until removed duplicates: %d", getMilliSpan(t));
+//	LOGD("Time consumed until removed duplicates: %d", getMilliSpan(t));
 
 	selectBoardIntersections(src, intersections, selectedIntersections);
-	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
+//	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
 
 	fillGaps(selectedIntersections, filledIntersections, src);
-	LOGD("Time consumed until filled gaps: %d", getMilliSpan(t));
+//	LOGD("Time consumed until filled gaps: %d", getMilliSpan(t));
 
-	char pieces[81];
-	getColors(filledIntersections, pieces, hsv);
-
-	for(int i=8; i>=0; i--){
-		for(int j=8; j>=0; j--){
-			cout << to_string(pieces[j*9+i]) << "\t" ;
-		}
-		cout << endl;
-	}
+//	char pieces[81];
+//	getColors(filledIntersections, pieces, hsv);
+//
+//	for(int i=8; i>=0; i--){
+//		for(int j=8; j>=0; j--){
+//			cout << to_string(pieces[j*9+i]) << "\t" ;
+//		}
+//		cout << endl;
+//	}
 }
 
 void loadAndProcessImage(char *filename) {
@@ -120,7 +120,7 @@ void loadAndProcessImage(char *filename) {
 
 	cvtColor(src, src, COLOR_RGBA2BGRA);
 
-	LOGD("src is a %s", type2str(src.type()).c_str());
+//	LOGD("src is a %s", type2str(src.type()).c_str());
 
 	vector<Point2f> selectedIntersections, intersections, filledIntersections;
 	vector<Point3f> darkCircles, lightCircles;
@@ -137,8 +137,6 @@ void loadAndProcessImage(char *filename) {
 	cvtColor(grayDisplay, grayDisplay, COLOR_BGR2GRAY);
 	Canny(grayDisplay, grayDisplay, 50, 200, 3);
 	cvtColor(grayDisplay, grayDisplay, COLOR_GRAY2BGR);
-
-
 
 	for (Vec3f c : darkCircles) {
 		circle(colorDisplay, Point(c[0], c[1]), c[2], Scalar(80, 80, 80), 2, 8);
@@ -165,14 +163,14 @@ void loadAndProcessImage(char *filename) {
 
 	eval.setImage(colorDisplay);
 //	eval.checkIntersectionCorrectness(intersections);
-	eval.checkOverallCorrectness(filledIntersections);
+//	eval.checkOverallCorrectness(filledIntersections);
 
-	namedWindow("detectedlines", WINDOW_AUTOSIZE);
-	namedWindow("source", WINDOW_AUTOSIZE);
-	imshow("source", colorDisplay);
-	imshow("detectedlines", grayDisplay);
-
-	waitKey();
+//	namedWindow("detectedlines", WINDOW_AUTOSIZE);
+//	namedWindow("source", WINDOW_AUTOSIZE);
+//	imshow("source", colorDisplay);
+//	imshow("detectedlines", grayDisplay);
+//
+//	waitKey();
 }
 
 int main(int argc, char** argv) {
@@ -195,8 +193,8 @@ extern "C" {
 
 		detect(*(Mat*) src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles);
 
-		LOGD("outside intersectionsCount: %d", filledIntersections.size());
-		LOGD("outside selectedIntersectionsCount: %d", selectedIntersections.size());
+//		LOGD("outside intersectionsCount: %d", filledIntersections.size());
+//		LOGD("outside selectedIntersectionsCount: %d", selectedIntersections.size());
 		vector_Point2f_to_Mat(selectedIntersections, *((Mat*)java_selectedIntersections));
 		vector_Point2f_to_Mat(intersections, *((Mat*)java_intersections));
 		vector_Point2f_to_Mat(filledIntersections, *((Mat*)java_filledIntersections));

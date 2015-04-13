@@ -5,9 +5,12 @@ import os
 import itertools
 import shutil
 import subprocess
+import tempfile
 import yaml
 
 DEVNULL = open(os.devnull, 'wb')
+HOME = os.path.expanduser("~")
+PATH = "../../test/files/03b0c66/unprocessed/"
 
 class Storage():
 	pass
@@ -52,41 +55,54 @@ def modifiedEnvironments():
 		for key, value in envVals.iteritems():
 			curEnv[key] = str(value)
 		curEnv["EVALUATION"] = "YES"
+		curEnv["LD_LIBRARY_PATH"] = "/local/opencv/opencv-2.4.10/build/lib"
 		yield curEnv
 
 def handleEnv(env, repeated=False):
-	subprocess.Popen("../../test/test.sh ../../test/files/03b0c66/unprocessed/*d.yml", shell=True, env=environment, stdout=DEVNULL, stderr=DEVNULL).wait()
+
+	#execute in subshells, save output
+	outputs = []
+	processes = []
+	for fn in os.listdir(PATH):
+		if fn.endswith("unprocessed.yml"):
+			f = tempfile.SpooledTemporaryFile(max_size=1024*1024, mode="w+")
+			outputs.append(f)
+			processes.append(subprocess.Popen(HOME+"/BA/nativeCode/Debug/GoBoardReaderNative_evaluating "+PATH+fn, shell=True, env=environment, stdout=f, stderr=DEVNULL))
+
+	#wait for all subshsells
+	for p in processes:
+		p.wait()
 
 	totalFiles = 0
 	totalCorrect = 0
 	totalAvailableIntersects = 0
 	totalMatched = 0
+	totalBogus = 0
 	data = None
-
 	try:
-		for fn in os.listdir('.'):
-			if os.path.isfile(fn) and fn.startswith("run_"):
-				f = open(fn, 'r')
-				f.readline()
-				data = yaml.load(f.read())
-				f.close()
+		for f in outputs:
+			f.seek(0)
+			f.readline()
 
-				totalCorrect += data["intersectionCorrectness"]
-				totalAvailableIntersects += data["availableIntersects"]
-				totalMatched += data["matched"]
-				totalFiles += 1
+			data = yaml.load(f.read())
 
-				os.remove(fn)
+			if not data:
+				continue
+
+			totalCorrect += data["intersectionCorrectness"]
+			totalAvailableIntersects += data["availableIntersects"]
+			totalMatched += data["matched"]
+			totalBogus += data["bogus"]
+			totalFiles += 1
+
 	except yaml.YAMLError:
 		if repeated == True:
 			print "Unrecoverable error"
 
-		#remove files and retry
-		for fn in os.listdir('.'):
-			if os.path.isfile(fn) and fn.startswith("run_"):
-				os.remove(fn)
-
 		handleEnv(env, True)
+	finally:
+		for f in outputs:
+			f.close()
 
 	if totalFiles == 0:
 		return
@@ -110,12 +126,12 @@ def handleEnv(env, repeated=False):
 	f.close()
 
 params.LINES_HOUGH_GAUSSKERNEL   =  range(3, 7, 2)
-params.LINES_HOUGH_GAUSSSIGMA    =  range(2, 7, 1)
-params.LINES_HOUGH_CANNYTHRESH1  =  range(30, 70, 5)
-params.LINES_HOUGH_CANNYTHRESH2  =  range(180, 220, 5)
+params.LINES_HOUGH_GAUSSSIGMA    =  range(2, 4, 1)
+#params.LINES_HOUGH_CANNYTHRESH1  =  range(30, 70, 5)
+#params.LINES_HOUGH_CANNYTHRESH2  =  range(180, 220, 5)
 #params.LINES_HOUGH_CANNYAPERTURE =  range(2, 5, 1)
 
-params.LINES_HOUGH_ANGLERES       = [90, 180, 270]
+params.LINES_HOUGH_ANGLERES       = [180, 270, 360]
 params.LINES_HOUGH_HOUGHTHRESH    = range(25, 65, 5)
 params.LINES_HOUGH_HOUGHMINLENGTH = range(50, 90, 5)
 params.LINES_HOUGH_HOUGHMAXGAP    = range(5, 15, 3)
@@ -130,6 +146,4 @@ for environment in modifiedEnvironments():
 	print str(currentParam)+"/"+str(totalParams)
 	currentParam += 1
 
-	if currentParam <= 7003:
-		continue
 	handleEnv(environment)

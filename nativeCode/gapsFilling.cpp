@@ -104,7 +104,7 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 	}
 	row++;
 
-	cout << "Left of center:" << colsLeftOfCenter << " above center:" << rowsAboveCenter << endl;
+//	cout << "Left of center:" << colsLeftOfCenter << " above center:" << rowsAboveCenter << endl;
 
 	for(Point2f &kp : keypoints){
 		kp.y -= (rowsAboveCenter-1)*KPDIST;
@@ -120,7 +120,7 @@ void fillGaps(vector<Point2f> intersections, vector<Point2f> &filledIntersection
 	generateReferenceKeypoints(filledIntersections, 9);
 
 	if(intersections.size() < 4 || object.size() != intersections.size()){
-		LOGD("homography detection impossible: object: %d, intersections: %d", object.size(), intersections.size());
+//		LOGD("homography detection impossible: object: %d, intersections: %d", object.size(), intersections.size());
 	}else{
 		Mat H = findHomography(object, intersections, RANSAC, 5);
 		perspectiveTransform(filledIntersections, filledIntersections, H);

@@ -122,11 +122,11 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 
 	test = fs.releaseAndGetString();
 
-	cout << test << endl << endl;
+	cout << test << endl;
 
-	cout << endl << matched << " intersections have been correctly found. " << endl
-		<< allIntersects.size() - matched << " intersections are missing a keypoint." << endl
-		<< "there are " << insideKeypoints - matched << " bogus keypoints." << endl << endl;
+//	cout << endl << matched << " intersections have been correctly found. " << endl
+//		<< allIntersects.size() - matched << " intersections are missing a keypoint." << endl
+//		<< "there are " << insideKeypoints - matched << " bogus keypoints." << endl << endl;
 }
 
 void Evaluater::checkOverallCorrectness(const vector<Point2f> &intersections) {

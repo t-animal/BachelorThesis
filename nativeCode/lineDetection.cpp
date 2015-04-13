@@ -177,13 +177,13 @@ void detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert
 		//cout << height << "||" <<width << "||" << height/width << "||" << width/height <<endl;
 	}
 
-	cout << "horz" << horz.size() << endl;
-	cout << "vert" << vert.size() << endl;
+//	cout << "horz" << horz.size() << endl;
+//	cout << "vert" << vert.size() << endl;
 
 	mergeNearbyLines(horz, vert);
 
-	cout << "horz" << horz.size() << endl;
-	cout << "vert" << vert.size() << endl;
+//	cout << "horz" << horz.size() << endl;
+//	cout << "vert" << vert.size() << endl;
 
 //	RNG rng(12345);
 //	for(auto l : horz){
