@@ -18,6 +18,7 @@ private:
 	static vector<pair<string, string>> usedValues;
 
 	cv::FileStorage getFileStorage();
+	cv::FileStorage getMemoryStorage();
 	void saveParameters(cv::FileStorage fs);
 
 public:
@@ -27,7 +28,6 @@ public:
 	void setImage(cv::Mat &image){ this->image = image; }
 	void checkIntersectionCorrectness(const std::vector<cv::Point2f>&);
 	void checkOverallCorrectness(const std::vector<cv::Point2f>&);
-
 
 	static long conf(string name, long defaultVal);
 	static double conf(string name, double defaultVal);

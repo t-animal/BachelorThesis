@@ -58,6 +58,20 @@ FileStorage Evaluater::getFileStorage(){
 	return fs;
 }
 
+FileStorage Evaluater::getMemoryStorage(){
+	timeval curTime;
+	gettimeofday(&curTime, NULL);
+
+	char buffer[80];
+	strftime(buffer, 80, "%Y-%m-%d--%T.", localtime(&curTime.tv_sec));
+
+	FileStorage fs("foo.yml", FileStorage::WRITE | FileStorage::MEMORY);
+	fs << "runTime" << buffer;
+	fs << "filename" << filename;
+
+	return fs;
+}
+
 void Evaluater::saveParameters(FileStorage fs){
 
 	fs << "usedParams" << "============= Line intentionally left blank ===========";
@@ -96,7 +110,8 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 		}
 	}
 
-	FileStorage fs = getFileStorage();
+	string test;
+	FileStorage fs = getMemoryStorage();
 
 	fs << "intersectionCorrectness" << (int)(matched/(float)allIntersects.size()*100);
 	fs << "availableIntersects" << (int)allIntersects.size();
@@ -105,7 +120,9 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 
 	saveParameters(fs);
 
-	fs.release();
+	test = fs.releaseAndGetString();
+
+	cout << test << endl << endl;
 
 	cout << endl << matched << " intersections have been correctly found. " << endl
 		<< allIntersects.size() - matched << " intersections are missing a keypoint." << endl
