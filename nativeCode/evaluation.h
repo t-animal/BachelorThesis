@@ -1,6 +1,8 @@
 #ifndef EVALUATION_H_
 #define EVALUATION_H_
 
+#include <opencv2/highgui/highgui.hpp>
+
 #include <string>
 #include <unordered_map>
 
@@ -14,6 +16,7 @@ private:
 	std::vector<cv::Point2f> allIntersects;
 	cv::Mat image;
 	string filename;
+	bool evaluatable = false;
 
 	static vector<pair<string, string>> usedValues;
 
@@ -32,6 +35,8 @@ public:
 	static long conf(string name, long defaultVal);
 	static double conf(string name, double defaultVal);
 	static string conf(string name, string defaultVal);
+
+	void showImage(){cv::imshow("evaluated", image); cv::waitKey();}
 };
 
 #endif

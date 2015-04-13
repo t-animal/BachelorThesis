@@ -38,6 +38,10 @@ Evaluater::Evaluater(const char *filename){
 	allIntersects.insert(allIntersects.end(), emptyIntersects.begin(), emptyIntersects.end());
 	allIntersects.insert(allIntersects.end(), blackPieces.begin(), blackPieces.end());
 	allIntersects.insert(allIntersects.end(), whitePieces.begin(), whitePieces.end());
+
+	if(allIntersects.size() != 0){
+		evaluatable = true;
+	}
 }
 
 FileStorage Evaluater::getFileStorage(){
@@ -73,14 +77,16 @@ FileStorage Evaluater::getMemoryStorage(){
 }
 
 void Evaluater::saveParameters(FileStorage fs){
-
 	fs << "usedParams" << "============= Line intentionally left blank ===========";
 	for(auto current : usedValues){
 		fs << current.first << current.second;
 	}
 }
 
-void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersections){
+void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersections, int xOffset=0, int yOffset=0){
+	if(!evaluatable)
+		return;
+
 	vector<Point2f> contour, intersectCopy;
 	intersectCopy.reserve(allIntersects.size());
 	intersectCopy.insert(intersectCopy.begin(), allIntersects.begin(), allIntersects.end());
@@ -93,6 +99,7 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 	for(Point2f i : intersections){
 		i.x += xOffset;
 		i.y += yOffset;
+		bool wasMatched = false;
 		if(pointPolygonTest(contour, i, true) >= -15){
 			insideKeypoints++;
 
@@ -105,11 +112,14 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 					ai.y=-10;
 
 					matched++;
+					wasMatched = true;
 					break;
 				}
 			}
 
 		}
+		if(!wasMatched)
+			circle(image, i, 10, Scalar(0, 0, 255), 4);
 	}
 
 	string test;
@@ -132,6 +142,9 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 }
 
 void Evaluater::checkOverallCorrectness(const vector<Point2f> &intersections) {
+	if(!evaluatable)
+		return;
+
 	int matchedCount = 0;
 	int unmatchedCount = 0;
 	for (auto desired : allIntersects) {
