@@ -54,6 +54,61 @@ def modifiedEnvironments():
 		curEnv["EVALUATION"] = "YES"
 		yield curEnv
 
+def handleEnv(env, repeated=False):
+	subprocess.Popen("../../test/test.sh ../../test/files/03b0c66/unprocessed/*d.yml", shell=True, env=environment, stdout=DEVNULL, stderr=DEVNULL).wait()
+
+	totalFiles = 0
+	totalCorrect = 0
+	totalAvailableIntersects = 0
+	totalMatched = 0
+	data = None
+
+	try:
+		for fn in os.listdir('.'):
+			if os.path.isfile(fn) and fn.startswith("run_"):
+				f = open(fn, 'r')
+				f.readline()
+				data = yaml.load(f.read())
+				f.close()
+
+				totalCorrect += data["intersectionCorrectness"]
+				totalAvailableIntersects += data["availableIntersects"]
+				totalMatched += data["matched"]
+				totalFiles += 1
+
+				os.remove(fn)
+	except yaml.YAMLError:
+		if repeated == True:
+			print "Unrecoverable error"
+
+		#remove files and retry
+		for fn in os.listdir('.'):
+			if os.path.isfile(fn) and fn.startswith("run_"):
+				os.remove(fn)
+
+		handleEnv(env, True)
+
+	if totalFiles == 0:
+		return
+
+	newData = {}
+	for key in data:
+		if key[0].isupper():
+			newData[key] = data[key]
+
+	newData["totalCorrect"] = totalCorrect/totalFiles
+	newData["totalFiles"] = totalFiles
+	newData["totalAvailableIntersects"] = totalAvailableIntersects
+	newData["totalMatched"] = totalMatched
+	newData["currentParam"] = currentParam-1
+	newData["currentTime"] = str(datetime.datetime.now())
+
+
+	f = open("zusammenfassung.yml", "a")
+	f.write("---\n")
+	f.write(yaml.dump(newData, default_flow_style=False))
+	f.close()
+
 params.LINES_HOUGH_GAUSSKERNEL   =  range(3, 7, 2)
 params.LINES_HOUGH_GAUSSSIGMA    =  range(2, 7, 1)
 params.LINES_HOUGH_CANNYTHRESH1  =  range(30, 70, 5)
@@ -75,44 +130,6 @@ for environment in modifiedEnvironments():
 	print str(currentParam)+"/"+str(totalParams)
 	currentParam += 1
 
-	subprocess.Popen("../../test/test.sh ../../test/files/03b0c66/unprocessed/*d.yml", shell=True, env=environment, stdout=DEVNULL, stderr=DEVNULL).wait()
-
-	totalFiles = 0
-	totalCorrect = 0
-	totalAvailableIntersects = 0
-	totalMatched = 0
-	data = None
-	for fn in os.listdir('.'):
-		if os.path.isfile(fn) and fn.startswith("run_"):
-			f = open(fn, 'r')
-			f.readline()
-			data = yaml.load(f.read())
-			f.close()
-
-			totalCorrect += data["intersectionCorrectness"]
-			totalAvailableIntersects += data["availableIntersects"]
-			totalMatched += data["matched"]
-			totalFiles += 1
-
-			shutil.move(fn, "old/"+fn)
-
-	if totalFiles == 0:
+	if currentParam <= 7003:
 		continue
-
-	newData = {}
-	for key in data:
-		if key[0].isupper():
-			newData[key] = data[key]
-
-	newData["totalCorrect"] = totalCorrect/totalFiles
-	newData["totalFiles"] = totalFiles
-	newData["totalAvailableIntersects"] = totalAvailableIntersects
-	newData["totalMatched"] = totalMatched
-	newData["currentParam"] = currentParam-1
-	newData["currentTime"] = str(datetime.datetime.now())
-
-
-	f = open("zusammenfassung.yml", "a")
-	f.write("---\n")
-	f.write(yaml.dump(newData, default_flow_style=False))
-	f.close()
+	handleEnv(environment)
