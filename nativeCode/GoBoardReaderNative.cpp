@@ -19,6 +19,12 @@ using namespace std;
 
 Evaluater *globEval;
 
+void rotate(vector<Point2f>& src, vector<Point2f>& dst, Point2f center, double angle) {
+	Mat r = getRotationMatrix2D(center, angle, 1.0);
+
+	transform(src, dst, r);
+}
+
 void getColors(const vector<Point2f> &intersections, char *pieces, Mat hsv){
 
 	vector<Mat> channels;
@@ -95,17 +101,20 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	hsv = hsv(bounding);
 	bgr = bgr(bounding);
 
-	imshow("bgr", bgr);
 
 	vector<Vec4i> horz, vert;
 	detectVertHorzLines(bgr, horz, vert, 2, 2);
 //	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
 
+	double angle = getAverageAngle(horz);
+	rotate(bgr, bgr, angle);
+	imshow("bgr", bgr);
+
 	getIntersections(intersections, horz, vert);
 //	getIntersections_FAST(intersections, bgr);
 //	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
 
-	globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
+//	globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
 
 	detectPieces(hsv, darkCircles, lightCircles);
 //	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
@@ -119,6 +128,8 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 	removeDuplicateIntersections(intersections);
 //	LOGD("Time consumed until removed duplicates: %d", getMilliSpan(t));
+
+	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle);
 
 	selectBoardIntersections(src, intersections, selectedIntersections);
 //	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
@@ -135,6 +146,10 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 //		}
 //		cout << endl;
 //	}
+
+	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle*-1);
+	rotate(selectedIntersections, selectedIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
+	rotate(filledIntersections, filledIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
 
 	for(auto &i : filledIntersections){
 		i.x+=bounding.x; i.y+=bounding.y;
@@ -219,12 +234,12 @@ void loadAndProcessImage(char *filename) {
 //	eval.checkIntersectionCorrectness(intersections);
 //	eval.checkOverallCorrectness(filledIntersections);
 
-//	namedWindow("detectedlines", WINDOW_AUTOSIZE);
-//	namedWindow("source", WINDOW_AUTOSIZE);
-//	imshow("source", colorDisplay);
-//	imshow("detectedlines", grayDisplay);
-//
-//	waitKey();
+	namedWindow("detectedlines", WINDOW_AUTOSIZE);
+	namedWindow("source", WINDOW_AUTOSIZE);
+	imshow("source", colorDisplay);
+	imshow("detectedlines", grayDisplay);
+
+	waitKey();
 }
 
 int main(int argc, char** argv) {
