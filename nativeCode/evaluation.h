@@ -36,7 +36,7 @@ public:
 	static double conf(string name, double defaultVal);
 	static string conf(string name, string defaultVal);
 
-	void showImage(){cv::imshow("evaluated", image); cv::waitKey();}
+	void showImage(){cv::imshow("evaluated", image);}
 };
 
 #endif
