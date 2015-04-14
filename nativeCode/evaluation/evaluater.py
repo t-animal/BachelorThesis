@@ -4,6 +4,7 @@ import datetime
 import os
 import itertools
 import shutil
+import socket
 import subprocess
 import tempfile
 import yaml
@@ -11,6 +12,7 @@ import yaml
 DEVNULL = open(os.devnull, 'wb')
 HOME = os.path.expanduser("~")
 PATH = "../../test/files/03b0c66/unprocessed/"
+HOSTNAME = socket.gethostname()
 
 class Storage():
 	pass
@@ -118,9 +120,10 @@ def handleEnv(env, repeated=False):
 	newData["totalMatched"] = totalMatched
 	newData["currentParam"] = currentParam-1
 	newData["currentTime"] = str(datetime.datetime.now())
+	newData["totalBogus"] = totalBogus
 
 
-	f = open("zusammenfassung.yml", "a")
+	f = open("zusammenfassung_"+HOSTNAME+".yml", "a")
 	f.write("---\n")
 	f.write(yaml.dump(newData, default_flow_style=False))
 	f.close()
@@ -131,7 +134,7 @@ params.LINES_HOUGH_GAUSSSIGMA    =  range(2, 4, 1)
 #params.LINES_HOUGH_CANNYTHRESH2  =  range(180, 220, 5)
 #params.LINES_HOUGH_CANNYAPERTURE =  range(2, 5, 1)
 
-params.LINES_HOUGH_ANGLERES       = [180, 270, 360]
+params.LINES_HOUGH_ANGLERES       = [180]
 params.LINES_HOUGH_HOUGHTHRESH    = range(25, 65, 5)
 params.LINES_HOUGH_HOUGHMINLENGTH = range(50, 90, 5)
 params.LINES_HOUGH_HOUGHMAXGAP    = range(5, 15, 3)
