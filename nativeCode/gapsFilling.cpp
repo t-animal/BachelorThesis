@@ -125,9 +125,5 @@ void fillGaps(vector<Point2f> intersections, vector<Point2f> &filledIntersection
 		Mat H = findHomography(object, intersections, RANSAC, 5);
 		perspectiveTransform(filledIntersections, filledIntersections, H);
 		perspectiveTransform(object, object, H);
-
-		for(auto p : object){
-			circle(src, p, 8, Scalar(0,0,180), 2, 8);
-		}
 	}
 }
