@@ -16,6 +16,7 @@ private:
 	std::vector<cv::Point2f> allIntersects;
 	cv::Mat image;
 	string filename;
+	std::vector<cv::Point2f> contour;
 	bool evaluatable = false;
 
 	static vector<pair<string, string>> usedValues;
@@ -30,6 +31,7 @@ public:
 
 	void setImage(cv::Mat &image){ this->image = image; }
 	void checkIntersectionCorrectness(const std::vector<cv::Point2f>&, int xOffset, int yOffset);
+	void checkPieceCorrectness(const std::vector<cv::Point3f>&, const std::vector<cv::Point3f>&, int xOffset, int yOffset);
 	void checkOverallCorrectness(const std::vector<cv::Point2f>&);
 
 	static long conf(string name, long defaultVal);

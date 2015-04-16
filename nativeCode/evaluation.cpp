@@ -16,11 +16,12 @@ using namespace cv;
 
 vector<pair<string, string>> Evaluater::usedValues = vector<pair<string, string>>();
 
-Evaluater::Evaluater(const char *filename, Mat &image) : Evaluater(filename){
+Evaluater::Evaluater(const char *filename, Mat &image) :
+		Evaluater(filename) {
 	this->image = image;
 }
 
-Evaluater::Evaluater(const char *filename){
+Evaluater::Evaluater(const char *filename) {
 	this->filename = string(filename);
 	char annotFilename[strlen(filename) + 7];
 	strcpy(annotFilename, filename);
@@ -39,12 +40,13 @@ Evaluater::Evaluater(const char *filename){
 	allIntersects.insert(allIntersects.end(), blackPieces.begin(), blackPieces.end());
 	allIntersects.insert(allIntersects.end(), whitePieces.begin(), whitePieces.end());
 
-	if(allIntersects.size() != 0){
+	if (allIntersects.size() != 0) {
 		evaluatable = true;
+		convexHull(allIntersects, contour);
 	}
 }
 
-FileStorage Evaluater::getFileStorage(){
+FileStorage Evaluater::getFileStorage() {
 	timeval curTime;
 	gettimeofday(&curTime, NULL);
 
@@ -62,7 +64,7 @@ FileStorage Evaluater::getFileStorage(){
 	return fs;
 }
 
-FileStorage Evaluater::getMemoryStorage(){
+FileStorage Evaluater::getMemoryStorage() {
 	timeval curTime;
 	gettimeofday(&curTime, NULL);
 
@@ -76,40 +78,38 @@ FileStorage Evaluater::getMemoryStorage(){
 	return fs;
 }
 
-void Evaluater::saveParameters(FileStorage fs){
+void Evaluater::saveParameters(FileStorage fs) {
 	fs << "usedParams" << "============= Line intentionally left blank ===========";
-	for(auto current : usedValues){
+	for (auto current : usedValues) {
 		fs << current.first << current.second;
 	}
 }
 
-void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersections, int xOffset=0, int yOffset=0){
-	if(!evaluatable)
+void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersections, int xOffset = 0, int yOffset = 0) {
+	if (!evaluatable)
 		return;
 
-	vector<Point2f> contour, intersectCopy;
+	vector<Point2f> intersectCopy;
 	intersectCopy.reserve(allIntersects.size());
 	intersectCopy.insert(intersectCopy.begin(), allIntersects.begin(), allIntersects.end());
-
-	convexHull(allIntersects, contour);
 
 	int matched = 0;
 	int insideKeypoints = 0;
 
-	for(Point2f i : intersections){
+	for (Point2f i : intersections) {
 		i.x += xOffset;
 		i.y += yOffset;
 		bool wasMatched = false;
-		if(pointPolygonTest(contour, i, true) >= -15){
+		if (pointPolygonTest(contour, i, true) >= -15) {
 			insideKeypoints++;
 
-			for(Point2f &ai: intersectCopy){
-				int offset = norm(i-ai);
+			for (Point2f &ref : intersectCopy) {
+				int offset = norm(i - ref);
 
-				if(offset < 15){
-					circle(image, ai, 10, Scalar(0, 255, 0), 4);
-					ai.x=-10;
-					ai.y=-10;
+				if (offset < 15) {
+					circle(image, ref, 10, Scalar(0, 255, 0), 4);
+					ref.x = -10;
+					ref.y = -10;
 
 					matched++;
 					wasMatched = true;
@@ -118,15 +118,15 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 			}
 
 		}
-		if(!wasMatched)
+		if (!wasMatched)
 			circle(image, i, 10, Scalar(0, 0, 255), 4);
 	}
 
 	string test;
 	FileStorage fs = getMemoryStorage();
 
-	fs << "intersectionCorrectness" << (int)(matched/(float)allIntersects.size()*100);
-	fs << "availableIntersects" << (int)allIntersects.size();
+	fs << "intersectionCorrectness" << (int) (matched / (float) allIntersects.size() * 100);
+	fs << "availableIntersects" << (int) allIntersects.size();
 	fs << "matched" << matched;
 	fs << "bogus" << insideKeypoints - matched;
 
@@ -142,7 +142,7 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 }
 
 void Evaluater::checkOverallCorrectness(const vector<Point2f> &intersections) {
-	if(!evaluatable)
+	if (!evaluatable)
 		return;
 
 	int matchedCount = 0;
@@ -183,27 +183,115 @@ void Evaluater::checkOverallCorrectness(const vector<Point2f> &intersections) {
 	}
 }
 
-long Evaluater::conf(String name, long defaultVal){
+void Evaluater::checkPieceCorrectness(const vector<Point3f> &blackPieces, const vector<Point3f> &whitePieces,
+		int xOffset = 0, int yOffset = 0) {
+	if (!evaluatable)
+		return;
+
+	vector<Point2f> copyBlack, copyWhite;
+	copyBlack.reserve(this->blackPieces.size());
+	copyWhite.reserve(this->whitePieces.size());
+	copyBlack.insert(copyBlack.end(), this->blackPieces.begin(), this->blackPieces.end());
+	copyWhite.insert(copyWhite.end(), this->whitePieces.begin(), this->whitePieces.end());
+
+	int matched = 0;
+	int insidePieces = 0;
+
+	for (auto p : blackPieces) {
+		Point2f p2d(p.x, p.y);
+		p2d.x += xOffset;
+		p2d.y += yOffset;
+
+		if (pointPolygonTest(contour, p2d, true) >= -15) {
+			bool wasMatched = false;
+			insidePieces++;
+
+			for (auto &ref : copyBlack) {
+				int offset = norm(ref - p2d);
+
+				if (offset < 15) {
+					circle(image, ref, 10, Scalar(0, 255, 0), 4);
+					ref.x = -10;
+					ref.y = -10;
+
+					matched++;
+					wasMatched = true;
+					break;
+				}
+			}
+
+			if (!wasMatched)
+				circle(image, p2d, 10, Scalar(0, 0, 255), 4);
+		}
+	}
+
+
+	for (auto p : whitePieces) {
+		Point2f p2d(p.x, p.y);
+		p2d.x += xOffset;
+		p2d.y += yOffset;
+
+		if (pointPolygonTest(contour, p2d, true) >= -15) {
+			bool wasMatched = false;
+			insidePieces++;
+
+			for (auto &ref : copyWhite) {
+				int offset = norm(ref - p2d);
+
+				if (offset < 15) {
+					circle(image, ref, 10, Scalar(0, 255, 0), 4);
+					ref.x = -10;
+					ref.y = -10;
+
+					matched++;
+					wasMatched = true;
+					break;
+				}
+			}
+
+			if (!wasMatched)
+				circle(image, p2d, 10, Scalar(0, 0, 255), 4);
+		}
+	}
+
+
+	string output;
+	FileStorage fs = getMemoryStorage();
+
+	fs << "correctPiecesPercent" << (int) (matched / (float) allIntersects.size() * 100);
+	fs << "availablePieces" << (int) (this->blackPieces.size() + this->whitePieces.size());
+	fs << "matched" << matched;
+	fs << "bogus" << insidePieces - matched;
+	fs << "quality" << (int) matched / (insidePieces - matched);
+
+	saveParameters(fs);
+
+	output = fs.releaseAndGetString();
+
+	cout << output << endl;
+}
+
+long Evaluater::conf(String name, long defaultVal) {
 	char* value = getenv(name.c_str());
-	long returnVal = value!=NULL? stol(value) : defaultVal;
+	long returnVal = value != NULL ? stol(value) : defaultVal;
 
 	usedValues.push_back(pair<string, string>(name, to_string(returnVal)));
 
 	return returnVal;
 }
 
-double Evaluater::conf(String name, double defaultVal){
+double Evaluater::conf(String name, double defaultVal) {
 	char* value = getenv(name.c_str());
-	double returnVal = value!=NULL? stod(value) : defaultVal;
+	double returnVal = value != NULL ? stod(value) : defaultVal;
 
 	usedValues.push_back(pair<string, string>(name, to_string(returnVal)));
 
 	return returnVal;
 }
 
-String Evaluater::conf(String name, String defaultVal){
+String Evaluater::conf(String name, String defaultVal) {
 	char* value = getenv(name.c_str());
-	String returnVal = value!=NULL? String(value) : defaultVal;
+	String returnVal = value != NULL ? String(value) : defaultVal;
 
 	usedValues.push_back(pair<string, string>(name, returnVal));
 
