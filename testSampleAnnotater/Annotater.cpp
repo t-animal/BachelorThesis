@@ -17,19 +17,26 @@ using namespace cv;
 #define BLACK 2
 
 int colorSelect = 0;
+bool pieceMode = false;
 vector<Point2f> emptyIntersects;
-vector<Point2f> blackPieces;
-vector<Point2f> whitePieces;
-vector<Point2f> *allPieces[] = {&emptyIntersects, &whitePieces, &blackPieces};
-vector<Point2f> *newestPoint = &emptyIntersects;
+vector<Point2f> blackIntersects;
+vector<Point2f> whiteIntersects;
+vector<Point3f> blackPieces;
+vector<Point3f> whitePieces;
+vector<Point3f> emptyPieces; //just there for compatability
+vector<Point3f> *allPieces[] = {&emptyPieces, &whitePieces, &blackPieces};
+vector<Point2f> *allIntersects[] = {&emptyIntersects, &whiteIntersects, &blackIntersects};
+vector<Point2f> *newestIntersect = &emptyIntersects;
+vector<Point3f> *newestPiece = &whitePieces;
 Scalar colors[] = {Scalar(160,160,160), Scalar(255,255,255), Scalar(0,0,0)};
+Point2f circleStartPoint(-1,-1);
 
 void drawCirclesAndDisplay(Mat &src){
 	Mat paintImage;
 	src.copyTo(paintImage);
 
 	int index = 0;
-	for(auto v : allPieces){
+	for(auto v : allIntersects){
 		for(auto e : *v){
 			circle(paintImage, e, 7, Scalar(100,100,100), 4);
 			circle(paintImage, e, 7, colors[index], 2.5);
@@ -37,10 +44,79 @@ void drawCirclesAndDisplay(Mat &src){
 		index++;
 	}
 
+	for(auto e : *allPieces[1]){
+		circle(paintImage, Point2f(e.x, e.y), e.z, Scalar(100,100,100), 4);
+		circle(paintImage, Point2f(e.x, e.y), e.z, colors[1], 2.5);
+	}
+	for(auto e : *allPieces[2]){
+		circle(paintImage, Point2f(e.x, e.y), e.z, Scalar(100,100,100), 4);
+		circle(paintImage, Point2f(e.x, e.y), e.z, colors[2], 2.5);
+	}
+
 	imshow("Annotate", paintImage);
 }
 
-void mouseCallback(int event, int x, int y, int flags, void* userdata){
+void piecesMouseCallback(int event, int x, int y, int flags, void* userdata){
+	Mat src = *((Mat*)userdata);
+	Mat paintImage;
+	src.copyTo(paintImage);
+
+	if(event == EVENT_LBUTTONDOWN && circleStartPoint.x < 0){
+		circleStartPoint = Point2f(x,y);
+	}
+
+	if(event == EVENT_MBUTTONUP){
+		colorSelect = (colorSelect+1)%3;
+		circle(paintImage, Point(x,y), 15, Scalar(100,100,100), 4);
+		circle(paintImage, Point(x,y), 15, colors[colorSelect], 2.5);
+	}
+
+	if(event == EVENT_MOUSEMOVE){
+		if(circleStartPoint.x < 0){
+			circle(paintImage, Point(x,y), 15, Scalar(100,100,100), 4);
+			circle(paintImage, Point(x,y), 15, colors[colorSelect], 2.5);
+		}else{
+			circle(paintImage, circleStartPoint, norm(circleStartPoint-Point2f(x,y)), Scalar(100,100,100), 4);
+			circle(paintImage, circleStartPoint, norm(circleStartPoint-Point2f(x,y)), colors[colorSelect], 2.5);
+		}
+	}
+
+	if(event == EVENT_LBUTTONUP || event == EVENT_RBUTTONUP){
+		int closestIndex = -1;
+
+		double closestDistance = INT_MAX;
+		vector<Point3f> *whichColor;
+
+		int index;
+		for(vector<Point3f> *v : allPieces){
+			index = 0;
+			for(auto e : *v){
+				double distance = norm(Point2f(e.x, e.y)-(event==EVENT_RBUTTONUP?Point2f(x,y):circleStartPoint));
+				if(distance < closestDistance){
+					whichColor = v;
+					closestIndex = index;
+					closestDistance = distance;
+				}
+				index++;
+			}
+		}
+
+		if(closestDistance < 20){
+			whichColor->erase(whichColor->begin()+closestIndex);
+		}
+	}
+
+	if(event == EVENT_LBUTTONUP && circleStartPoint.x >= 0){
+		allPieces[colorSelect]->push_back(Point3f(circleStartPoint.x, circleStartPoint.y, norm(circleStartPoint-Point2f(x,y))));
+		newestPiece = allPieces[colorSelect];
+		circleStartPoint = Point2f(-1,-1);
+	}
+
+	drawCirclesAndDisplay(paintImage);
+}
+
+
+void intersectMouseCallback(int event, int x, int y, int flags, void* userdata){
 	Mat src = *((Mat*)userdata);
 	Mat paintImage;
 	src.copyTo(paintImage);
@@ -63,7 +139,7 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata){
 		vector<Point2f> *whichColor;
 
 		int index;
-		for(vector<Point2f> *v : allPieces){
+		for(vector<Point2f> *v : allIntersects){
 			index = 0;
 			for(auto e : *v){
 				double distance = norm(e-Point2f(x,y));
@@ -82,11 +158,19 @@ void mouseCallback(int event, int x, int y, int flags, void* userdata){
 	}
 
 	if(event == EVENT_LBUTTONUP){
-		allPieces[colorSelect]->push_back(Point2f(x,y));
-		newestPoint = allPieces[colorSelect];
+		allIntersects[colorSelect]->push_back(Point2f(x,y));
+		newestIntersect = allIntersects[colorSelect];
 	}
 
 	drawCirclesAndDisplay(paintImage);
+}
+
+
+void mouseCallback(int event, int x, int y, int flags, void* userdata){
+	if(pieceMode)
+		piecesMouseCallback(event, x, y, flags, userdata);
+	else
+		intersectMouseCallback(event, x, y, flags, userdata);
 }
 
 void loadAndProcessImage(char *filename){
@@ -100,6 +184,8 @@ void loadAndProcessImage(char *filename){
 	FileStorage readStorage(annotFilename, FileStorage::READ);
 
 	readStorage["emptyIntersects"] >> emptyIntersects;
+	readStorage["blackIntersects"] >> blackIntersects;
+	readStorage["whiteIntersects"] >> whiteIntersects;
 	readStorage["blackPieces"] >> blackPieces;
 	readStorage["whitePieces"] >> whitePieces;
 
@@ -128,13 +214,7 @@ void loadAndProcessImage(char *filename){
 	while((keyCode = waitKey(0)) != ESC_KEY){
 		switch(keyCode){
 		case SHIFT_KEY:
-			colorSelect = 1;
-			break;
-		case CTRL_KEY:
-			colorSelect = 2;
-			break;
-		case TAB_KEY:
-			colorSelect = 0;
+			pieceMode = !pieceMode;
 			break;
 		case 1048691: //s-key
 			colorSelect = (colorSelect+1)%3;
@@ -143,19 +223,19 @@ void loadAndProcessImage(char *filename){
 			colorSelect = (colorSelect+2)%3;
 			break;
 		case 1113938: //up
-			newestPoint->back().y--;
+			if(pieceMode) newestPiece->back().y--; else newestIntersect->back().y--;
 			drawCirclesAndDisplay(image);
 			break;
 		case 1113937: //left
-			newestPoint->back().x--;
+			if(pieceMode) newestPiece->back().x--; else newestIntersect->back().x--;
 			drawCirclesAndDisplay(image);
 			break;
 		case 1113940: //down
-			newestPoint->back().y++;
+			if(pieceMode) newestPiece->back().y++; else newestIntersect->back().y++;
 			drawCirclesAndDisplay(image);
 			break;
 		case 1113939: //right
-			newestPoint->back().x++;
+			if(pieceMode) newestPiece->back().x++; else newestIntersect->back().x++;
 			drawCirclesAndDisplay(image);
 			break;
 		}
@@ -165,6 +245,8 @@ void loadAndProcessImage(char *filename){
 	FileStorage writeStorage(annotFilename, FileStorage::WRITE);
 
 	writeStorage << "emptyIntersects" << emptyIntersects;
+	writeStorage << "blackIntersects" << blackIntersects;
+	writeStorage << "whiteIntersects" << whiteIntersects;
 	writeStorage << "blackPieces" << blackPieces;
 	writeStorage << "whitePieces" << whitePieces;
 
