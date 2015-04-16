@@ -65,6 +65,6 @@ void detectPieces(Mat &src, vector<Point3f> &darkPieces, vector<Point3f> &lightP
 	bitwise_and(s, h, h);
 
 	//          (Input, Output,   method,            dp, minDist,      param1, param2, minRad,  maxRad )
-//	HoughCircles(h, lightPieces, CV_HOUGH_GRADIENT, 3, src.rows / minDistLight, 900, 50, src.rows / minRadLight, src.rows / maxRadLight);
+	HoughCircles(h, lightPieces, CV_HOUGH_GRADIENT, 3, src.rows / minDistLight, 900, 50, src.rows / minRadLight, src.rows / maxRadLight);
 	HoughCircles(v, darkPieces,  CV_HOUGH_GRADIENT, 3, src.rows / minDistDark,  900, 50, src.rows / minRadDark, src.rows / maxRadDark);
 }
