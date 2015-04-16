@@ -68,20 +68,21 @@ def handleEnv(env, repeated=False):
 	processes = []
 	for fn in os.listdir(PATH):
 		if fn.endswith("unprocessed.yml"):
-			f = tempfile.SpooledTemporaryFile(max_size=1024*1024, mode="w+")
+			f = tempfile.SpooledTemporaryFile(max_size=2048, mode="w+")
 			outputs.append(f)
-			processes.append(subprocess.Popen(HOME+"/BA/nativeCode/Debug/GoBoardReaderNative_evaluating "+PATH+fn, shell=True, env=environment, stdout=f, stderr=DEVNULL))
+			processes.append(subprocess.Popen([HOME+"/BA/nativeCode/Debug/GoBoardReaderNative_evaluating", PATH+fn], env=environment, stdout=f, stderr=DEVNULL))
 
 	#wait for all subshsells
 	for p in processes:
 		p.wait()
 
 	totalFiles = 0
-	totalCorrect = 0
+	totalCorrectPiecesPercent = 0
 	totalAvailable = 0
 	totalMatched = 0
 	totalBogus = 0
 	data = None
+	parameters = {}
 	try:
 		for f in outputs:
 			f.seek(0)
@@ -93,11 +94,16 @@ def handleEnv(env, repeated=False):
 			if not data:
 				continue
 
-			totalCorrect += data["correctPiecesPercent"]
+			totalCorrectPiecesPercent += data["correctPiecesPercent"]
 			totalAvailable += data["availablePieces"]
 			totalMatched += data["matched"]
 			totalBogus += data["bogus"]
 			totalFiles += 1
+
+			if len(parameters) == 0:
+				for key in data:
+					if key.startswith("PIECES"):
+						parameters[key] = data[key]
 
 	except yaml.YAMLError:
 		if repeated == True:
@@ -108,16 +114,13 @@ def handleEnv(env, repeated=False):
 		for f in outputs:
 			f.close()
 
-	if totalFiles == 0 or data == None:
+	if totalFiles == 0:
 		print "No output"
 		return
 
-	newData = {}
-	for key in data:
-		if key.startswith("PIECES"):
-			newData[key] = data[key]
+	newData = dict(parameters)
 
-	newData["totalCorrect"] = totalCorrect/totalFiles
+	newData["totalCorrectPiecesPercent"] = totalCorrectPiecesPercent/totalFiles
 	newData["totalFiles"] = totalFiles
 	newData["totalAvailable"] = totalAvailable
 	newData["totalMatched"] = totalMatched
