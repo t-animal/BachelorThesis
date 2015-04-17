@@ -1,5 +1,6 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 #include <iostream>
 #include <string>
@@ -22,10 +23,12 @@ void generateReferenceKeypoints(vector<Point2f> &object, int squareLength){
 }
 
 void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> &intersections, Point2f &mp){
+	Mat disp = Mat::zeros(Size(mp.x*2, mp.y*2), CV_8UC1);
 	//estimate average distance between keypoints
 	float averageDistance = 0;
 	int count = 0;
 	float lastX = -1, lastY = -1;
+	vector<float> distances(keypoints.size());
 	for(auto i : intersections){
 		if(lastX == -1){
 			lastX = i.x;
@@ -34,14 +37,20 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 
 		if(i.x-lastX >= 0){
 			averageDistance += i.x-lastX;
+			distances.push_back(i.x-lastX);
 			count++;
 		}
 
 		lastX = i.x;
 	}
 
-	assert(count != 0);
-	averageDistance /= count;
+	sort(distances.begin(), distances.end());
+	averageDistance = distances[distances.size()/2];
+
+//	assert(count != 0);
+//	averageDistance /= count;
+
+	cout << averageDistance << endl;
 
 	lastX = intersections[0].x;
 	lastY = intersections[0].y;
@@ -51,10 +60,27 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 	int col=0, row=0;
 	int rowsAboveCenter=0, colsLeftOfCenter=0;
 	for(auto i: intersections){
+		circle(disp, i, 5, Scalar(255));
+		circle(disp, mp, 5, Scalar(120));
+		line(disp, Point2f(0, mp.y), Point2f(mp.x*2, mp.y), Scalar(120));
+		line(disp, Point2f(mp.x, 0), Point2f(mp.x, mp.y*2), Scalar(120));
+		imshow("disp", disp);
+//		waitKey();
 		if(i.x - lastX < 0){
+			cout << "NEW LINE ====" << endl;
+			cout << "current location: left of center: " << colsLeftOfCenter << " rowsAboveCenter: " << rowsAboveCenter<< endl;
+
 			//new line
 			if(lastY < mp.y)
 				rowsAboveCenter++;
+
+			//insert additional lines, if there's a line without keypoints
+			while(lastY + averageDistance *1.5 < i.y){
+				if(lastY + averageDistance * 1.5 < mp.y)
+					rowsAboveCenter++;
+				row++;
+				lastY += averageDistance;
+			}
 
 			lastX = i.x;
 			row++;
@@ -63,11 +89,14 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 			if(i.x < smallestX - averageDistance*0.5){
 				//we have an outlier to the left => shift all others one to the right
 				//TODO: support outliers by multiple averageDistances
+				cout << " outlieroffset" << (smallestX-i.x);
+				int outlierCount = round((smallestX-i.x)/averageDistance);
+				cout << " outliercount " << outlierCount << endl;
 				for(Point2f &kp : keypoints){
-					kp.x += KPDIST;
+					kp.x += KPDIST * outlierCount;
 				}
 				smallestX = i.x;
-				colsLeftOfCenter++;
+				colsLeftOfCenter += outlierCount;
 			}else if(i.x > smallestX + averageDistance*0.5){
 				//we have a missing intersection at the beginning of the line
 				while(smallestX + col * averageDistance < i.x){
@@ -97,14 +126,19 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 		lastX = i.x;
 		lastY = i.y;
 
-		if(i.x < mp.x - 0.5*averageDistance && firstLine)
+		if(i.x < mp.x - 0.5 * averageDistance && firstLine)
 			colsLeftOfCenter++;
+		else if(i.x > mp.x && i == intersections[0]){
+			//wenn erster Stein in erster Zeile rechts vom Mittelpunkt liegt, diesen als negativ kennzeichen fuer spaetere verschiebung
+			cout << "correcting first line" << (mp.x-i.x) << " " << averageDistance << endl;
+			colsLeftOfCenter = round((mp.x-i.x)/averageDistance);
+		}
 
 		col++;
 	}
 	row++;
 
-//	cout << "Left of center:" << colsLeftOfCenter << " above center:" << rowsAboveCenter << endl;
+	cout << "Left of center:" << colsLeftOfCenter << " above center:" << rowsAboveCenter << endl;
 
 	for(Point2f &kp : keypoints){
 		kp.y -= (rowsAboveCenter-1)*KPDIST;
