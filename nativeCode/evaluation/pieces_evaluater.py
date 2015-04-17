@@ -9,6 +9,8 @@ import socket
 import subprocess
 import tempfile
 import yaml
+import joblib
+import lockfile
 
 DEVNULL = open(os.devnull, 'wb')
 HOME = os.path.expanduser("~")
@@ -70,7 +72,7 @@ def handleEnv(env, repeated=False):
 		if fn.endswith("unprocessed.yml"):
 			f = tempfile.SpooledTemporaryFile(max_size=2048, mode="w+")
 			outputs.append(f)
-			processes.append(subprocess.Popen([HOME+"/BA/nativeCode/Debug/GoBoardReaderNative_evaluating", PATH+fn], env=environment, stdout=f, stderr=DEVNULL))
+			processes.append(subprocess.Popen([HOME+"/BA/nativeCode/Debug/GoBoardReaderNative_evaluating", PATH+fn], env=env, stdout=f, stderr=None))
 
 	#wait for all subshsells
 	for p in processes:
@@ -124,11 +126,12 @@ def handleEnv(env, repeated=False):
 	newData["totalFiles"] = totalFiles
 	newData["totalAvailable"] = totalAvailable
 	newData["totalMatched"] = totalMatched
-	newData["currentParam"] = currentParam-1
 	newData["currentTime"] = str(datetime.datetime.now())
 	newData["totalBogus"] = totalBogus
-	newData["quality"] = totalMatched/totalBogus
+	newData["quality"] = totalMatched/totalBogus if not totalBogus == 0 else 9999
 
+	lock = lockfile.FileLock("zusammenfassung_"+HOSTNAME+".yml")
+	lock.acquire(timeout=30)  #wenn kein lock, dann karpott
 
 	f = open("zusammenfassung_"+HOSTNAME+".yml", "a")
 	f.write("---\n")
@@ -136,23 +139,26 @@ def handleEnv(env, repeated=False):
 	f.flush()
 	f.close()
 
-params.PIECES_GAUSS_V       =  range(7, 18, 2)   #13 +-5
-#params.PIECES_GAUSS_S       =  range(19, 30, 2)  #25 +-5
+	lock.release()
+
+#params.PIECES_GAUSS_V       =  range(7, 18, 2)   #13 +-5
+#params.PIECES_GAUSS_V       =  [7, 9]   #faui00a
+#params.PIECES_GAUSS_V       =  [11, 13] #faui00b
+params.PIECES_GAUSS_V       =  [15, 17] #faui00c
+params.PIECES_GAUSS_S       =  range(19, 30, 2)  #25 +-5
 
 params.PIECES_THRESH_V      =  range(50, 91, 5)  #70 +-20
-#params.PIECES_THRESH_S      = frange(0.02, 0.33, 3) #0.17 +-15
-#params.PIECES_THRESH_H      =  range(50, 91, 5)  #70 +-20
+params.PIECES_THRESH_S      = frange(0.02, 0.33, 3) #0.17 +-15
+params.PIECES_THRESH_H      =  range(50, 91, 5)  #70 +-20
 
-#params.PIECES_SPECKLES      =  range(3, 8, 1)    # 5 +-2
-#params.PIECES_SPECKLES      = [3] #faui00a
-#params.PIECES_SPECKLES      = [4] #faui00b
-#params.PIECES_SPECKLES      = [5] #faui00c
-#params.PIECES_SPECKLES      = [6] #faui00d
-params.PIECES_SPECKLES      = [7] #faui00e
+params.PIECES_SPECKLES      =  range(4, 7, 1)    # 5 +-1
 
-params.PIECES_MINDIST_DARK  =  range(10, 21, 2)  #15 +- 5
-params.PIECES_MINRAD_DARK   =  range(15, 26, 2)  #20 +- 5
-params.PIECES_MAXRAD_DARK   =  range( 6, 17, 2)  #11 +- 5
+params.PIECES_MINDIAMETER   =  range(0, 21, 3)   #10 +- 10
+params.PIECES_MINDIAMETER   =  range(20, 41, 3)   #30 +- 10
+
+#params.PIECES_MINDIST_DARK  =  range(10, 21, 2)  #15 +- 5
+#params.PIECES_MINRAD_DARK   =  range(15, 26, 2)  #20 +- 5
+#params.PIECES_MAXRAD_DARK   =  range( 6, 17, 2)  #11 +- 5
 
 #params.PIECES_MINDIST_LIGHT =  range(10, 21, 2)  #13 +- 5
 #params.PIECES_MINRAD_LIGHT  =  range(25, 36, 2)  #30 +- 5
@@ -164,9 +170,11 @@ for x in dir(params):
 	if not x.startswith("_"):
 		totalParams *= len(getattr(params, x))
 
-currentParam = 0
-for environment in modifiedEnvironments():
-	print str(currentParam)+"/"+str(totalParams)
-	currentParam += 1
+# currentParam = 0
+# for environment in modifiedEnvironments():
+# 	print str(currentParam)+"/"+str(totalParams)
+# 	currentParam += 1
 
-	handleEnv(environment)
+# 	handleEnv(environment)
+
+joblib.Parallel(n_jobs=3, verbose=100, pre_dispatch="2*n_jobs")(joblib.delayed(handleEnv)(env) for env in modifiedEnvironments())
