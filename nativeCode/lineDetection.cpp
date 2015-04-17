@@ -50,7 +50,7 @@ void mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
 					double distance3 = norm(a2-b1);
 					double distance4 = norm(b2-a1);
 
-					if(distance1 < 5 && distance2 < 5 && (distance3 < 15 || distance4 < 15
+					if(distance1 < 15 && distance2 < 15 && (distance3 < 50 || distance4 < 50
 							|| (a1[0] < b1[0] && b1[0] < a2[0]) ||
 							(a1[0] < b2[0] && b2[0] < a2[0])
 					)){
@@ -102,7 +102,7 @@ void mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
 					double distance3 = norm(a2-b1);
 					double distance4 = norm(b2-a1);
 
-					if(distance1 < 10 && distance2 < 10 && (distance3 < 15 || distance4 < 15
+					if(distance1 < 15 && distance2 < 15 && (distance3 < 50 || distance4 < 50
 							|| (a1[1] < b1[1] && b1[1] < a2[1]) ||
 							(a1[1] < b2[1] && b2[1] < a2[1]))){
 						//setze die punkte auf die jeweils aeusseren
@@ -132,17 +132,17 @@ void mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
 			vert = vertStitched;
 		}while(prev != horz.size()+vert.size());
 
-		vector<Vec4i> horzLong, vertLong;
-		for(auto l :horz){
-			if(norm(Vec2i(l[0],l[1])-Vec2i(l[2],l[3])) > 50)
-				horzLong.push_back(l);
-		}
-		for(auto l :vert){
-			if(norm(Vec2i(l[0],l[1])-Vec2i(l[2],l[3])) > 50)
-				vertLong.push_back(l);
-		}
-		horz = horzLong;
-		vert = vertLong;
+//		vector<Vec4i> horzLong, vertLong;
+//		for(auto l :horz){
+//			if(norm(Vec2i(l[0],l[1])-Vec2i(l[2],l[3])) > 50)
+//				horzLong.push_back(l);
+//		}
+//		for(auto l :vert){
+//			if(norm(Vec2i(l[0],l[1])-Vec2i(l[2],l[3])) > 50)
+//				vertLong.push_back(l);
+//		}
+//		horz = horzLong;
+//		vert = vertLong;
 }
 
 void detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
@@ -150,14 +150,76 @@ void detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert
 	Mat dst;
 	vector<Vec4i> lines;
 
-	Canny(img, dst, 50, 200, 3);
-//
-//	HoughLinesP(dst, lines, 1, CV_PI / 180, 40, 70, 10);
+	Mat first, length, parallel, remain;
+	img.copyTo(first);
+	img.copyTo(length);
+	img.copyTo(parallel);
+	img.copyTo(remain);
 
-	Ptr<LineSegmentDetector> lsd = createLineSegmentDetector();
+	Canny(img, dst, 50, 200, 3);
+
+	Ptr<LineSegmentDetector> lsd = createLineSegmentDetector(LSD_REFINE_ADV, 0.6, 1.5, 2.0, 40, 0, 0.2, 1024);
 	lsd->detect(dst, lines);
 
-//	lsd->drawSegments(img, lines);
+	cout << lines.size() << endl;
+	RNG rng(10);
+	for (size_t i = 0; i < lines.size(); i++) {
+		Vec4i l = lines[i];
+		line(first, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(rng.next(), rng.next(), rng.next()), 2);
+	}
+	imshow("first", first);
+
+	//Keep only line segments longer than some threshold
+	vector<Vec4i> keep;
+	rng = rng(10);
+	for(auto l:lines){
+		if(norm(Point(l[0],l[1])-Point(l[2], l[3])) > 30)
+			keep.push_back(l);
+		else
+			line(img, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(120,120,120), 1);
+	}
+	lines = keep;
+
+
+	cout << lines.size() << endl;
+	rng = rng(10);
+	for (size_t i = 0; i < lines.size(); i++) {
+		Vec4i l = lines[i];
+		line(length, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(rng.next(), rng.next(), rng.next()), 2);
+	}
+	imshow("length", length);
+
+	int parallels[lines.size()];
+	int i=0;
+	for(auto l1 : lines){
+		parallels[i] = 0;
+		for(auto l2 : lines){
+
+			if(l1 != l2 && distance(l1, l2[0], l2[1]) < 3  // klein genuger abstand
+					&& abs((float)(l1[3]-l1[1]) / (l1[2]-l1[0]) - (float)(l2[3]-l2[1]) / (l2[2]-l2[0])) < 0.15){
+				parallels[i]++;
+			}
+		}
+		i++;
+	}
+	i=0;
+	keep.clear();
+	for(auto l:lines){
+		putText(img, to_string(parallels[i]), Point(l[0], l[1]), 1, 1, Scalar(255,255,255), 1);
+		if(parallels[i] >= 1){
+			keep.push_back(l);
+		}
+		i++;
+	}
+	lines = keep;
+
+	cout << lines.size() << endl;
+	rng = rng(10);
+	for (size_t i = 0; i < lines.size(); i++) {
+		Vec4i l = lines[i];
+		line(parallel, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(rng.next(), rng.next(), rng.next()), 2);
+	}
+	imshow("paralle", parallel);
 
 	for (size_t i = 0; i < lines.size(); i++) {
 		Vec4i l = lines[i];
@@ -177,26 +239,20 @@ void detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert
 		//cout << height << "||" <<width << "||" << height/width << "||" << width/height <<endl;
 	}
 
-//	cout << "horz" << horz.size() << endl;
-//	cout << "vert" << vert.size() << endl;
-
 	mergeNearbyLines(horz, vert);
-
-//	cout << "horz" << horz.size() << endl;
-//	cout << "vert" << vert.size() << endl;
-
-//	RNG rng(12345);
-//	for(auto l : horz){
-//		line(img, Point(l[0],l[1]), Point(l[2],l[3]), Scalar(rng.next(),rng.next(),rng.next()), 1);
-//	}
-//	for(auto l : vert){
-//		line(img, Point(l[0],l[1]), Point(l[2],l[3]), Scalar(rng.next(),rng.next(),rng.next()), 1);
-//	}
 
 	vector<Vec4i> all;
 	all.insert(all.end(), vert.begin(), vert.end());
 	all.insert(all.end(), horz.begin(), horz.end());
 	//lsd->drawSegments(img, all);
+
+	cout << all.size() << endl;
+	rng = rng(10);
+	for (size_t i = 0; i < all.size(); i++) {
+		Vec4i l = all[i];
+		line(remain, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(rng.next(), rng.next(), rng.next()), 2);
+	}
+	imshow("remain", remain);
 
 	return;
 	//lsd->drawSegments(img, vert);
