@@ -1,6 +1,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
+#include <iostream>
+
 #include "evaluation.h"
 #include "lineDetection.h"
 #include "intersectionDetection.h"
@@ -26,13 +28,6 @@ void detectPieces(Mat &src, vector<Point3f> &darkPieces, vector<Point3f> &lightP
 
 	int speckleSize = Evaluater::conf("PIECES_SPECKLES", 5L);
 
-	int minDistDark = Evaluater::conf("PIECES_MINDIST_DARK", 15L);
-	int minRadDark = Evaluater::conf("PIECES_MINRAD_DARK", 20L);
-	int maxRadDark = Evaluater::conf("PIECES_MAXRAD_DARK", 11L);
-	int minDistLight = Evaluater::conf("PIECES_MINDIST_LIGHT", 13L);
-	int minRadLight = Evaluater::conf("PIECES_MINRAD_LIGHT", 30L);
-	int maxRadLight = Evaluater::conf("PIECES_MAXRAD_LIGHT", 11L);
-
 	GaussianBlur(v, v, Size(vGauss, vGauss), 0);
 	GaussianBlur(s, s, Size(sGauss, sGauss), 0);
 	GaussianBlur(h, h, Size(sGauss, sGauss), 0);
@@ -49,10 +44,10 @@ void detectPieces(Mat &src, vector<Point3f> &darkPieces, vector<Point3f> &lightP
 	erode(s, s, Mat(), Point(-1, -1), speckleSize);
 	erode(v, v, Mat(), Point(-1, -1), speckleSize);
 
-	if(countNonZero(h) < h.rows*h.cols*4/5){ //wenn weniger als 80% weiss, discarde
-		h = Mat::ones(h.size(), h.type())*360;
+	if (countNonZero(h) < h.rows * h.cols * 4 / 5) { //wenn weniger als 80% weiss, discarde
+		h = Mat::ones(h.size(), h.type()) * 360;
 	}
-	if(countNonZero(s) < s.rows*s.cols*4/5){ //wenn weniger als 80% weiss, discarde
+	if (countNonZero(s) < s.rows * s.cols * 4 / 5) { //wenn weniger als 80% weiss, discarde
 		s = Mat::ones(s.size(), s.type());
 	}
 
@@ -64,7 +59,58 @@ void detectPieces(Mat &src, vector<Point3f> &darkPieces, vector<Point3f> &lightP
 	//TODO: increase performance further, evtl only one houghcircle somehow?
 	bitwise_and(s, h, h);
 
+#ifdef CIRCLE_HOUGH
+
+	int minDistDark = Evaluater::conf("PIECES_MINDIST_DARK", 15L);
+	int minRadDark = Evaluater::conf("PIECES_MINRAD_DARK", 20L);
+	int maxRadDark = Evaluater::conf("PIECES_MAXRAD_DARK", 11L);
+	int minDistLight = Evaluater::conf("PIECES_MINDIST_LIGHT", 13L);
+	int minRadLight = Evaluater::conf("PIECES_MINRAD_LIGHT", 30L);
+	int maxRadLight = Evaluater::conf("PIECES_MAXRAD_LIGHT", 11L);
+
 	//          (Input, Output,   method,            dp, minDist,      param1, param2, minRad,  maxRad )
 	HoughCircles(h, lightPieces, CV_HOUGH_GRADIENT, 3, src.rows / minDistLight, 900, 50, src.rows / minRadLight, src.rows / maxRadLight);
 	HoughCircles(v, darkPieces,  CV_HOUGH_GRADIENT, 3, src.rows / minDistDark,  900, 50, src.rows / minRadDark, src.rows / maxRadDark);
+#else
+
+	int minDiameter = Evaluater::conf("PIECES_MINDIAMETER", 10L);
+	int maxDiameter = Evaluater::conf("PIECES_MAXDIAMETER", 30L);
+
+	bitwise_not(h, h);
+	bitwise_not(v, v);
+
+	vector<vector<Point> > contours;
+	findContours(v, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+
+	for (auto c : contours) {
+		Rect bounding = boundingRect(c);
+
+		if (bounding.height != 0 && abs(1.0 - (float) bounding.width / bounding.height) < 0.3) {
+
+			int centerX = bounding.x + bounding.width / 2;
+			int centerY = bounding.y + bounding.height / 2;
+			int diameter = (bounding.width + bounding.height) / 4;
+
+			if(diameter > minDiameter && diameter < maxDiameter)
+				darkPieces.push_back(Point3f(centerX, centerY, diameter));
+		}
+	}
+
+	findContours(h, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+	for (auto c : contours) {
+		Rect bounding = boundingRect(c);
+
+		if (bounding.height != 0 && abs(1.0 - (float) bounding.width / bounding.height) < 0.3) {
+
+			int centerX = bounding.x + bounding.width / 2;
+			int centerY = bounding.y + bounding.height / 2;
+			int diameter = (bounding.width + bounding.height) / 4;
+
+			if(diameter > minDiameter && diameter < maxDiameter)
+				lightPieces.push_back(Point3f(centerX, centerY, diameter));
+
+		}
+	}
+
+#endif
 }
