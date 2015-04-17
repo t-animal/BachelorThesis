@@ -11,8 +11,10 @@ using namespace std;
 class Evaluater {
 private:
 	std::vector<cv::Point2f> emptyIntersects;
-	std::vector<cv::Point2f> blackPieces;
-	std::vector<cv::Point2f> whitePieces;
+	std::vector<cv::Point2f> blackIntersects;
+	std::vector<cv::Point2f> whiteIntersects;
+	std::vector<cv::Point3f> blackPieces;
+	std::vector<cv::Point3f> whitePieces;
 	std::vector<cv::Point2f> allIntersects;
 	cv::Mat image;
 	string filename;

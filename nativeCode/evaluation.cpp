@@ -30,15 +30,17 @@ Evaluater::Evaluater(const char *filename) {
 	FileStorage readStorage(annotFilename, FileStorage::READ);
 
 	readStorage["emptyIntersects"] >> emptyIntersects;
+	readStorage["blackIntersects"] >> blackIntersects;
+	readStorage["whiteIntersects"] >> whiteIntersects;
 	readStorage["blackPieces"] >> blackPieces;
 	readStorage["whitePieces"] >> whitePieces;
 
 	readStorage.release();
 
-	allIntersects.reserve(emptyIntersects.size() + whitePieces.size() + blackPieces.size());
+	allIntersects.reserve(emptyIntersects.size() + whiteIntersects.size() + blackIntersects.size());
 	allIntersects.insert(allIntersects.end(), emptyIntersects.begin(), emptyIntersects.end());
-	allIntersects.insert(allIntersects.end(), blackPieces.begin(), blackPieces.end());
-	allIntersects.insert(allIntersects.end(), whitePieces.begin(), whitePieces.end());
+	allIntersects.insert(allIntersects.end(), blackIntersects.begin(), blackIntersects.end());
+	allIntersects.insert(allIntersects.end(), whiteIntersects.begin(), whiteIntersects.end());
 
 	if (allIntersects.size() != 0) {
 		evaluatable = true;
@@ -188,7 +190,7 @@ void Evaluater::checkPieceCorrectness(const vector<Point3f> &blackPieces, const 
 	if (!evaluatable)
 		return;
 
-	vector<Point2f> copyBlack, copyWhite;
+	vector<Point3f> copyBlack, copyWhite;
 	copyBlack.reserve(this->blackPieces.size());
 	copyWhite.reserve(this->whitePieces.size());
 	copyBlack.insert(copyBlack.end(), this->blackPieces.begin(), this->blackPieces.end());
@@ -196,6 +198,7 @@ void Evaluater::checkPieceCorrectness(const vector<Point3f> &blackPieces, const 
 
 	int matched = 0;
 	int insidePieces = 0;
+
 
 	for (auto p : blackPieces) {
 		Point2f p2d(p.x, p.y);
@@ -207,10 +210,11 @@ void Evaluater::checkPieceCorrectness(const vector<Point3f> &blackPieces, const 
 			insidePieces++;
 
 			for (auto &ref : copyBlack) {
-				int offset = norm(ref - p2d);
+				int locationOffset = norm(Point2f(ref.x, ref.y) - p2d);
+				int sizeOffset = abs(ref.z-p.z);
 
-				if (offset < 15) {
-					circle(image, ref, 10, Scalar(0, 255, 0), 4);
+				if (locationOffset < 15 && sizeOffset < 10) {
+					circle(image, Point2f(ref.x, ref.y), 10, Scalar(0, 255, 0), 4);
 					ref.x = -10;
 					ref.y = -10;
 
@@ -236,10 +240,11 @@ void Evaluater::checkPieceCorrectness(const vector<Point3f> &blackPieces, const 
 			insidePieces++;
 
 			for (auto &ref : copyWhite) {
-				int offset = norm(ref - p2d);
+				int locationOffset = norm(Point2f(ref.x, ref.y) - p2d);
+				int sizeOffset = abs(ref.z-p.z);
 
-				if (offset < 15) {
-					circle(image, ref, 10, Scalar(0, 255, 0), 4);
+				if (locationOffset < 15 && sizeOffset < 10) {
+					circle(image, Point2f(ref.x, ref.y), 10, Scalar(0, 255, 0), 4);
 					ref.x = -10;
 					ref.y = -10;
 
@@ -258,11 +263,12 @@ void Evaluater::checkPieceCorrectness(const vector<Point3f> &blackPieces, const 
 	string output;
 	FileStorage fs = getMemoryStorage();
 
-	fs << "correctPiecesPercent" << (int) (matched / (float) allIntersects.size() * 100);
+	int totalPieceCount = this->blackPieces.size() + this->whitePieces.size();
+	fs << "correctPiecesPercent" << (totalPieceCount == 0? INT_MAX : (int) (matched / (float) totalPieceCount* 100));
 	fs << "availablePieces" << (int) (this->blackPieces.size() + this->whitePieces.size());
 	fs << "matched" << matched;
 	fs << "bogus" << insidePieces - matched;
-	fs << "quality" << (int) matched / (insidePieces - matched);
+	fs << "quality" << (insidePieces - matched == 0?  9999.0 : matched / (float) (insidePieces - matched));
 
 	saveParameters(fs);
 
