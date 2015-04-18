@@ -58,7 +58,7 @@ void getColors(const vector<Point2f> &intersections, uchar *pieces, Mat threshed
 }
 
 void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
-		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles) {
+		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles, char *board) {
 	int t = getMilliCount();
 
 //	resize(src, src, Size(), 0.75, 0.75, INTER_LINEAR);
@@ -75,11 +75,10 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 	gray.convertTo(threshed, CV_8UC1);
 	adaptiveThreshold(threshed, threshed, 255, ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY, 31, 1);
-	threshed.convertTo(threshed, CV_8UC3);
+//	threshed.convertTo(threshed, CV_8UC3);
 
 	rectangle(threshed, Point(src.cols/2-20, src.rows/2-20), Point(src.cols/2+20, src.rows/2+20), Scalar(0,0,0), -1);
 	floodFill(threshed, noArray(), Point(src.cols/2, src.rows/2), Scalar(120), &bounding);
-	imshow("thrte", threshed);
 
 	bounding.x -= 10;
 	bounding.y -= 10;
@@ -103,6 +102,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	gray = gray(bounding);
 	hsv = hsv(bounding);
 	bgr = bgr(bounding);
+	threshed = threshed(bounding);
 
 
 	vector<Vec4i> horz, vert;
@@ -140,19 +140,20 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	fillGaps(selectedIntersections, filledIntersections, src);
 //	LOGD("Time consumed until filled gaps: %d", getMilliSpan(t));
 
-//	char pieces[81];
-//	getColors(filledIntersections, pieces, hsv);
-//
-//	for(int i=8; i>=0; i--){
-//		for(int j=8; j>=0; j--){
-//			cout << to_string(pieces[j*9+i]) << "\t" ;
-//		}
-//		cout << endl;
-//	}
-
 	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle*-1);
 	rotate(selectedIntersections, selectedIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
 	rotate(filledIntersections, filledIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
+
+	uchar pieces[81];
+	getColors(filledIntersections, pieces, threshed);
+
+	for(int i=0; i<9; i++){
+		for(int j=0; j<9; j++){
+			cout << (char)pieces[80-i-j*9] << "\t" ;
+			board[i*9+j] = (char)pieces[80-i-j*9];
+		}
+		cout << endl;
+	}
 
 	for(auto &i : filledIntersections){
 		i.x+=bounding.x; i.y+=bounding.y;
@@ -196,11 +197,12 @@ void loadAndProcessImage(char *filename) {
 
 	vector<Point2f> selectedIntersections, intersections, filledIntersections;
 	vector<Point3f> darkCircles, lightCircles;
+	char board[81];
 
 	Evaluater eval(filename);
 	globEval = &eval;
 
-	detect(src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles);
+	detect(src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles, board);
 
 	//paint the points onto another image
 	Mat grayDisplay, colorDisplay;
@@ -236,6 +238,35 @@ void loadAndProcessImage(char *filename) {
 	eval.setImage(colorDisplay);
 //	eval.checkIntersectionCorrectness(intersections);
 //	eval.checkOverallCorrectness(filledIntersections);
+
+	Mat output(Size(src.cols, src.rows*2), CV_8UC4);
+	Mat upperOutput = output(Rect(0, 0, src.cols, src.rows));
+	Mat lowerOutput = output(Rect(0, src.rows, src.cols, src.rows));
+	upperOutput.setTo(Scalar(80, 80, 80));
+
+	colorDisplay.copyTo(upperOutput);
+
+	lowerOutput.setTo(Scalar(120, 120, 120));
+	Mat boardOutput = lowerOutput(Rect((src.cols-src.rows)/2, 20, src.rows-40, src.rows-40));
+	Scalar black(0,0,0);
+	Scalar white(255,255,255);
+	int randAbstand = boardOutput.cols/18;
+	for(int i=0; i<9; i++){
+		line(boardOutput, Point(randAbstand+boardOutput.cols*i/9, randAbstand), Point(randAbstand+boardOutput.cols*i/9, boardOutput.rows-randAbstand), Scalar(70,70,70), 2);
+		line(boardOutput, Point(randAbstand, randAbstand+boardOutput.rows*i/9), Point(boardOutput.cols-randAbstand, randAbstand+boardOutput.rows*i/9), Scalar(70,70,70), 2);
+	}
+	for(int i=0; i < 81; i++){
+		if(board[i]=='0')
+			continue;
+		int row = i/9;
+		int col = i%9;
+		int radius = boardOutput.cols/18-10-2;//10=abstand; 2=borderwidth
+		circle(boardOutput, Point(boardOutput.cols*col/9+randAbstand, boardOutput.rows*row/9+randAbstand), radius, board[i]=='w'?white:black, 2);
+	}
+	rectangle(boardOutput, Point(0, 0), Point(boardOutput.cols, boardOutput.cols), Scalar(70,70,70), 2);
+
+	imshow("output", output);
+
 
 	namedWindow("detectedlines", WINDOW_AUTOSIZE);
 	namedWindow("source", WINDOW_AUTOSIZE);
