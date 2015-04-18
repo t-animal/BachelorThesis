@@ -25,32 +25,35 @@ void rotate(vector<Point2f>& src, vector<Point2f>& dst, Point2f center, double a
 	transform(src, dst, r);
 }
 
-void getColors(const vector<Point2f> &intersections, char *pieces, Mat hsv){
+void getColors(const vector<Point2f> &intersections, uchar *pieces, Mat threshed){
+	uchar *start = threshed.datastart;
+	while(start != threshed.dataend){
+		if(*start == 0)
+			*start = 255;
 
-	vector<Mat> channels;
-	split(hsv, channels);
-	Mat1f h = channels[0];
-	Mat1f s = channels[1];
-	Mat1f v = channels[2];
+		if(*start != 255)
+			*start = 0;
+
+		start++;
+	}
+	erode(threshed, threshed, Mat(), Point(-1, -1), 2);
+	dilate(threshed, threshed, Mat(), Point(-1, -1), 2);
 
 	int curPiece = 0;
 	for(auto i : intersections){
-		Mat1f subPix;
-		getRectSubPix(v, Size(10,10), i, subPix);
-//		imshow(to_string(curPiece).append("piece"), subPix/255);
-//		waitKey(200);
-		if((sum(subPix)[0]/100) < 50){
-			pieces[curPiece++] = sum(subPix)[0]/100;
+		Mat subPix;
+		getRectSubPix(threshed, Size(20,20), i, subPix);
+		if((sum(subPix)/400)[0] < 80){
+			pieces[curPiece++] = 'b';//sum(subPix)[0]/100*(-1);
 			continue;
 		}
 
-		getRectSubPix(s, Size(10,10), i, subPix);
-		if((sum(subPix*255)[0]/100) < 50){
-			pieces[curPiece++] = sum(subPix*255)[0]/100*(-1);
+		if((sum(subPix)/400)[0] > 220){
+			pieces[curPiece++] = 'w';//sum(subPix)[0]/100;
 			continue;
 		}
 
-		pieces[curPiece++] = 0;
+		pieces[curPiece++] = '0';
 	}
 }
 
