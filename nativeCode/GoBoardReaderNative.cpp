@@ -70,6 +70,11 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 //	resize(src, src, Size(), 0.75, 0.75, INTER_LINEAR);
 //	globEval->saveStepTime("Resized input");
 
+	LineDetector lineDetector;
+	IntersectionDetector intersectionDetector;
+	PieceDetector pieceDetector;
+	GapsFiller gapsFiller;
+
 	Mat gray, hsv, bgr;
 	cvtColor(src, gray, COLOR_BGR2GRAY);
 	cvtColor(src, hsv, COLOR_BGR2HSV);
@@ -112,18 +117,18 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	globEval->saveStepTime("Threshholded image and calculated bounding box");
 
 	vector<Vec4i> horz, vert;
-	detectVertHorzLines(bgr, horz, vert, 2, 2);
+	lineDetector.detectVertHorzLines(bgr, horz, vert, 2, 2);
 	globEval->saveStepTime("Detected all lines");
 
-	double angle = getAverageAngle(horz);
+	double angle = lineDetector.getAverageAngle(horz);
 	rotate(bgr, bgr, angle);
 
-	getIntersections(intersections, horz, vert);
+	intersectionDetector.getIntersections(intersections, horz, vert);
 	globEval->saveStepTime("Found all intersections");
 
 //	globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
 
-	detectPieces(hsv, darkCircles, lightCircles);
+	pieceDetector.detectPieces(hsv, darkCircles, lightCircles);
 	globEval->saveStepTime("Detected all pieces");
 
 //	globEval -> checkPieceCorrectness(darkCircles, lightCircles, bounding.x, bounding.y);
@@ -135,7 +140,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 		intersections.push_back(Point2f(c.x, c.y));
 	}
 
-	removeDuplicateIntersections(intersections);
+	intersectionDetector.removeDuplicateIntersections(intersections);
 	globEval->saveStepTime("Removed all duplicates");
 
 	if(intersections.size() == 0){
@@ -145,7 +150,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle);
 
-	selectBoardIntersections(src, intersections, selectedIntersections);
+	intersectionDetector.selectBoardIntersections(src, intersections, selectedIntersections);
 	globEval->saveStepTime("Refined all points");
 
 	if(selectedIntersections.size() <= 4){
@@ -153,7 +158,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 		return;
 	}
 
-	fillGaps(selectedIntersections, filledIntersections, src);
+	gapsFiller.fillGaps(selectedIntersections, filledIntersections, src);
 	globEval->saveStepTime("Filled all gaps");
 
 	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle*-1);
@@ -288,15 +293,8 @@ void loadAndProcessImage(char *filename) {
 
 	globEval->printStepTimes();
 
-	//imshow("output", output);
-
-
-//	namedWindow("detectedlines", WINDOW_AUTOSIZE);
-//	namedWindow("source", WINDOW_AUTOSIZE);
-//	imshow("source", colorDisplay);
-//	imshow("detectedlines", grayDisplay);
-
-	//waitKey();
+//	imshow("output", output);
+//	waitKey();
 }
 
 int main(int argc, char** argv) {

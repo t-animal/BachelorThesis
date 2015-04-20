@@ -7,14 +7,8 @@
 using namespace std;
 using namespace cv;
 
-#define detectVertHorzLines_HOUGH detectVertHorzLines
 
-//calculates the distance of the point P(x,y) from the line l
-inline double distance(Vec4i l, long x, long y){
-	return abs((l[3]-l[1])*x - (l[2]-l[0])*y + l[2]*l[1] - l[3]*l[0]) / sqrt((l[3]-l[1])*(l[3]-l[1])+(l[2]-l[0])*(l[2]-l[0]));
-}
-
-void mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
+void LineDetector::mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
 	unsigned int prev;
 		do {
 			prev = horz.size()+vert.size();
@@ -145,7 +139,7 @@ void mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
 //		vert = vertLong;
 }
 
-void detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
+void LineDetector::detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
 		float horzThreshhold, float vertThreshhold) {
 	Mat dst;
 	vector<Vec4i> lines;
@@ -257,7 +251,7 @@ void detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert
 	//lsd->drawSegments(img, vert);
 }
 
-double getAverageAngle(vector<Vec4i> lines) {
+double LineDetector::getAverageAngle(vector<Vec4i> lines) {
 	double totalAngle = 0;
 	for (Vec4i l : lines) {
 
@@ -282,7 +276,7 @@ double getAverageAngle(vector<Vec4i> lines) {
 	return totalAngle;
 }
 
-void detectVertHorzLines_HOUGH (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
+void LineDetector::detectVertHorzLines_HOUGH (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
 		float horzThreshhold, float vertThreshhold) {
 	Mat dst;
 	vector<Vec4i> lines;

@@ -3,31 +3,34 @@
 
 #include <opencv2/core/core.hpp>
 
-/*
- * Generates a set of "perfect" keypoints modeling a Go-Board of \p squareLength size
- */
-void generateReferenceKeypoints(
-        std::vector<cv::Point2f> &object,   //!< return vector for the modeled keypoints
-        int squareLength                    //!< the size of the go-board to model
-);
+class GapsFiller{
+private:
+	/*
+	 * Generates a set of "perfect" keypoints modeling a Go-Board of \p squareLength size
+	 */
+	void generateReferenceKeypoints(
+			std::vector<cv::Point2f> &object,   //!< return vector for the modeled keypoints
+			int squareLength                    //!< the size of the go-board to model
+	);
 
-/*
- * Generates a set of "perfect" keypoints modeling a Go-Board trying to leave out those which do not have corresponding
- * keypoints in the \p intersections vector
- */
-void generateCorrespondingKeypoints(
-        std::vector<cv::Point2f> &keypoints,      //!< return vector of the modeled keypoints
-        std::vector<cv::Point2f> &intersections,  //!< the intersections to model the keypoints after
-        cv::Point2f &mp                           //!< the center of the image
-);
+	/*
+	 * Generates a set of "perfect" keypoints modeling a Go-Board trying to leave out those which do not have corresponding
+	 * keypoints in the \p intersections vector
+	 */
+	void generateCorrespondingKeypoints(
+			std::vector<cv::Point2f> &keypoints,      //!< return vector of the modeled keypoints
+			std::vector<cv::Point2f> &intersections,  //!< the intersections to model the keypoints after
+			cv::Point2f &mp                           //!< the center of the image
+	);
 
-/*
- * Fills in the gaps of intersections which have not been found on basis of the ones already found
- */
-void fillGaps(
-        std::vector<cv::Point2f> intersections,          //!< the intersections that have been found so far
-        std::vector<cv::Point2f> &filledIntersections,   //!< the return vector for the filled intersections
-        cv::Mat &src                                     //!< the image
-);
-
+public:
+	/*
+	 * Fills in the gaps of intersections which have not been found on basis of the ones already found
+	 */
+	void fillGaps(
+			std::vector<cv::Point2f> intersections,          //!< the intersections that have been found so far
+			std::vector<cv::Point2f> &filledIntersections,   //!< the return vector for the filled intersections
+			cv::Mat &src                                     //!< the image
+	);
+};
 #endif

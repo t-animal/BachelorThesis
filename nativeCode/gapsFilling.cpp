@@ -13,7 +13,7 @@ using namespace cv;
 
 #define KPDIST 58.613
 
-void generateReferenceKeypoints(vector<Point2f> &object, int squareLength){
+void GapsFiller::generateReferenceKeypoints(vector<Point2f> &object, int squareLength){
 	int offset = (squareLength-1)/2;
 	for(int i=0; i<squareLength; i++){
 		for(int j=0; j<squareLength; j++){
@@ -22,7 +22,7 @@ void generateReferenceKeypoints(vector<Point2f> &object, int squareLength){
 	}
 }
 
-void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> &intersections, Point2f &mp){
+void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> &intersections, Point2f &mp){
 	Mat disp = Mat::zeros(Size(mp.x*2, mp.y*2), CV_8UC1);
 	//estimate average distance between keypoints
 	float averageDistance = 0;
@@ -144,7 +144,7 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 	}
 }
 
-void fillGaps(vector<Point2f> intersections, vector<Point2f> &filledIntersections, Mat &src){
+void GapsFiller::fillGaps(vector<Point2f> intersections, vector<Point2f> &filledIntersections, Mat &src){
 	Point2f center(src.cols/2, src.rows/2);
 
 	vector<Point2f> object, correspondingKeypoints;
