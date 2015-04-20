@@ -59,15 +59,16 @@ void getColors(const vector<Point2f> &intersections, uchar *pieces, Mat threshed
 
 void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
 		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles, char *board) {
-	int t = getMilliCount();
 
+	globEval->setStartTime();
 //	resize(src, src, Size(), 0.75, 0.75, INTER_LINEAR);
-//	LOGD("Time consumed  until resized: %d", getMilliSpan(t));
+//	globEval->saveStepTime("Resized input");
 
 	Mat gray, hsv, bgr;
 	cvtColor(src, gray, COLOR_BGR2GRAY);
 	cvtColor(src, hsv, COLOR_BGR2HSV);
 	src.convertTo(bgr, CV_8UC4);
+	globEval->saveStepTime("Created working copies");
 
 	Rect bounding = Rect();
 	Mat threshed, mask;
@@ -103,24 +104,24 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	hsv = hsv(bounding);
 	bgr = bgr(bounding);
 	threshed = threshed(bounding);
-
+	globEval->saveStepTime("Threshholded image and calculated bounding box");
 
 	vector<Vec4i> horz, vert;
 	detectVertHorzLines(bgr, horz, vert, 2, 2);
-//	LOGD("Time consumed until detected lines: %d", getMilliSpan(t));
+	globEval->saveStepTime("Detected all lines");
 
 	double angle = getAverageAngle(horz);
 	rotate(bgr, bgr, angle);
-	imshow("bgr", bgr);
 
 	getIntersections(intersections, horz, vert);
-//	getIntersections_FAST(intersections, bgr);
-//	LOGD("Time consumend until all intersections found: %d", getMilliSpan(t));
+	globEval->saveStepTime("Found all intersections");
 
 //	globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
 
 	detectPieces(hsv, darkCircles, lightCircles);
-//	LOGD("Time consumed until found circles: %d", getMilliSpan(t));
+	globEval->saveStepTime("Detected all pieces");
+
+//	globEval -> checkPieceCorrectness(darkCircles, lightCircles, bounding.x, bounding.y);
 
 	for (auto c : darkCircles) {
 		intersections.push_back(Point2f(c.x, c.y));
@@ -130,15 +131,15 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	}
 
 	removeDuplicateIntersections(intersections);
-//	LOGD("Time consumed until removed duplicates: %d", getMilliSpan(t));
+	globEval->saveStepTime("Removed all duplicates");
 
 	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle);
 
 	selectBoardIntersections(src, intersections, selectedIntersections);
-//	LOGD("Time consumed until refined all points: %d", getMilliSpan(t));
+	globEval->saveStepTime("Refined all points");
 
 	fillGaps(selectedIntersections, filledIntersections, src);
-//	LOGD("Time consumed until filled gaps: %d", getMilliSpan(t));
+	globEval->saveStepTime("Filled all gaps");
 
 	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle*-1);
 	rotate(selectedIntersections, selectedIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
@@ -146,13 +147,12 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 	uchar pieces[81];
 	getColors(filledIntersections, pieces, threshed);
+	globEval->saveStepTime("Determined all intersections' colors");
 
 	for(int i=0; i<9; i++){
 		for(int j=0; j<9; j++){
-			cout << (char)pieces[80-i-j*9] << "\t" ;
 			board[i*9+j] = (char)pieces[80-i-j*9];
 		}
-		cout << endl;
 	}
 
 	for(auto &i : filledIntersections){
@@ -170,6 +170,8 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	for(auto &i : lightCircles){
 		i.x+=bounding.x; i.y+=bounding.y;
 	}
+
+	globEval->saveStepTime("Finished detection");
 }
 
 
@@ -265,15 +267,17 @@ void loadAndProcessImage(char *filename) {
 	}
 	rectangle(boardOutput, Point(0, 0), Point(boardOutput.cols, boardOutput.cols), Scalar(70,70,70), 2);
 
-	imshow("output", output);
+	globEval->printStepTimes();
+
+	//imshow("output", output);
 
 
-	namedWindow("detectedlines", WINDOW_AUTOSIZE);
-	namedWindow("source", WINDOW_AUTOSIZE);
-	imshow("source", colorDisplay);
-	imshow("detectedlines", grayDisplay);
+//	namedWindow("detectedlines", WINDOW_AUTOSIZE);
+//	namedWindow("source", WINDOW_AUTOSIZE);
+//	imshow("source", colorDisplay);
+//	imshow("detectedlines", grayDisplay);
 
-	waitKey();
+	//waitKey();
 }
 
 int main(int argc, char** argv) {

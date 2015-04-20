@@ -21,6 +21,9 @@ private:
 	std::vector<cv::Point2f> contour;
 	bool evaluatable = false;
 
+	int startTime = -1;
+	std::vector<std::string> stepTimes;
+
 	static vector<pair<string, string>> usedValues;
 
 	cv::FileStorage getFileStorage();
@@ -36,6 +39,10 @@ public:
 	void checkPieceCorrectness(const std::vector<cv::Point3f>&, const std::vector<cv::Point3f>&, int xOffset, int yOffset);
 	void checkOverallCorrectness(const std::vector<cv::Point2f>&);
 	void checkColorCorrectness(uchar board[], std::vector<cv::Point2f> &intersections, int xOffset = 0, int yOffset = 0);
+
+	void setStartTime();
+	void saveStepTime(string description);
+	void printStepTimes();
 
 	static long conf(string name, long defaultVal);
 	static double conf(string name, double defaultVal);

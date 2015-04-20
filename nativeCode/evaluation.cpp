@@ -168,14 +168,14 @@ void Evaluater::checkOverallCorrectness(const vector<Point2f> &intersections) {
 	}
 
 	if (allIntersects.size() == 0) {
-		cout << "There's no reference points";
+		cout << "#There's no reference points";
 		if (intersections.size() != 0)
 			cout << " but keypoints have been found! == FAIL ==" << endl;
 		else
 			cout << " and no keypoints have been found. == SUCCESS == " << endl;
 	} else {
 		float percentage = matchedCount * 100.0 / allIntersects.size();
-		cout << "Matched " << matchedCount << " out of " << allIntersects.size() << " reference points. (";
+		cout << "#Matched " << matchedCount << " out of " << allIntersects.size() << " reference points. (";
 		cout << std::setprecision(3) << percentage << "%) ";
 		if (percentage >= 99) {
 			cout << "== SUCCESS ==" << endl;
