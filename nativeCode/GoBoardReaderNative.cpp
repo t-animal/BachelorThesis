@@ -36,6 +36,12 @@ void getColors(const vector<Point2f> &intersections, uchar *pieces, Mat threshed
 
 		start++;
 	}
+
+	int speckleSize = Evaluater::conf("COLORS_SPECKLESIZE", 2L);
+	int rectSize = Evaluater::conf("COLORS_RECTSIZE", 20L);
+	int blackThresh = Evaluater::conf("COLORS_BLACKTHRESH", 80L);
+	int whiteThresh = Evaluater::conf("COLORS_WHITETHRESH", 220L);
+
 	erode(threshed, threshed, Mat(), Point(-1, -1), 2);
 	dilate(threshed, threshed, Mat(), Point(-1, -1), 2);
 
@@ -43,12 +49,12 @@ void getColors(const vector<Point2f> &intersections, uchar *pieces, Mat threshed
 	for(auto i : intersections){
 		Mat subPix;
 		getRectSubPix(threshed, Size(20,20), i, subPix);
-		if((sum(subPix)/400)[0] < 80){
+		if((sum(subPix)/400)[0] < blackThresh){
 			pieces[curPiece++] = 'b';//sum(subPix)[0]/100*(-1);
 			continue;
 		}
 
-		if((sum(subPix)/400)[0] > 220){
+		if((sum(subPix)/400)[0] > whiteThresh){
 			pieces[curPiece++] = 'w';//sum(subPix)[0]/100;
 			continue;
 		}
