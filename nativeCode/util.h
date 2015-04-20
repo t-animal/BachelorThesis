@@ -24,6 +24,13 @@ inline void vector_Point3f_to_Mat(std::vector<cv::Point3f>& v_rect, cv::Mat& mat
 
 #define imshow(...) ""
 
+template <typename T>
+std::string to_string(T value)
+{
+    std::ostringstream os ;
+    os << value ;
+    return os.str() ;
+}
 #else
 #define LOGD(...) fprintf(stdout, __VA_ARGS__); cout << endl;
 #endif
