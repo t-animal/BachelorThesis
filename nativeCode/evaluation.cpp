@@ -128,20 +128,16 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 	string test;
 	FileStorage fs = getMemoryStorage();
 
-	fs << "intersectionCorrectness" << (int) (matched / (float) allIntersects.size() * 100);
-	fs << "availableIntersects" << (int) allIntersects.size();
-	fs << "matched" << matched;
-	fs << "bogus" << insideKeypoints - matched;
+	fs << "avg_matched" << (int) (matched / (float) allIntersects.size() * 100);
+	fs << "sum_available" << (int) allIntersects.size();
+	fs << "sum_matched" << matched;
+	fs << "sum_wrong" << insideKeypoints - matched;
 
 	saveParameters(fs);
 
 	test = fs.releaseAndGetString();
 
 	cout << test << endl;
-
-//	cout << endl << matched << " intersections have been correctly found. " << endl
-//		<< allIntersects.size() - matched << " intersections are missing a keypoint." << endl
-//		<< "there are " << insideKeypoints - matched << " bogus keypoints." << endl << endl;
 }
 
 void Evaluater::checkOverallCorrectness(const vector<Point2f> &intersections) {
@@ -159,7 +155,6 @@ void Evaluater::checkOverallCorrectness(const vector<Point2f> &intersections) {
 			}
 		}
 		if (!matched) {
-			//cout << "Desired intersect " << desired << " has not been matched!" << endl;
 			circle(image, desired, 10, Scalar(0, 0, 255), 4);
 			unmatchedCount++;
 		} else {
@@ -265,11 +260,11 @@ void Evaluater::checkPieceCorrectness(const vector<Point3f> &blackPieces, const 
 	FileStorage fs = getMemoryStorage();
 
 	int totalPieceCount = this->blackPieces.size() + this->whitePieces.size();
-	fs << "correctPiecesPercent" << (totalPieceCount == 0? INT_MAX : (int) (matched / (float) totalPieceCount* 100));
-	fs << "availablePieces" << (int) (this->blackPieces.size() + this->whitePieces.size());
-	fs << "matched" << matched;
-	fs << "bogus" << insidePieces - matched;
-	fs << "quality" << (insidePieces - matched == 0?  9999.0 : matched / (float) (insidePieces - matched));
+	fs << "avg_correct" << (totalPieceCount == 0? INT_MAX : (int) (matched / (float) totalPieceCount* 100));
+	fs << "sum_available" << (int) (this->blackPieces.size() + this->whitePieces.size());
+	fs << "sum_matched" << matched;
+	fs << "sum_wrong" << insidePieces - matched;
+	fs << "avg_quality" << (insidePieces - matched == 0?  9999.0 : matched / (float) (insidePieces - matched));
 
 	saveParameters(fs);
 
@@ -282,11 +277,11 @@ void Evaluater::checkColorCorrectness(uchar board[], vector<Point2f> &intersecti
 	int correct=0, wrong = 0, checked=0;
 	for(int i=0; i<81; i++){
 		Point2f intersection = intersections[i];
-		intersection.x+=xOffset;
-		intersection.y+=yOffset;
+		intersection.x += xOffset;
+		intersection.y += yOffset;
 
 		double nearestDistance = INT_MAX;
-		char nearestColor = '0';
+		char nearestColor = 0;
 		for(Point2f white: whiteIntersects){
 			if(norm(white-intersection) < nearestDistance){
 				nearestColor = 'w';
@@ -319,7 +314,8 @@ void Evaluater::checkColorCorrectness(uchar board[], vector<Point2f> &intersecti
 	}
 
 	FileStorage fs = getMemoryStorage();
-	fs << "available" << checked << "matched" << correct << "wrong" << wrong;
+	fs << "sum_available" << checked << "sum_matched" << correct << "sum_wrong" << wrong;
+	fs << "avg_quality" << ((checked != 0)? correct/(float)checked*100 : 0);
 	saveParameters(fs);
 	String output = fs.releaseAndGetString();
 

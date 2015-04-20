@@ -1,145 +1,8 @@
 #!/usr/bin/python2
 
-import commands
-import datetime
-import os
-import itertools
-import shutil
-import socket
-import subprocess
-import tempfile
-import yaml
-import joblib
-import lockfile
-
-DEVNULL = open(os.devnull, 'wb')
-HOME = os.path.expanduser("~")
-PATH = "../../test/files/03b0c66/unprocessed/"
-HOSTNAME = socket.gethostname()
-
-class Storage():
-	pass
+from evaluaterUtils import *
 
 params = Storage()
-
-#float enabled range generator with max precision = 10.e-5
-def myRange(start, stop, step):
-	cur = int(start*10000)
-	while cur < int(stop*10000):
-		yield int(cur + step)/10000.
-		cur = int(cur + step*10000)
-
-def frange(start, stop, step):
-	return [x for x in myRange(start, stop, step)]
-
-def getAll(list):
-	if len(list) == 1:
-		varName, valList = list[0]
-		return [[(varName, val)] for val in valList]
-
-	varName, valList = list[0]
-	rest = list[1:]
-
-	result = []
-	for subList in getAll(rest):
-		for value in valList:
-			result.append([(varName, value)]+subList)
-
-	return result
-
-def getAll_fast(perms):
-	perm_list = perms.items()
-	for perm in itertools.product(*[p[1] for p in perm_list]):
-		yield dict((perm_list[i][0], perm[i]) for i in range(len(perm_list)))
-
-def modifiedEnvironments():
-	dictParams = {x: getattr(params, x) for x in dir(params) if not x.startswith("_")}
-
-	for envVals in getAll_fast(dictParams):
-		curEnv = os.environ.copy()
-		for key, value in envVals.iteritems():
-			curEnv[key] = str(value)
-		curEnv["EVALUATION"] = "YES"
-		curEnv["LD_LIBRARY_PATH"] = "/local/opencv/opencv-2.4.10/build/lib"
-		yield curEnv
-
-def handleEnv(env, repeated=False):
-
-	#execute in subshells, save output
-	outputs = []
-	processes = []
-	for fn in os.listdir(PATH):
-		if fn.endswith("unprocessed.yml"):
-			f = tempfile.SpooledTemporaryFile(max_size=2048, mode="w+")
-			outputs.append(f)
-			processes.append(subprocess.Popen([HOME+"/BA/nativeCode/Debug/GoBoardReaderNative_evaluating", PATH+fn], env=env, stdout=f, stderr=None))
-
-	#wait for all subshsells
-	for p in processes:
-		p.wait()
-
-	totalFiles = 0
-	totalCorrectPiecesPercent = 0
-	totalAvailable = 0
-	totalMatched = 0
-	totalBogus = 0
-	data = None
-	parameters = {}
-	try:
-		for f in outputs:
-			f.seek(0)
-			f.readline()
-
-			d = f.read()
-			data = yaml.load(d)
-
-			if not data:
-				continue
-
-			totalCorrectPiecesPercent += data["correctPiecesPercent"]
-			totalAvailable += data["availablePieces"]
-			totalMatched += data["matched"]
-			totalBogus += data["bogus"]
-			totalFiles += 1
-
-			if len(parameters) == 0:
-				for key in data:
-					if key.startswith("PIECES"):
-						parameters[key] = data[key]
-
-	except yaml.YAMLError:
-		if repeated == True:
-			print "Unrecoverable error"
-
-		return handleEnv(env, True)
-	finally:
-		for f in outputs:
-			f.close()
-
-	if totalFiles == 0:
-		print "No output"
-		return
-
-	newData = dict(parameters)
-
-	newData["totalCorrectPiecesPercent"] = totalCorrectPiecesPercent/totalFiles
-	newData["totalFiles"] = totalFiles
-	newData["totalAvailable"] = totalAvailable
-	newData["totalMatched"] = totalMatched
-	newData["currentTime"] = str(datetime.datetime.now())
-	newData["totalBogus"] = totalBogus
-	newData["quality"] = totalMatched/totalBogus if not totalBogus == 0 else 9999
-
-	lock = lockfile.FileLock("zusammenfassung_"+HOSTNAME+".yml")
-	lock.acquire(timeout=30)  #wenn kein lock, dann karpott
-
-	f = open("zusammenfassung_"+HOSTNAME+".yml", "a")
-	f.write("---\n")
-	f.write(yaml.dump(newData, default_flow_style=False))
-	f.flush()
-	f.close()
-
-	lock.release()
 
 #params.PIECES_GAUSS_V       =  range(7, 18, 2)   #13 +-5
 #params.PIECES_GAUSS_V       =  [7, 9]   #faui00a
@@ -164,17 +27,9 @@ params.PIECES_MINDIAMETER   =  range(20, 41, 3)   #30 +- 10
 #params.PIECES_MINRAD_LIGHT  =  range(25, 36, 2)  #30 +- 5
 #params.PIECES_MAXRAD_LIGHT  =  range( 6, 17, 2)  #11 +- 5
 
+secret = """saimuu6ohxooRiob6ieyoocheiwiehootu6uic7nohVoh3Shie1reithu2aic8z
+			u1iJo0paik3Apu5Phadei7iewae0waeZohpaaixau7Bee5nah4ahmugaol3phoo6ong6ooyae5engo7ie
+			pahl4ul9juJae1cah8aih5ohC6aehiThae4yeingaemifee2gae3siehchieW5ii2pahgh3faetai9Ahm
+			2vahn5shoobuv8biephoo6Sheef6selib4souk2ohghi4oohae4sah5bah8eigee2leeXaicoh4"""
 
-totalParams = 1
-for x in dir(params):
-	if not x.startswith("_"):
-		totalParams *= len(getattr(params, x))
-
-# currentParam = 0
-# for environment in modifiedEnvironments():
-# 	print str(currentParam)+"/"+str(totalParams)
-# 	currentParam += 1
-
-# 	handleEnv(environment)
-
-joblib.Parallel(n_jobs=3, verbose=100, pre_dispatch="2*n_jobs")(joblib.delayed(handleEnv)(env) for env in modifiedEnvironments())
+main(secret, params)
