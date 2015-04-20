@@ -277,6 +277,73 @@ void Evaluater::checkPieceCorrectness(const vector<Point3f> &blackPieces, const 
 	cout << output << endl;
 }
 
+void Evaluater::checkColorCorrectness(uchar board[], vector<Point2f> &intersections, int xOffset, int yOffset){
+	int correct=0, wrong = 0, checked=0;
+	for(int i=0; i<81; i++){
+		Point2f intersection = intersections[i];
+		intersection.x+=xOffset;
+		intersection.y+=yOffset;
+
+		double nearestDistance = INT_MAX;
+		char nearestColor = '0';
+		for(Point2f white: whiteIntersects){
+			if(norm(white-intersection) < nearestDistance){
+				nearestColor = 'w';
+				nearestDistance = norm(white-intersection);
+			}
+		}
+		for(Point2f black: blackIntersects){
+			if(norm(black-intersection) < nearestDistance){
+				nearestColor = 'b';
+				nearestDistance = norm(black-intersection);
+			}
+		}
+		for(Point2f empty: emptyIntersects){
+			if(norm(empty-intersection) < nearestDistance){
+				nearestColor = '0';
+				nearestDistance = norm(empty-intersection);
+			}
+		}
+
+		if(nearestDistance <= 15){
+			checked++;
+			//we've found the correct intersection
+			if(nearestColor == board[i])
+				correct++;
+			else
+				wrong++;
+		}else{
+			//the intersection itself was wrong, can't evaluate
+		}
+	}
+
+	FileStorage fs = getMemoryStorage();
+	fs << "available" << checked << "matched" << correct << "wrong" << wrong;
+	saveParameters(fs);
+	String output = fs.releaseAndGetString();
+
+	cout << output;
+
+}
+
+
+void Evaluater::setStartTime(){
+	startTime = getMilliCount();
+}
+void Evaluater::saveStepTime(string description){
+	if(startTime == -1)
+		return;
+
+	stringstream ss;
+	ss << "# " <<  setfill('0') << setw(3) << getMilliCount()-startTime << " :: " << description;
+	stepTimes.push_back(ss.str());
+}
+void Evaluater::printStepTimes(){
+	for(auto s : stepTimes){
+		cout << s << endl;
+	}
+}
+
 long Evaluater::conf(String name, long defaultVal) {
 	char* value = getenv(name.c_str());
 	long returnVal = value != NULL ? stol(value) : defaultVal;
