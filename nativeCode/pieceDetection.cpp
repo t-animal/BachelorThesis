@@ -19,14 +19,16 @@ void detectPieces(Mat &src, vector<Point3f> &darkPieces, vector<Point3f> &lightP
 	Mat v = channels[2];
 
 	//THE OPENCV DOCU HERE IS CRAP! => 0 ≤ v ≤ 255; 0 ≤ s ≤ 1; 0 ≤ h ≤ 360
-	int vGauss = Evaluater::conf("PIECES_GAUSS_V", 13L);
+
+	//parameter fuer V (dark Pieces) from currentTime: '2015-04-18 21:11:09.487894'
+	int vGauss = Evaluater::conf("PIECES_GAUSS_V", 7L);
 	int sGauss = Evaluater::conf("PIECES_GAUSS_S", 25L);
 
-	int vThresh = Evaluater::conf("PIECES_THRESH_V", 70L);
+	int vThresh = Evaluater::conf("PIECES_THRESH_V", 76L);
 	double sThresh = Evaluater::conf("PIECES_THRESH_S", 0.17);
 	int hThresh = Evaluater::conf("PIECES_THRESH_H", 70L);
 
-	int speckleSize = Evaluater::conf("PIECES_SPECKLES", 5L);
+	int speckleSize = Evaluater::conf("PIECES_SPECKLES", 6L);
 
 	GaussianBlur(v, v, Size(vGauss, vGauss), 0);
 	GaussianBlur(s, s, Size(sGauss, sGauss), 0);
@@ -73,8 +75,8 @@ void detectPieces(Mat &src, vector<Point3f> &darkPieces, vector<Point3f> &lightP
 	HoughCircles(v, darkPieces,  CV_HOUGH_GRADIENT, 3, src.rows / minDistDark,  900, 50, src.rows / minRadDark, src.rows / maxRadDark);
 #else
 
-	int minDiameter = Evaluater::conf("PIECES_MINDIAMETER", 10L);
-	int maxDiameter = Evaluater::conf("PIECES_MAXDIAMETER", 30L);
+	int minDiameter = Evaluater::conf("PIECES_MINDIAMETER", 9L);
+	int maxDiameter = Evaluater::conf("PIECES_MAXDIAMETER", 32L);
 
 	bitwise_not(h, h);
 	bitwise_not(v, v);
