@@ -48,7 +48,9 @@ public:
 	static double conf(string name, double defaultVal);
 	static string conf(string name, string defaultVal);
 
+#ifndef USE_JNI
 	void showImage(){cv::imshow("evaluated", image);}
+#endif
 };
 
 #endif

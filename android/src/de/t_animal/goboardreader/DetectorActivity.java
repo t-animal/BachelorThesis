@@ -216,9 +216,7 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 					new Point(boardOutput.cols() - randAbstand, randAbstand + boardOutput.rows() * i / 9),
 					new Scalar(70, 70, 70), 2);
 		}
-		System.out.print("board: [");
 		for (int i = 0; i < 81; i++) {
-			System.out.print(board[i] + " ");
 			if (board[i] == '0')
 				continue;
 			int row = i / 9;
@@ -228,7 +226,6 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 					new Point(boardOutput.cols() * col / 9 + randAbstand, boardOutput.rows() * row / 9 + randAbstand),
 					radius, board[i] == 'w' ? white : black, 2);
 		}
-		System.out.println("]");
 		Core.rectangle(boardOutput, new Point(0, 0), new Point(boardOutput.cols(), boardOutput.cols()),
 				new Scalar(70, 70, 70), 2);
 

@@ -10,6 +10,7 @@
 #include <time.h>
 
 #include "evaluation.h"
+#include "util.h"
 
 using namespace std;
 using namespace cv;
@@ -177,7 +178,7 @@ void Evaluater::checkOverallCorrectness(const vector<Point2f> &intersections) {
 		float percentage = matchedCount * 100.0 / allIntersects.size();
 		cout << "#Matched " << matchedCount << " out of " << allIntersects.size() << " reference points. (";
 		cout << std::setprecision(3) << percentage << "%) ";
-		if (percentage >= 99) {
+		if (percentage >= 90) {
 			cout << "== SUCCESS ==" << endl;
 		} else {
 			cout << "== FAIL == " << endl;
@@ -345,21 +346,29 @@ void Evaluater::printStepTimes(){
 }
 
 long Evaluater::conf(String name, long defaultVal) {
+#ifdef USE_JNI
+	return defaultVal;
+#else
 	char* value = getenv(name.c_str());
 	long returnVal = value != NULL ? stol(value) : defaultVal;
 
 	usedValues.push_back(pair<string, string>(name, to_string(returnVal)));
 
 	return returnVal;
+#endif
 }
 
 double Evaluater::conf(String name, double defaultVal) {
+#ifdef USE_JNI
+	return defaultVal;
+#else
 	char* value = getenv(name.c_str());
 	double returnVal = value != NULL ? stod(value) : defaultVal;
 
 	usedValues.push_back(pair<string, string>(name, to_string(returnVal)));
 
 	return returnVal;
+#endif
 }
 
 String Evaluater::conf(String name, String defaultVal) {

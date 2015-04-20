@@ -76,7 +76,6 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 	gray.convertTo(threshed, CV_8UC1);
 	adaptiveThreshold(threshed, threshed, 255, ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY, 31, 1);
-//	threshed.convertTo(threshed, CV_8UC3);
 
 	rectangle(threshed, Point(src.cols/2-20, src.rows/2-20), Point(src.cols/2+20, src.rows/2+20), Scalar(0,0,0), -1);
 	floodFill(threshed, noArray(), Point(src.cols/2, src.rows/2), Scalar(120), &bounding);
@@ -133,10 +132,20 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	removeDuplicateIntersections(intersections);
 	globEval->saveStepTime("Removed all duplicates");
 
+	if(intersections.size() == 0){
+		LOGD("No intersections found, cannot continue");
+		return;
+	}
+
 	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle);
 
 	selectBoardIntersections(src, intersections, selectedIntersections);
 	globEval->saveStepTime("Refined all points");
+
+	if(selectedIntersections.size() <= 4){
+		LOGD("Too few intersections selected, cannot continue");
+		return;
+	}
 
 	fillGaps(selectedIntersections, filledIntersections, src);
 	globEval->saveStepTime("Filled all gaps");
@@ -148,6 +157,10 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	uchar pieces[81];
 	getColors(filledIntersections, pieces, threshed);
 	globEval->saveStepTime("Determined all intersections' colors");
+
+#ifndef USE_JNI
+	globEval->checkColorCorrectness(pieces, filledIntersections, bounding.x, bounding.y);
+#endif
 
 	for(int i=0; i<9; i++){
 		for(int j=0; j<9; j++){
@@ -239,7 +252,7 @@ void loadAndProcessImage(char *filename) {
 
 	eval.setImage(colorDisplay);
 //	eval.checkIntersectionCorrectness(intersections);
-//	eval.checkOverallCorrectness(filledIntersections);
+	eval.checkOverallCorrectness(filledIntersections);
 
 	Mat output(Size(src.cols, src.rows*2), CV_8UC4);
 	Mat upperOutput = output(Rect(0, 0, src.cols, src.rows));
@@ -293,12 +306,21 @@ int main(int argc, char** argv) {
 extern "C" {
 	JNIEXPORT void JNICALL Java_de_t_1animal_goboardreader_DetectorActivity_detect(
 			JNIEnv * jenv, jobject obj, jlong src, jlong java_intersections, jlong java_selectedIntersections,
-			jlong java_filledIntersections, jlong java_darkCircles, jlong java_lightCircles) {
+			jlong java_filledIntersections, jlong java_darkCircles, jlong java_lightCircles, jintArray java_board) {
 
 		vector<Point2f> selectedIntersections, intersections, filledIntersections;
 		vector<Point3f> darkCircles, lightCircles;
 
-		detect(*(Mat*) src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles);
+		char board[81];
+
+		detect(*(Mat*) src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles, board);
+
+		jint *jboard = jenv->GetIntArrayElements(java_board, NULL);
+		for(int i=0; i<81; i++){
+			jboard[i] = board[i];
+		}
+		jenv->ReleaseIntArrayElements(java_board, jboard, NULL);
+
 
 //		LOGD("outside intersectionsCount: %d", filledIntersections.size());
 //		LOGD("outside selectedIntersectionsCount: %d", selectedIntersections.size());
