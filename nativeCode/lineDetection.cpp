@@ -205,7 +205,6 @@ void detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert
 	i=0;
 	keep.clear();
 	for(auto l:lines){
-		putText(img, to_string(parallels[i]), Point(l[0], l[1]), 1, 1, Scalar(255,255,255), 1);
 		if(parallels[i] >= 1){
 			keep.push_back(l);
 		}

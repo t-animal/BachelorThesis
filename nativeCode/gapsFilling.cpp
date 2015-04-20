@@ -50,8 +50,6 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 //	assert(count != 0);
 //	averageDistance /= count;
 
-	cout << averageDistance << endl;
-
 	lastX = intersections[0].x;
 	lastY = intersections[0].y;
 	int smallestX = intersections[0].x;
@@ -64,11 +62,11 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 		circle(disp, mp, 5, Scalar(120));
 		line(disp, Point2f(0, mp.y), Point2f(mp.x*2, mp.y), Scalar(120));
 		line(disp, Point2f(mp.x, 0), Point2f(mp.x, mp.y*2), Scalar(120));
-		imshow("disp", disp);
+//		imshow("disp", disp);
 //		waitKey();
 		if(i.x - lastX < 0){
-			cout << "NEW LINE ====" << endl;
-			cout << "current location: left of center: " << colsLeftOfCenter << " rowsAboveCenter: " << rowsAboveCenter<< endl;
+//			cout << "NEW LINE ====" << endl;
+//			cout << "current location: left of center: " << colsLeftOfCenter << " rowsAboveCenter: " << rowsAboveCenter<< endl;
 
 			//new line
 			if(lastY < mp.y)
@@ -89,9 +87,9 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 			if(i.x < smallestX - averageDistance*0.5){
 				//we have an outlier to the left => shift all others one to the right
 				//TODO: support outliers by multiple averageDistances
-				cout << " outlieroffset" << (smallestX-i.x);
+//				cout << " outlieroffset" << (smallestX-i.x);
 				int outlierCount = round((smallestX-i.x)/averageDistance);
-				cout << " outliercount " << outlierCount << endl;
+//				cout << " outliercount " << outlierCount << endl;
 				for(Point2f &kp : keypoints){
 					kp.x += KPDIST * outlierCount;
 				}
@@ -130,7 +128,7 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 			colsLeftOfCenter++;
 		else if(i.x > mp.x && i == intersections[0]){
 			//wenn erster Stein in erster Zeile rechts vom Mittelpunkt liegt, diesen als negativ kennzeichen fuer spaetere verschiebung
-			cout << "correcting first line" << (mp.x-i.x) << " " << averageDistance << endl;
+//			cout << "correcting first line" << (mp.x-i.x) << " " << averageDistance << endl;
 			colsLeftOfCenter = round((mp.x-i.x)/averageDistance);
 		}
 
@@ -138,7 +136,7 @@ void generateCorrespondingKeypoints(vector<Point2f> &keypoints, vector<Point2f> 
 	}
 	row++;
 
-	cout << "Left of center:" << colsLeftOfCenter << " above center:" << rowsAboveCenter << endl;
+//	cout << "Left of center:" << colsLeftOfCenter << " above center:" << rowsAboveCenter << endl;
 
 	for(Point2f &kp : keypoints){
 		kp.y -= (rowsAboveCenter-1)*KPDIST;
@@ -152,6 +150,7 @@ void fillGaps(vector<Point2f> intersections, vector<Point2f> &filledIntersection
 	vector<Point2f> object, correspondingKeypoints;
 	generateCorrespondingKeypoints(object, intersections, center);
 	generateReferenceKeypoints(filledIntersections, 9);
+
 
 	if(intersections.size() < 4 || object.size() != intersections.size()){
 //		LOGD("homography detection impossible: object: %d, intersections: %d", object.size(), intersections.size());
