@@ -10,6 +10,7 @@ import tempfile
 import yaml
 import joblib
 import lockfile
+from thread import start_new_thread
 
 DEVNULL = open(os.devnull, 'wb')
 HOME = os.path.expanduser("~")
@@ -20,6 +21,21 @@ class Storage():
 	pass
 
 failedEnvs = []
+assignedEnvs = {}
+
+def finishedNotifiee():
+	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+	s.bind(("localhost", 8557))
+	s.listen(10)
+
+	global assignedEnvs
+	while True:
+		conn, addr = s.accept()
+		server = conn.recv(1024)
+
+		assignedEnvs[server] -= 1
+
 
 #float enabled range generator with max precision = 10.e-5
 def myRange(start, stop, step):
@@ -65,7 +81,15 @@ def modifiedEnvironments(params):
 def assignedEnvironments(servers, params):
 	i=0
 	for env in modifiedEnvironments(params):
-		yield (servers[i%len(servers)], env)
+
+		while True:
+			server = servers[i%len(servers)]
+			if assignedEnvs[server] <= 8:
+				break
+			i += 1
+
+		assignedEnvs[server] += 1
+		yield (server, env)
 		i += 1
 
 def handleServerMode(secret, prefix):
@@ -118,11 +142,16 @@ def handleClientMode(secret, server, env):
 			failedEnvs.append(env)
 			print "Server "+server+ " malfunctioned"
 
-		s.close()
 	except Exception as e:
 		failedEnvs.append(env)
 		print "Error in connection to server "+server
 		print str(e)
+	finally:
+		s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		s.connect(("localhost", 8557))
+		s.send(server)
+		s.close()
+
 
 def handleEnv(env, prefix, repeated=False):
 	#execute in subshells, save output
@@ -191,6 +220,7 @@ def handleEnv(env, prefix, repeated=False):
 			values[key] /= totalFiles
 
 	values["totalFiles"] = totalFiles
+	values["currentTime"] = str(datetime.datetime.now())
 	values.update(parameters)
 
 
@@ -218,11 +248,22 @@ def main(secret, params):
 
 		else:
 			servers = sys.argv[1:]
+			for server in servers:
+				assignedEnvs[server] = 0
 
 			print "Evaluating "+str(totalParams)+" sets of parameters on "+str(len(servers))+" machines"
 			print "Expected calculation time: "+str(totalParams*3/len(servers)/60)+" minutes"
 
+			#can't see another way to notify this thread of finished other threads :(
+			start_new_thread(finishedNotifiee,())
+
 			joblib.Parallel(n_jobs=len(servers), verbose=1, pre_dispatch="2*n_jobs")(joblib.delayed(handleClientMode)(secret, server, env) for server, env in assignedEnvironments(servers, params))
+
+			f.open("failedEnvs", "w")
+			for env in failedEnvs:
+				f.write(str(env))
+				f.write("==================")
+			f.close()
 
 	except KeyboardInterrupt:
 		print "Shutting down"
