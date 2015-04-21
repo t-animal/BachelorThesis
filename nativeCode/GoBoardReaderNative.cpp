@@ -21,9 +21,6 @@ using namespace std;
 
 Evaluater *globEval;
 
-template<typename T>
-void templated_fn(T) { }
-
 void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
 		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles, char *board) {
 
@@ -44,14 +41,12 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 	BoardSegmenter boardSegmenter(threshed);
 	boardSegmenter.calculateBoundingBox(bounding);
-
-	boardSegmenter.segmentBoard(src);
-	boardSegmenter.segmentBoard(gray);
-	boardSegmenter.segmentBoard(hsv);
-	boardSegmenter.segmentBoard(bgr);
-	boardSegmenter.segmentBoard(threshed);
+	boardSegmenter.segmentImage(src);
+	boardSegmenter.segmentImage(gray);
+	boardSegmenter.segmentImage(hsv);
+	boardSegmenter.segmentImage(bgr);
+	boardSegmenter.segmentImage(threshed);
 	globEval->saveStepTime("Threshholded image and calculated bounding box");
-
 
 	LineDetector lineDetector(bgr);
 	IntersectionDetector intersectionDetector(vert, horz, bgr);
@@ -67,7 +62,6 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 //	globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
 
-
 	pieceDetector.detectPieces(darkCircles, lightCircles);
 	globEval->saveStepTime("Detected all pieces");
 
@@ -81,12 +75,11 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 		intersections.push_back(Point2f(c.x, c.y));
 	}
 
-
 	intersectionDetector.removeDuplicateIntersections();
 	globEval->saveStepTime("Removed all duplicates");
 
 	if(intersections.size() == 0){
-		LOGD("No intersections found, cannot continue");
+		LOGD("#ERR: No intersections found, cannot continue");
 		return;
 	}
 
@@ -96,7 +89,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	globEval->saveStepTime("Refined all points");
 
 	if(selectedIntersections.size() <= 4){
-		LOGD("Too few intersections selected, cannot continue");
+		LOGD("#ERR: Too few intersections selected, cannot continue");
 		return;
 	}
 
@@ -131,21 +124,6 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	boardSegmenter.unsegmentPoints<Point2f>(intersections);
 	boardSegmenter.unsegmentPoints<Point3f>(darkCircles);
 	boardSegmenter.unsegmentPoints<Point3f>(lightCircles);
-//	for(auto &i : filledIntersections){
-//		i.x+=bounding.x; i.y+=bounding.y;
-//	}
-//	for(auto &i : selectedIntersections){
-//		i.x+=bounding.x; i.y+=bounding.y;
-//	}
-//	for(auto &i : intersections){
-//		i.x+=bounding.x; i.y+=bounding.y;
-//	}
-//	for(auto &i : darkCircles){
-//		i.x+=bounding.x; i.y+=bounding.y;
-//	}
-//	for(auto &i : lightCircles){
-//		i.x+=bounding.x; i.y+=bounding.y;
-//	}
 
 	globEval->saveStepTime("Finished detection");
 }
@@ -245,8 +223,9 @@ void loadAndProcessImage(char *filename) {
 
 	globEval->printStepTimes();
 
-//	imshow("output", output);
-//	waitKey();
+	namedWindow("output", WINDOW_NORMAL);
+	imshow("output", output);
+	waitKey();
 }
 
 int main(int argc, char** argv) {

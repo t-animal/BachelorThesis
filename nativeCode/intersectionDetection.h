@@ -30,13 +30,13 @@ public:
 	 * counted if there's no other intersection within \p maxOffset
 	 */
 	void getIntersections(
-			std::vector<cv::Point2f> &intersections, //!< return vector to write the intersections to
+			std::vector<cv::Point2f> &interSects, //!< return vector to write the intersections to
 			const int maxOffset = 10                 //!< distance in norm2 within which two intersections are
 													 //!<   considered the same
 			);
 
-	void getIntersections_FAST(std::vector<cv::Point2f> &intersections);
-	void getIntersections_ORB(std::vector<cv::Point2f> &intersections);
+	void getIntersections_FAST(std::vector<cv::Point2f> &interSects);
+	void getIntersections_ORB(std::vector<cv::Point2f> &interSects);
 
 	/**
 	 * Selects those intersections that are most certainly part of the Go-Board by selecting all within a specific range

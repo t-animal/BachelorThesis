@@ -2,15 +2,17 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 
+#include <iostream>
+
 using namespace cv;
 using namespace std;
 
-void BoardSegmenter::calculateBoundingBox(Rect boundingBox){
-	Mat src(src);
-	boundingBox = this->boundingBox;
+void BoardSegmenter::calculateBoundingBox(Rect &bBox){
+	Mat img;
+	src.copyTo(img);
 
-	rectangle(src, Point(src.cols/2-20, src.rows/2-20), Point(src.cols/2+20, src.rows/2+20), Scalar(0,0,0), -1);
-	floodFill(src, noArray(), Point(src.cols/2, src.rows/2), Scalar(120), &boundingBox);
+	rectangle(img, Point(img.cols/2-20, img.rows/2-20), Point(img.cols/2+20, img.rows/2+20), Scalar(0,0,0), -1);
+	floodFill(img, noArray(), Point(img.cols/2, img.rows/2), Scalar(120), &boundingBox);
 
 	boundingBox.x -= 10;
 	boundingBox.y -= 10;
@@ -23,14 +25,16 @@ void BoardSegmenter::calculateBoundingBox(Rect boundingBox){
 	if(boundingBox.y < 0){
 		boundingBox.width += boundingBox.y; boundingBox.y=0;
 	}
-	if(boundingBox.x + boundingBox.width > src.cols){
-		boundingBox.width = src.cols-boundingBox.x;
+	if(boundingBox.x + boundingBox.width > img.cols){
+		boundingBox.width = img.cols-boundingBox.x;
 	}
-	if(boundingBox.y+boundingBox.height > src.rows){
-		boundingBox.height = src.rows-boundingBox.y;
+	if(boundingBox.y+boundingBox.height > img.rows){
+		boundingBox.height = img.rows-boundingBox.y;
 	}
+
+	bBox = this->boundingBox;
 }
 
-void BoardSegmenter::segmentBoard(Mat &img){
+void BoardSegmenter::segmentImage(Mat &img){
 	img = img(boundingBox);
 }

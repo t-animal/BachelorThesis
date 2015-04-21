@@ -12,9 +12,9 @@ private:
 public:
 	BoardSegmenter(const cv::Mat src) : src(src){};
 
-	void calculateBoundingBox(cv::Rect boundingBox);
+	void calculateBoundingBox(cv::Rect &bBox);
 
-	void segmentBoard(cv::Mat &img);
+	void segmentImage(cv::Mat &img);
 
 	template<typename Tp> void unsegmentPoints(std::vector<Tp> &points);
 };

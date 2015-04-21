@@ -9,7 +9,7 @@
 
 class LineDetector {
 private:
-	const cv::Mat &src;
+	const cv::Mat src;
 	float horzThreshhold;
 	float vertThreshhold;
 
@@ -20,8 +20,8 @@ private:
 
 	void mergeNearbyLines(std::vector<cv::Vec4i> &horz, std::vector<cv::Vec4i> &vert);
 public:
-	LineDetector(const cv::Mat &src) : LineDetector(src, 2, 2){};
-	LineDetector(const cv::Mat &src, float horzThreshhold, float vertThreshhold)
+	LineDetector(const cv::Mat src) : LineDetector(src, 2, 2){};
+	LineDetector(const cv::Mat src, float horzThreshhold, float vertThreshhold)
 		: src(src), horzThreshhold(horzThreshhold), vertThreshhold(vertThreshhold){};
 
 	/**

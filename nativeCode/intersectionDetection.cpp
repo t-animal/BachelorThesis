@@ -47,9 +47,7 @@ Point2f IntersectionDetector::computeIntersect(Vec4i a, Vec4i b) {
 }
 
 
-void IntersectionDetector::getIntersections(vector<Point2f> &intersections, int maxOffset) {
-	intersections = this->intersections;
-
+void IntersectionDetector::getIntersections(vector<Point2f> &interSects, int maxOffset) {
 	for (auto h : horz) {
 		for (auto v : vert) {
 			Point2f newIntersect = computeIntersect(h, v);
@@ -64,11 +62,11 @@ void IntersectionDetector::getIntersections(vector<Point2f> &intersections, int 
 				intersections.push_back(newIntersect);
 		}
 	}
+
+	interSects = this->intersections;
 }
 
-void IntersectionDetector::getIntersections_FAST(vector<Point2f> &intersections){
-	intersections = this->intersections;
-
+void IntersectionDetector::getIntersections_FAST(vector<Point2f> &interSects){
 	vector<KeyPoint> keypoints;
 	Mat dst;
 	cvtColor(src, dst, COLOR_BGR2GRAY);
@@ -78,17 +76,16 @@ void IntersectionDetector::getIntersections_FAST(vector<Point2f> &intersections)
 	for(KeyPoint kp : keypoints){
 		intersections.push_back(kp.pt);
 	}
+
+	interSects = this->intersections;
 }
 
 
-void IntersectionDetector::getIntersections_ORB(vector<Point2f> &intersections){
-	intersections = this->intersections;
-
+void IntersectionDetector::getIntersections_ORB(vector<Point2f> &interSects){
 	vector<KeyPoint> keypoints;
 	Mat dst;
 	cvtColor(src, dst, COLOR_BGR2GRAY);
 	GaussianBlur(dst, dst, Size(3,3), 2);
-
 
 	ORB orb;
 	orb(dst, Mat::ones(dst.size(), CV_8U), keypoints, noArray());
@@ -96,6 +93,8 @@ void IntersectionDetector::getIntersections_ORB(vector<Point2f> &intersections){
 	for(KeyPoint kp : keypoints){
 		intersections.push_back(kp.pt);
 	}
+
+	interSects = this->intersections;
 }
 
 void IntersectionDetector::selectIntersectionsCloud(vector<Point2f> &selectedIntersections){

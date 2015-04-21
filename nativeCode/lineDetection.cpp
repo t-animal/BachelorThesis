@@ -229,7 +229,7 @@ double LineDetector::getAverageAngle(vector<Vec4i> lines) {
 		//=> bei kleiner 90 nach rechts rotieren
 		//=> bei groesser 90 nach links rotieren
 		//rotate macht bei pos. winkel rotation nach links (gg uzs)
-		assert(height != 0);
+		//assert(height != 0);
 		double angle = atan(width / height) * 360 / 2 / M_PI;
 
 		if (angle > 0) {
@@ -261,9 +261,10 @@ void LineDetector::detectVertHorzLines_HOUGH (vector<Vec4i> &horz, vector<Vec4i>
 
 	GaussianBlur(src, dst, Size(kernelSize, kernelSize), sigma);
 	Canny(dst, dst, cannyThresh1, cannyThresh2, aperture);
+	dst.convertTo(dst, CV_8UC1);
+	waitKey();
 
 	HoughLinesP(dst, lines, 1, CV_PI/angleResolution, houghThresh, minLength, maxGap);
-
 	for (size_t i = 0; i < lines.size(); i++) {
 		Vec4i l = lines[i];
 
