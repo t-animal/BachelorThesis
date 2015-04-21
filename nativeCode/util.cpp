@@ -29,6 +29,13 @@ void rotate(Mat& src, Mat& dst, double angle) {
 	warpAffine(src, dst, r, cv::Size(len, len));
 }
 
+
+void rotate(vector<Point2f>& src, vector<Point2f>& dst, Point2f center, double angle) {
+	Mat r = getRotationMatrix2D(center, angle, 1.0);
+
+	transform(src, dst, r);
+}
+
 string type2str(int type) {
 	string r;
 

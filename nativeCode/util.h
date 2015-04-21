@@ -60,6 +60,8 @@ int getMilliSpan(int nTimeStart);
  */
 void rotate(cv::Mat& src, cv::Mat& dst, double angle);
 
+void rotate(std::vector<cv::Point2f>& src, std::vector<cv::Point2f>& dst, cv::Point2f center, double angle);
+
 /**
  * Utility function to sort a vector of pairs after pair.first
  *

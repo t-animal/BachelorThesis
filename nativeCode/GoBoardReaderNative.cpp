@@ -12,56 +12,13 @@
 #include "util.h"
 #include "pieceDetection.h"
 #include "gapsFilling.h"
+#include "colorDetection.h"
 #include "evaluation.h"
 
 using namespace cv;
 using namespace std;
 
 Evaluater *globEval;
-
-void rotate(vector<Point2f>& src, vector<Point2f>& dst, Point2f center, double angle) {
-	Mat r = getRotationMatrix2D(center, angle, 1.0);
-
-	transform(src, dst, r);
-}
-
-void getColors(const vector<Point2f> &intersections, uchar *pieces, Mat threshed){
-	uchar *start = threshed.datastart;
-	while(start != threshed.dataend){
-		if(*start == 0)
-			*start = 255;
-
-		if(*start != 255)
-			*start = 0;
-
-		start++;
-	}
-
-	int speckleSize = Evaluater::conf("COLORS_SPECKLESIZE", 2L);
-	int rectSize = Evaluater::conf("COLORS_RECTSIZE", 20L);
-	int blackThresh = Evaluater::conf("COLORS_BLACKTHRESH", 80L);
-	int whiteThresh = Evaluater::conf("COLORS_WHITETHRESH", 220L);
-
-	erode(threshed, threshed, Mat(), Point(-1, -1), 2);
-	dilate(threshed, threshed, Mat(), Point(-1, -1), 2);
-
-	int curPiece = 0;
-	for(auto i : intersections){
-		Mat subPix;
-		getRectSubPix(threshed, Size(20,20), i, subPix);
-		if((sum(subPix)/400)[0] < blackThresh){
-			pieces[curPiece++] = 'b';//sum(subPix)[0]/100*(-1);
-			continue;
-		}
-
-		if((sum(subPix)/400)[0] > whiteThresh){
-			pieces[curPiece++] = 'w';//sum(subPix)[0]/100;
-			continue;
-		}
-
-		pieces[curPiece++] = '0';
-	}
-}
 
 void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
 		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles, char *board) {
@@ -74,6 +31,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	IntersectionDetector intersectionDetector;
 	PieceDetector pieceDetector;
 	GapsFiller gapsFiller;
+	ColorDetector colorDetector;
 
 	Mat gray, hsv, bgr;
 	cvtColor(src, gray, COLOR_BGR2GRAY);
@@ -166,7 +124,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	rotate(filledIntersections, filledIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
 
 	uchar pieces[81];
-	getColors(filledIntersections, pieces, threshed);
+	colorDetector.getColors(filledIntersections, pieces, threshed);
 	globEval->saveStepTime("Determined all intersections' colors");
 
 #ifndef USE_JNI

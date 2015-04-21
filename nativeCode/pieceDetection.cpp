@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+#include "pieceDetection.h"
 #include "evaluation.h"
 #include "lineDetection.h"
 #include "intersectionDetection.h"
