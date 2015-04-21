@@ -12,7 +12,7 @@
 using namespace cv;
 using namespace std;
 
-void PieceDetector::detectPieces(Mat &src, vector<Point3f> &darkPieces, vector<Point3f> &lightPieces) {
+void PieceDetector::detectPieces(vector<Point3f> &darkPieces, vector<Point3f> &lightPieces) {
 	vector<Mat> channels;
 	split(src, channels);
 	Mat h = channels[0];

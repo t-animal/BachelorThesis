@@ -9,25 +9,42 @@ using namespace cv;
 
 
 void LineDetector::mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
+
+	for(Vec4i &l1 : horz){
+		//normalize line direction to the right
+		if(l1[0] > l1[2]){
+			int tmp1 = l1[0];
+			int tmp2 = l1[1];
+			l1[0] = l1[2];
+			l1[1] = l1[3];
+			l1[2] = tmp1;
+			l1[3] = tmp2;
+		}
+	}
+
+	for(Vec4i &l1 : vert){
+		//normalize line direction downwards
+		if(l1[1] > l1[3]){
+			int tmp1 = l1[0];
+			int tmp2 = l1[1];
+			l1[0] = l1[2];
+			l1[1] = l1[3];
+			l1[2] = tmp1;
+			l1[3] = tmp2;
+		}
+	}
+
 	unsigned int prev;
 		do {
 			prev = horz.size()+vert.size();
 			vector<Vec4i> horzStitched;
-			for(Vec4i &l1 : horz){
-				//normalisiere die richtung der linien nach rechts
-				if(l1[0] > l1[2]){
-					int tmp1 = l1[0];
-					int tmp2 = l1[1];
-					l1[0] = l1[2];
-					l1[1] = l1[3];
-					l1[2] = tmp1;
-					l1[3] = tmp2;
-				}
-			}
+			vector<Vec4i> vertStitched;
+
 			for(Vec4i &l1 : horz){
 				Vec2i a1 = Vec2i(l1[0], l1[1]);
 				Vec2i a2 = Vec2i(l1[2], l1[3]);
 
+				//line segment has been stitched already
 				if(l1[0] < 0)
 					continue;
 
@@ -44,11 +61,13 @@ void LineDetector::mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
 					double distance3 = norm(a2-b1);
 					double distance4 = norm(b2-a1);
 
+					//if  l2's endpoints are at most 15px from l1 in orthogonal direction
+					//and the biggest distance is at most 50px or they overlap
 					if(distance1 < 15 && distance2 < 15 && (distance3 < 50 || distance4 < 50
 							|| (a1[0] < b1[0] && b1[0] < a2[0]) ||
 							(a1[0] < b2[0] && b2[0] < a2[0])
 					)){
-						//setze die punkte auf die jeweils aeusseren
+						//set the new endpoints to the outermost points
 						if(l2[0] < l1[0]){
 							l1[0] = l2[0];
 							l1[1] = l2[1];
@@ -57,25 +76,15 @@ void LineDetector::mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
 							l1[2] = l2[2];
 							l1[3] = l2[3];
 						}
+						//discard the second line
 						l2[0] = -1;
 					}
 				}
+				//look at the new line again
 				if(l1[0] != a1[0] || l1[1] != a1[1] || l1[2] != a2[0] || l1[3] != a2[1])
 					horzStitched.push_back(l1);
 			}
 
-			vector<Vec4i> vertStitched;
-			for(Vec4i &l1 : vert){
-				//normalisiere die richtung der linien nach unten
-				if(l1[1] > l1[3]){
-					int tmp1 = l1[0];
-					int tmp2 = l1[1];
-					l1[0] = l1[2];
-					l1[1] = l1[3];
-					l1[2] = tmp1;
-					l1[3] = tmp2;
-				}
-			}
 			for(Vec4i &l1 : vert){
 				Vec2i a1 = Vec2i(l1[0], l1[1]);
 				Vec2i a2 = Vec2i(l1[2], l1[3]);
@@ -96,10 +105,12 @@ void LineDetector::mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
 					double distance3 = norm(a2-b1);
 					double distance4 = norm(b2-a1);
 
+					//if  l2's endpoints are at most 15px from l1 in orthogonal direction
+					//and the biggest distance is at most 50px or they overlap
 					if(distance1 < 15 && distance2 < 15 && (distance3 < 50 || distance4 < 50
 							|| (a1[1] < b1[1] && b1[1] < a2[1]) ||
 							(a1[1] < b2[1] && b2[1] < a2[1]))){
-						//setze die punkte auf die jeweils aeusseren
+						//set the new endpoints to the outermost points
 						if(l2[1] < l1[1]){
 							l1[0] = l2[0];
 							l1[1] = l2[1];
@@ -108,12 +119,16 @@ void LineDetector::mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
 							l1[2] = l2[2];
 							l1[3] = l2[3];
 						}
+						//discard the second line
 						l2[0] = -1;
 					}
 				}
+				//look at the new line again
 				if(l1[0] != a1[0] || l1[1] != a1[1] || l1[2] != a2[0] || l1[3] != a2[1])
 					vertStitched.push_back(l1);
 			}
+			//look at all lines again that were not changed
+			//todo: werden linien hier doppelt hinzefuegt (wegen vier zeilen vorher)
 			for(auto l:horz){
 				if(l[0]>0)
 					horzStitched.push_back(l);
@@ -124,65 +139,35 @@ void LineDetector::mergeNearbyLines(vector<Vec4i> &horz, vector<Vec4i> &vert){
 			}
 			horz = horzStitched;
 			vert = vertStitched;
-		}while(prev != horz.size()+vert.size());
 
-//		vector<Vec4i> horzLong, vertLong;
-//		for(auto l :horz){
-//			if(norm(Vec2i(l[0],l[1])-Vec2i(l[2],l[3])) > 50)
-//				horzLong.push_back(l);
-//		}
-//		for(auto l :vert){
-//			if(norm(Vec2i(l[0],l[1])-Vec2i(l[2],l[3])) > 50)
-//				vertLong.push_back(l);
-//		}
-//		horz = horzLong;
-//		vert = vertLong;
+		//do as long as lines have changed
+		}while(prev != horz.size()+vert.size());
 }
 
-void LineDetector::detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
-		float horzThreshhold, float vertThreshhold) {
+void LineDetector::detectVertHorzLines_LSD (vector<Vec4i> &horz, vector<Vec4i> &vert) {
 	Mat dst;
 	vector<Vec4i> lines;
 
 	Mat first, length, parallel, remain;
-	img.copyTo(first);
-	img.copyTo(length);
-	img.copyTo(parallel);
-	img.copyTo(remain);
+	src.copyTo(first);
+	src.copyTo(length);
+	src.copyTo(parallel);
+	src.copyTo(remain);
 
-	Canny(img, dst, 50, 200, 3);
+	Canny(src, dst, 50, 200, 3);
 
 	Ptr<LineSegmentDetector> lsd = createLineSegmentDetector(LSD_REFINE_ADV, 0.6, 1.5, 2.0, 40, 0, 0.2, 1024);
 	lsd->detect(dst, lines);
 
-	cout << lines.size() << endl;
-	RNG rng(10);
-	for (size_t i = 0; i < lines.size(); i++) {
-		Vec4i l = lines[i];
-		line(first, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(rng.next(), rng.next(), rng.next()), 2);
-	}
-	imshow("first", first);
-
 	//Keep only line segments longer than some threshold
 	vector<Vec4i> keep;
-	rng = rng(10);
 	for(auto l:lines){
 		if(norm(Point(l[0],l[1])-Point(l[2], l[3])) > 30)
 			keep.push_back(l);
-		else
-			line(img, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(120,120,120), 1);
 	}
 	lines = keep;
 
-
-	cout << lines.size() << endl;
-	rng = rng(10);
-	for (size_t i = 0; i < lines.size(); i++) {
-		Vec4i l = lines[i];
-		line(length, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(rng.next(), rng.next(), rng.next()), 2);
-	}
-	imshow("length", length);
-
+	//find number of parallel lines in vicinity
 	int parallels[lines.size()];
 	int i=0;
 	for(auto l1 : lines){
@@ -196,6 +181,7 @@ void LineDetector::detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vecto
 		}
 		i++;
 	}
+	//keep only lines with at least one parallel
 	i=0;
 	keep.clear();
 	for(auto l:lines){
@@ -206,14 +192,7 @@ void LineDetector::detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vecto
 	}
 	lines = keep;
 
-	cout << lines.size() << endl;
-	rng = rng(10);
-	for (size_t i = 0; i < lines.size(); i++) {
-		Vec4i l = lines[i];
-		line(parallel, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(rng.next(), rng.next(), rng.next()), 2);
-	}
-	imshow("paralle", parallel);
-
+	//classify in horizontal and vertical lines
 	for (size_t i = 0; i < lines.size(); i++) {
 		Vec4i l = lines[i];
 
@@ -228,8 +207,6 @@ void LineDetector::detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vecto
 		} else if (isHorz) {
 			horz.push_back(l);
 		}
-
-		//cout << height << "||" <<width << "||" << height/width << "||" << width/height <<endl;
 	}
 
 	mergeNearbyLines(horz, vert);
@@ -237,18 +214,8 @@ void LineDetector::detectVertHorzLines_LSD (Mat &img, vector<Vec4i> &horz, vecto
 	vector<Vec4i> all;
 	all.insert(all.end(), vert.begin(), vert.end());
 	all.insert(all.end(), horz.begin(), horz.end());
-	//lsd->drawSegments(img, all);
-
-	cout << all.size() << endl;
-	rng = rng(10);
-	for (size_t i = 0; i < all.size(); i++) {
-		Vec4i l = all[i];
-		line(remain, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(rng.next(), rng.next(), rng.next()), 2);
-	}
-	imshow("remain", remain);
 
 	return;
-	//lsd->drawSegments(img, vert);
 }
 
 double LineDetector::getAverageAngle(vector<Vec4i> lines) {
@@ -262,7 +229,7 @@ double LineDetector::getAverageAngle(vector<Vec4i> lines) {
 		//=> bei kleiner 90 nach rechts rotieren
 		//=> bei groesser 90 nach links rotieren
 		//rotate macht bei pos. winkel rotation nach links (gg uzs)
-		//TODO: assert height !=0
+		assert(height != 0);
 		double angle = atan(width / height) * 360 / 2 / M_PI;
 
 		if (angle > 0) {
@@ -276,13 +243,11 @@ double LineDetector::getAverageAngle(vector<Vec4i> lines) {
 	return totalAngle;
 }
 
-void LineDetector::detectVertHorzLines_HOUGH (Mat &img, vector<Vec4i> &horz, vector<Vec4i> &vert,
-		float horzThreshhold, float vertThreshhold) {
+void LineDetector::detectVertHorzLines_HOUGH (vector<Vec4i> &horz, vector<Vec4i> &vert) {
 	Mat dst;
 	vector<Vec4i> lines;
 
 // Parameters from: currentTime:2015-04-13 20:29:05.569829
-
 	int kernelSize = Evaluater::conf("LINES_HOUGH_GAUSSKERNEL", 3L);
 	double sigma = Evaluater::conf("LINES_HOUGH_GAUSSSIGMA", 2.);
 	double cannyThresh1 = Evaluater::conf("LINES_HOUGH_CANNYTHRESH1", 50.);
@@ -294,7 +259,7 @@ void LineDetector::detectVertHorzLines_HOUGH (Mat &img, vector<Vec4i> &horz, vec
 	int minLength = Evaluater::conf("LINES_HOUGH_HOUGHMINLENGTH", 55.);
 	int maxGap = Evaluater::conf("LINES_HOUGH_HOUGHMAXGAP", 5.);
 
-	GaussianBlur(img, dst, Size(kernelSize, kernelSize), sigma);
+	GaussianBlur(src, dst, Size(kernelSize, kernelSize), sigma);
 	Canny(dst, dst, cannyThresh1, cannyThresh2, aperture);
 
 	HoughLinesP(dst, lines, 1, CV_PI/angleResolution, houghThresh, minLength, maxGap);
@@ -313,7 +278,5 @@ void LineDetector::detectVertHorzLines_HOUGH (Mat &img, vector<Vec4i> &horz, vec
 		} else if (isHorz) {
 			horz.push_back(l);
 		}
-
-		//cout << height << "||" <<width << "||" << height/width << "||" << width/height <<endl;
 	}
 }

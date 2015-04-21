@@ -9,36 +9,43 @@
 
 class LineDetector {
 private:
+	const cv::Mat &src;
+	float horzThreshhold;
+	float vertThreshhold;
+
 	//calculates the distance of the point P(x,y) from the line l
 	inline double distance(cv::Vec4i l, long x, long y){
 		return abs((l[3]-l[1])*x - (l[2]-l[0])*y + l[2]*l[1] - l[3]*l[0]) / sqrt((l[3]-l[1])*(l[3]-l[1])+(l[2]-l[0])*(l[2]-l[0]));
 	}
 
 	void mergeNearbyLines(std::vector<cv::Vec4i> &horz, std::vector<cv::Vec4i> &vert);
+public:
+	LineDetector(const cv::Mat &src) : LineDetector(src, 2, 2){};
+	LineDetector(const cv::Mat &src, float horzThreshhold, float vertThreshhold)
+		: src(src), horzThreshhold(horzThreshhold), vertThreshhold(vertThreshhold){};
+
 	/**
 	 * Detect all vertical and horizontal lines in an image. Verticality and horizontality are determined by their
-	 * pitch compared to a specified threshhold.
+	 * pitch compared to a specified threshhold. Lines are detected using probabalistic hough transform.
 	 */
 	void detectVertHorzLines_HOUGH(
-			cv::Mat &img,                   //!< the image to analyse
 			std::vector<cv::Vec4i> &horz,   //!< output of horizontal lines
-			std::vector<cv::Vec4i> &vert,   //!< output of vertical lines
-			float horzThreshhold = 2,       //!< min absolute pitch against the x-axis of horizontal lines
-			float vertThreshhold = 2        //!< min absolute pitch against the y-axis of vertical lines
+			std::vector<cv::Vec4i> &vert    //!< output of vertical lines
 			);
 
-	void detectVertHorzLines_LSD (cv::Mat &img, std::vector<cv::Vec4i> &horz, std::vector<cv::Vec4i> &vert,
-			float horzThreshhold, float vertThreshhold);
-
-public:
-	inline void detectVertHorzLines (cv::Mat &img, std::vector<cv::Vec4i> &horz, std::vector<cv::Vec4i> &vert,
-			float horzThreshhold, float vertThreshhold){
-		detectVertHorzLines_HOUGH(img, horz, vert, horzThreshhold, vertThreshhold);
-	}
+	/**
+	 * Detect all vertical and horizontal lines in an image. Verticality and horizontality are determined by their
+	 * pitch compared to a specified threshhold. Lines are detected using the LSD algorithm, then filtered by length
+	 * and stitched.
+	 */
+	void detectVertHorzLines_LSD (
+			std::vector<cv::Vec4i> &horz,   //!< output of horizontal lines
+			std::vector<cv::Vec4i> &vert    //!< output of vertical lines
+			);
 
 	/**
 	 * Get the averagle angle to the x axis of all entries of \p lines. The return value is in the range -90 < x < 90.
 	 */
-	double getAverageAngle(std::vector<cv::Vec4i> lines);
+	static double getAverageAngle(std::vector<cv::Vec4i> lines);
 };
 #endif

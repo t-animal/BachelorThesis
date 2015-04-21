@@ -5,6 +5,10 @@
 
 class GapsFiller{
 private:
+	int squareLength;
+	cv::Point2f center;
+//	cv::Mat &src;
+
 	/*
 	 * Generates a set of "perfect" keypoints modeling a Go-Board of \p squareLength size
 	 */
@@ -19,18 +23,21 @@ private:
 	 */
 	void generateCorrespondingKeypoints(
 			std::vector<cv::Point2f> &keypoints,      //!< return vector of the modeled keypoints
-			std::vector<cv::Point2f> &intersections,  //!< the intersections to model the keypoints after
-			cv::Point2f &mp                           //!< the center of the image
+			std::vector<cv::Point2f> &intersections   //!< the intersections to model the keypoints after
 	);
 
 public:
+	GapsFiller(int squareLength, cv::Point2f center)
+		: squareLength(squareLength), center(center){};
+//	GapsFiller(int squareLength, cv::Point2f &center, cv::Mat &img)
+//		:squareLength(squareLength), center(center), src(img){};
+
 	/*
 	 * Fills in the gaps of intersections which have not been found on basis of the ones already found
 	 */
 	void fillGaps(
 			std::vector<cv::Point2f> intersections,          //!< the intersections that have been found so far
-			std::vector<cv::Point2f> &filledIntersections,   //!< the return vector for the filled intersections
-			cv::Mat &src                                     //!< the image
+			std::vector<cv::Point2f> &filledIntersections    //!< the return vector for the filled intersections
 	);
 };
 #endif

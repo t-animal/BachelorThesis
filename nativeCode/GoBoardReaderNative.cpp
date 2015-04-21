@@ -14,11 +14,15 @@
 #include "gapsFilling.h"
 #include "colorDetection.h"
 #include "evaluation.h"
+#include "boardSegmenter.h"
 
 using namespace cv;
 using namespace std;
 
 Evaluater *globEval;
+
+template<typename T>
+void templated_fn(T) { }
 
 void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
 		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles, char *board) {
@@ -27,69 +31,48 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 //	resize(src, src, Size(), 0.75, 0.75, INTER_LINEAR);
 //	globEval->saveStepTime("Resized input");
 
-	LineDetector lineDetector;
-	IntersectionDetector intersectionDetector;
-	PieceDetector pieceDetector;
-	GapsFiller gapsFiller;
-	ColorDetector colorDetector;
+	Mat gray, hsv, bgr, threshed;
+	Rect bounding;
+	vector<Vec4i> horz, vert;
 
-	Mat gray, hsv, bgr;
 	cvtColor(src, gray, COLOR_BGR2GRAY);
 	cvtColor(src, hsv, COLOR_BGR2HSV);
 	src.convertTo(bgr, CV_8UC4);
+	gray.convertTo(threshed, CV_8UC1);
+	adaptiveThreshold(threshed, threshed, 255, ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 31, 1);
 	globEval->saveStepTime("Created working copies");
 
-	Rect bounding = Rect();
-	Mat threshed, mask;
-	mask = Mat1i(Size(src.cols+2, src.rows+2));
+	BoardSegmenter boardSegmenter(threshed);
+	boardSegmenter.calculateBoundingBox(bounding);
 
-	gray.convertTo(threshed, CV_8UC1);
-	adaptiveThreshold(threshed, threshed, 255, ADAPTIVE_THRESH_MEAN_C,CV_THRESH_BINARY, 31, 1);
-
-	rectangle(threshed, Point(src.cols/2-20, src.rows/2-20), Point(src.cols/2+20, src.rows/2+20), Scalar(0,0,0), -1);
-	floodFill(threshed, noArray(), Point(src.cols/2, src.rows/2), Scalar(120), &bounding);
-
-	bounding.x -= 10;
-	bounding.y -= 10;
-	bounding.height += 20;
-	bounding.width += 20;
-
-	if(bounding.x < 0){
-		bounding.height += bounding.x; bounding.x=0;
-	}
-	if(bounding.y < 0){
-		bounding.width += bounding.y; bounding.y=0;
-	}
-	if(bounding.x + bounding.width > src.cols){
-		bounding.width = src.cols-bounding.x;
-	}
-	if(bounding.y+bounding.height > src.rows){
-		bounding.height = src.rows-bounding.y;
-	}
-
-	src = src(bounding);
-	gray = gray(bounding);
-	hsv = hsv(bounding);
-	bgr = bgr(bounding);
-	threshed = threshed(bounding);
+	boardSegmenter.segmentBoard(src);
+	boardSegmenter.segmentBoard(gray);
+	boardSegmenter.segmentBoard(hsv);
+	boardSegmenter.segmentBoard(bgr);
+	boardSegmenter.segmentBoard(threshed);
 	globEval->saveStepTime("Threshholded image and calculated bounding box");
 
-	vector<Vec4i> horz, vert;
-	lineDetector.detectVertHorzLines(bgr, horz, vert, 2, 2);
+
+	LineDetector lineDetector(bgr);
+	IntersectionDetector intersectionDetector(vert, horz, bgr);
+	PieceDetector pieceDetector(hsv);
+	GapsFiller gapsFiller(9, Point2f(src.cols/2, src.rows/2));
+	ColorDetector colorDetector(threshed, filledIntersections);
+
+	lineDetector.detectVertHorzLines_HOUGH(horz, vert);
 	globEval->saveStepTime("Detected all lines");
 
-	double angle = lineDetector.getAverageAngle(horz);
-	rotate(bgr, bgr, angle);
-
-	intersectionDetector.getIntersections(intersections, horz, vert);
+	intersectionDetector.getIntersections(intersections);
 	globEval->saveStepTime("Found all intersections");
 
 //	globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
 
-	pieceDetector.detectPieces(hsv, darkCircles, lightCircles);
+
+	pieceDetector.detectPieces(darkCircles, lightCircles);
 	globEval->saveStepTime("Detected all pieces");
 
 //	globEval -> checkPieceCorrectness(darkCircles, lightCircles, bounding.x, bounding.y);
+
 
 	for (auto c : darkCircles) {
 		intersections.push_back(Point2f(c.x, c.y));
@@ -98,7 +81,8 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 		intersections.push_back(Point2f(c.x, c.y));
 	}
 
-	intersectionDetector.removeDuplicateIntersections(intersections);
+
+	intersectionDetector.removeDuplicateIntersections();
 	globEval->saveStepTime("Removed all duplicates");
 
 	if(intersections.size() == 0){
@@ -106,9 +90,9 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 		return;
 	}
 
+	double angle = lineDetector.getAverageAngle(horz);
 	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle);
-
-	intersectionDetector.selectBoardIntersections(src, intersections, selectedIntersections);
+	intersectionDetector.selectBoardIntersections(selectedIntersections);
 	globEval->saveStepTime("Refined all points");
 
 	if(selectedIntersections.size() <= 4){
@@ -116,20 +100,25 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 		return;
 	}
 
-	gapsFiller.fillGaps(selectedIntersections, filledIntersections, src);
+
+	gapsFiller.fillGaps(selectedIntersections, filledIntersections);
 	globEval->saveStepTime("Filled all gaps");
+
 
 	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle*-1);
 	rotate(selectedIntersections, selectedIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
 	rotate(filledIntersections, filledIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
 
+
 	uchar pieces[81];
-	colorDetector.getColors(filledIntersections, pieces, threshed);
+	colorDetector.getColors(pieces);
 	globEval->saveStepTime("Determined all intersections' colors");
+
 
 #ifndef USE_JNI
 	globEval->checkColorCorrectness(pieces, filledIntersections, bounding.x, bounding.y);
 #endif
+
 
 	for(int i=0; i<9; i++){
 		for(int j=0; j<9; j++){
@@ -137,21 +126,26 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 		}
 	}
 
-	for(auto &i : filledIntersections){
-		i.x+=bounding.x; i.y+=bounding.y;
-	}
-	for(auto &i : selectedIntersections){
-		i.x+=bounding.x; i.y+=bounding.y;
-	}
-	for(auto &i : intersections){
-		i.x+=bounding.x; i.y+=bounding.y;
-	}
-	for(auto &i : darkCircles){
-		i.x+=bounding.x; i.y+=bounding.y;
-	}
-	for(auto &i : lightCircles){
-		i.x+=bounding.x; i.y+=bounding.y;
-	}
+	boardSegmenter.unsegmentPoints<Point2f>(filledIntersections);
+	boardSegmenter.unsegmentPoints<Point2f>(selectedIntersections);
+	boardSegmenter.unsegmentPoints<Point2f>(intersections);
+	boardSegmenter.unsegmentPoints<Point3f>(darkCircles);
+	boardSegmenter.unsegmentPoints<Point3f>(lightCircles);
+//	for(auto &i : filledIntersections){
+//		i.x+=bounding.x; i.y+=bounding.y;
+//	}
+//	for(auto &i : selectedIntersections){
+//		i.x+=bounding.x; i.y+=bounding.y;
+//	}
+//	for(auto &i : intersections){
+//		i.x+=bounding.x; i.y+=bounding.y;
+//	}
+//	for(auto &i : darkCircles){
+//		i.x+=bounding.x; i.y+=bounding.y;
+//	}
+//	for(auto &i : lightCircles){
+//		i.x+=bounding.x; i.y+=bounding.y;
+//	}
 
 	globEval->saveStepTime("Finished detection");
 }

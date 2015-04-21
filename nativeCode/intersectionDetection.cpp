@@ -31,34 +31,6 @@ bool IntersectionDetector::IsBetween(const double& x0, const double& x, const do
 	return (x >= x0) && (x <= x1);
 }
 
-bool IntersectionDetector::FindIntersection(const double& x0, const double& y0, const double& x1,
-		const double& y1, const double& a0, const double& b0, const double& a1,
-		const double& b1, double& xy, double& ab) {
-	// four endpoints are x0, y0 & x1,y1 & a0,b0 & a1,b1
-	// returned values xy and ab are the fractional distance along xy and ab
-	// and are only defined when the result is true
-
-	bool partial = false;
-	double denom = (b0 - b1) * (x0 - x1) - (y0 - y1) * (a0 - a1);
-	if (denom == 0) {
-		xy = -1;
-		ab = -1;
-	} else {
-		xy = (a0 * (y1 - b1) + a1 * (b0 - y1) + x1 * (b1 - b0)) / denom;
-		partial = IsBetween(0, xy, 1);
-		if (partial) {
-			// no point calculating this unless xy is between 0 & 1
-			ab = (y1 * (x0 - a1) + b1 * (x1 - x0) + y0 * (a1 - x1)) / denom;
-		}
-	}
-	if (partial && IsBetween(0, ab, 1)) {
-		ab = 1 - ab;
-		xy = 1 - xy;
-		return true;
-	} else
-		return false;
-}
-
 Point2f IntersectionDetector::computeIntersect(Vec4i a, Vec4i b) {
 	int x1 = a[0], y1 = a[1], x2 = a[2], y2 = a[3];
 	int x3 = b[0], y3 = b[1], x4 = b[2], y4 = b[3];
@@ -75,8 +47,8 @@ Point2f IntersectionDetector::computeIntersect(Vec4i a, Vec4i b) {
 }
 
 
-void IntersectionDetector::getIntersections(vector<Point2f> &intersections, const vector<Vec4i> &horz,
-		const vector<Vec4i> &vert, int maxOffset) {
+void IntersectionDetector::getIntersections(vector<Point2f> &intersections, int maxOffset) {
+	intersections = this->intersections;
 
 	for (auto h : horz) {
 		for (auto v : vert) {
@@ -94,7 +66,9 @@ void IntersectionDetector::getIntersections(vector<Point2f> &intersections, cons
 	}
 }
 
-void IntersectionDetector::getIntersections_FAST(vector<Point2f> &intersections, Mat src){
+void IntersectionDetector::getIntersections_FAST(vector<Point2f> &intersections){
+	intersections = this->intersections;
+
 	vector<KeyPoint> keypoints;
 	Mat dst;
 	cvtColor(src, dst, COLOR_BGR2GRAY);
@@ -107,7 +81,9 @@ void IntersectionDetector::getIntersections_FAST(vector<Point2f> &intersections,
 }
 
 
-void IntersectionDetector::getIntersections_ORB(vector<Point2f> &intersections, Mat src){
+void IntersectionDetector::getIntersections_ORB(vector<Point2f> &intersections){
+	intersections = this->intersections;
+
 	vector<KeyPoint> keypoints;
 	Mat dst;
 	cvtColor(src, dst, COLOR_BGR2GRAY);
@@ -122,7 +98,7 @@ void IntersectionDetector::getIntersections_ORB(vector<Point2f> &intersections, 
 	}
 }
 
-void IntersectionDetector::selectIntersectionsCloud(Mat &src, vector<Point2f> intersections, vector<Point2f> &selectedIntersections){
+void IntersectionDetector::selectIntersectionsCloud(vector<Point2f> &selectedIntersections){
 	double curDist, closestDistance = 9999, secondClosestDistance = 9999;
 	Point2f firstIntersection, nextIntersection;
 	Point2f center(src.cols/2, src.rows/2);
@@ -169,9 +145,8 @@ void IntersectionDetector::selectIntersectionsCloud(Mat &src, vector<Point2f> in
 
 }
 
-void IntersectionDetector::selectBoardIntersections(Mat &src, vector<Point2f> intersections, vector<Point2f> &selectedIntersections){
+void IntersectionDetector::selectBoardIntersections(vector<Point2f> &selectedIntersections){
 	Point2f mp(src.cols/2, src.rows/2);
-	//sort(intersections, MiddlePointSorter(mp));
 
 	//select all intersections within 150px of the center of the image
 	for(auto i : intersections){
@@ -183,7 +158,7 @@ void IntersectionDetector::selectBoardIntersections(Mat &src, vector<Point2f> in
 }
 
 
-void IntersectionDetector::removeDuplicateIntersections(vector<Point2f> &intersections){
+void IntersectionDetector::removeDuplicateIntersections(){
 	for(Point2f &i : intersections){
 		for(Point2f &j : intersections){
 			if(i == j || i.x < 0 || j.x < 0)
