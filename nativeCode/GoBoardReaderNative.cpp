@@ -19,12 +19,12 @@
 using namespace cv;
 using namespace std;
 
-Evaluater *globEval;
+Evaluater *globEval = NULL;
 
 void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
 		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles, char *board) {
 
-	globEval->setStartTime();
+	globEval != NULL && globEval->setStartTime();
 //	resize(src, src, Size(), 0.75, 0.75, INTER_LINEAR);
 //	globEval->saveStepTime("Resized input");
 
@@ -37,35 +37,44 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	src.convertTo(bgr, CV_8UC4);
 	gray.convertTo(threshed, CV_8UC1);
 	adaptiveThreshold(threshed, threshed, 255, ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 31, 1);
-	globEval->saveStepTime("Created working copies");
+	globEval != NULL && globEval->saveStepTime("Created working copies");
 
+
+	//segment board from background
 	BoardSegmenter boardSegmenter(threshed);
 	boardSegmenter.calculateBoundingBox(bounding);
-	boardSegmenter.segmentImage(src);
-	boardSegmenter.segmentImage(gray);
-	boardSegmenter.segmentImage(hsv);
-	boardSegmenter.segmentImage(bgr);
-	boardSegmenter.segmentImage(threshed);
-	globEval->saveStepTime("Threshholded image and calculated bounding box");
 
+	boardSegmenter.segmentImages(src, gray, hsv, bgr, threshed);
+	globEval != NULL && globEval->saveStepTime("Threshholded image and calculated bounding box");
+
+
+	//create pipeline
 	LineDetector lineDetector(bgr);
 	IntersectionDetector intersectionDetector(vert, horz, bgr);
 	PieceDetector pieceDetector(hsv);
 	GapsFiller gapsFiller(9, Point2f(src.cols/2, src.rows/2));
 	ColorDetector colorDetector(threshed, filledIntersections);
 
+
+	//detect lines
 	lineDetector.detectVertHorzLines_HOUGH(horz, vert);
-	globEval->saveStepTime("Detected all lines");
+	globEval != NULL && globEval->saveStepTime("Detected all lines");
 
+
+	//detect intersections in these lines
 	intersectionDetector.getIntersections(intersections);
-	globEval->saveStepTime("Found all intersections");
+	globEval != NULL && globEval->saveStepTime("Found all intersections");
 
-//	globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
 
+	//globEval != NULL && globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
+
+
+	//detect pieces
 	pieceDetector.detectPieces(darkCircles, lightCircles);
-	globEval->saveStepTime("Detected all pieces");
+	globEval != NULL && globEval->saveStepTime("Detected all pieces");
 
-//	globEval -> checkPieceCorrectness(darkCircles, lightCircles, bounding.x, bounding.y);
+
+	//globEval != NULL && globEval -> checkPieceCorrectness(darkCircles, lightCircles, bounding.x, bounding.y);
 
 
 	for (auto c : darkCircles) {
@@ -75,18 +84,25 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 		intersections.push_back(Point2f(c.x, c.y));
 	}
 
+
+	//remove duplicates
 	intersectionDetector.removeDuplicateIntersections();
-	globEval->saveStepTime("Removed all duplicates");
+	globEval != NULL && globEval->saveStepTime("Removed all duplicates");
 
 	if(intersections.size() == 0){
 		LOGD("#ERR: No intersections found, cannot continue");
 		return;
 	}
 
+
+	//rotate intersections
 	double angle = lineDetector.getAverageAngle(horz);
 	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle);
+
+
+	//select a few board intersections
 	intersectionDetector.selectBoardIntersections(selectedIntersections);
-	globEval->saveStepTime("Refined all points");
+	globEval != NULL && globEval->saveStepTime("Refined all points");
 
 	if(selectedIntersections.size() <= 4){
 		LOGD("#ERR: Too few intersections selected, cannot continue");
@@ -94,38 +110,41 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	}
 
 
+	//fill gaps using these and generate complete set of board intersections
 	gapsFiller.fillGaps(selectedIntersections, filledIntersections);
-	globEval->saveStepTime("Filled all gaps");
+	globEval != NULL && globEval->saveStepTime("Filled all gaps");
 
 
+	//rotate these back
 	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle*-1);
 	rotate(selectedIntersections, selectedIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
 	rotate(filledIntersections, filledIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
 
 
+	//get color on the intersections
 	uchar pieces[81];
 	colorDetector.getColors(pieces);
-	globEval->saveStepTime("Determined all intersections' colors");
+	globEval != NULL && globEval->saveStepTime("Determined all intersections' colors");
 
 
 #ifndef USE_JNI
-	globEval->checkColorCorrectness(pieces, filledIntersections, bounding.x, bounding.y);
+	globEval != NULL && globEval->checkColorCorrectness(pieces, filledIntersections, bounding.x, bounding.y);
 #endif
 
 
+	//rearrange color values
 	for(int i=0; i<9; i++){
 		for(int j=0; j<9; j++){
 			board[i*9+j] = (char)pieces[80-i-j*9];
 		}
 	}
 
-	boardSegmenter.unsegmentPoints<Point2f>(filledIntersections);
-	boardSegmenter.unsegmentPoints<Point2f>(selectedIntersections);
-	boardSegmenter.unsegmentPoints<Point2f>(intersections);
-	boardSegmenter.unsegmentPoints<Point3f>(darkCircles);
-	boardSegmenter.unsegmentPoints<Point3f>(lightCircles);
 
-	globEval->saveStepTime("Finished detection");
+	//shift intersections back
+	boardSegmenter.unsegmentPoints(filledIntersections, selectedIntersections, intersections);
+	boardSegmenter.unsegmentPoints(lightCircles, darkCircles);
+
+	globEval != NULL && globEval->saveStepTime("Finished detection");
 }
 
 

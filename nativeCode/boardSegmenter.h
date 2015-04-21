@@ -14,15 +14,35 @@ public:
 
 	void calculateBoundingBox(cv::Rect &bBox);
 
-	void segmentImage(cv::Mat &img);
+	template<typename T> void segmentImages(T &img);
+	template<typename T, typename... Args> void segmentImages(T &img, Args&... args);
 
-	template<typename Tp> void unsegmentPoints(std::vector<Tp> &points);
+	template<typename T> void unsegmentPoints(std::vector<T> &points);
+	template<typename T, typename... Args> void unsegmentPoints(std::vector<T> &points, Args&... args);
 };
-#endif
 
-template<typename Tp> void BoardSegmenter::unsegmentPoints(std::vector<Tp> &points){
+template<typename T> void BoardSegmenter::unsegmentPoints(std::vector<T> &points){
 	for(auto &p:points){
-		reinterpret_cast<cv::Point2f&>(p).x+=boundingBox.x;
-		reinterpret_cast<cv::Point2f&>(p).y+=boundingBox.y;
+		p.x+=boundingBox.x;
+		p.y+=boundingBox.y;
 	}
 }
+
+template<typename T, typename... Args> void BoardSegmenter::unsegmentPoints(std::vector<T> &points, Args&... args){
+	for(auto &p:points){
+		p.x+=boundingBox.x;
+		p.y+=boundingBox.y;
+	}
+	unsegmentPoints(args...);
+}
+
+template<typename T>  void BoardSegmenter::segmentImages(T &img){
+	img = img(boundingBox);
+}
+
+template<typename T, typename... Args> void BoardSegmenter::segmentImages(T &img, Args&... args){
+	img = img(boundingBox);
+	segmentImages(args...);
+}
+
+#endif

@@ -34,7 +34,3 @@ void BoardSegmenter::calculateBoundingBox(Rect &bBox){
 
 	bBox = this->boundingBox;
 }
-
-void BoardSegmenter::segmentImage(Mat &img){
-	img = img(boundingBox);
-}
