@@ -144,8 +144,10 @@ void IntersectionDetector::selectIntersectionsCloud(vector<Point2f> &selectedInt
 
 }
 
-void IntersectionDetector::selectBoardIntersections(vector<Point2f> &selectedIntersections){
-	Point2f mp(src.cols/2, src.rows/2);
+void IntersectionDetector::selectBoardIntersections(vector<Point2f> &selectedIntersections, Point2f center){
+	Point2f mp(center);
+	if(center.x == -1)
+			mp = Point2f(src.cols/2, src.rows/2);
 
 	//select all intersections within 150px of the center of the image
 	for(auto i : *intersections){

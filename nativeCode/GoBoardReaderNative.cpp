@@ -48,15 +48,15 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	boardSegmenter.segmentImages(src, gray, hsv, bgr, threshed);
 	if(globEval != NULL) globEval->saveStepTime("Threshholded image and calculated bounding box");
 
+	Point2f shiftedOrigCenter(originalCenter.x-bounding.x, originalCenter.y-bounding.y);
+	Point2f center(src.cols/2, src.rows/2);
 
 	//create pipeline
-
 	LineDetector lineDetector(bgr);
 	IntersectionDetector intersectionDetector(vert, horz, bgr);
 	PieceDetector pieceDetector(hsv);
-	GapsFiller gapsFiller(9, Point2f(originalCenter.x-bounding.x, originalCenter.y-bounding.y), bgr);
+	GapsFiller gapsFiller(9, shiftedOrigCenter, bgr);
 	ColorDetector colorDetector(threshed, filledIntersections);
-
 
 	//detect lines
 	lineDetector.detectVertHorzLines_HOUGH(horz, vert);
@@ -99,11 +99,11 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 	//rotate intersections
 	double angle = lineDetector.getAverageAngle(horz);
-	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle);
+	rotate(intersections, intersections, center, angle);
 
 
 	//select a few board intersections
-	intersectionDetector.selectBoardIntersections(selectedIntersections);
+	intersectionDetector.selectBoardIntersections(selectedIntersections, shiftedOrigCenter);
 	if(globEval != NULL) globEval->saveStepTime("Refined all points");
 
 	if(selectedIntersections.size() <= 4){
@@ -118,9 +118,9 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 
 	//rotate these back
-	rotate(intersections, intersections, Point2f(src.cols/2, src.rows/2), angle*-1);
-	rotate(selectedIntersections, selectedIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
-	rotate(filledIntersections, filledIntersections, Point2f(src.cols/2, src.rows/2), angle*-1);
+	rotate(intersections, intersections, center, angle*-1);
+	rotate(selectedIntersections, selectedIntersections, center, angle*-1);
+	rotate(filledIntersections, filledIntersections, center, angle*-1);
 
 
 	//get color on the intersections

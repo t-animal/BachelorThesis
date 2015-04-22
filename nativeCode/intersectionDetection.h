@@ -43,7 +43,9 @@ public:
 	 * from the image center
 	 */
 	void selectBoardIntersections(
-			std::vector<cv::Point2f> &selectedIntersections   //!< output vector for the filtered intersections
+			std::vector<cv::Point2f> &selectedIntersections,  //!< output vector for the filtered intersections
+			cv::Point2f center = cv::Point2f(-1,-1)            //!< center around which to get the intersections
+			                                                  //!<    if not provided the image center is used
 			);
 
 	/**
