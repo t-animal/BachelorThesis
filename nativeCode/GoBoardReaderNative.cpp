@@ -44,18 +44,17 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	//segment board from background
 	BoardSegmenter boardSegmenter(threshed);
 	boardSegmenter.calculateBoundingBox(bounding);
-
 	boardSegmenter.segmentImages(src, gray, hsv, bgr, threshed);
 	if(globEval != NULL) globEval->saveStepTime("Threshholded image and calculated bounding box");
 
 	Point2f shiftedOrigCenter(originalCenter.x-bounding.x, originalCenter.y-bounding.y);
 	Point2f center(src.cols/2, src.rows/2);
 
+
 	//create pipeline
 	LineDetector lineDetector(bgr);
 	IntersectionDetector intersectionDetector(vert, horz, bgr);
 	PieceDetector pieceDetector(hsv);
-	GapsFiller gapsFiller(9, shiftedOrigCenter, bgr);
 	ColorDetector colorDetector(threshed, filledIntersections);
 
 	//detect lines
@@ -68,7 +67,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	if(globEval != NULL) globEval->saveStepTime("Found all intersections");
 
 
-	if(globEval != NULL) globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
+	//if(globEval != NULL) globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
 
 
 	//detect pieces
@@ -102,8 +101,15 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	rotate(intersections, intersections, center, angle);
 
 
+	Mat disp(bgr.size(), bgr.type());
+	bgr.copyTo(disp);
+	rotate(disp, disp, angle);
+	vector<Point2f> tmp; tmp.push_back(shiftedOrigCenter);
+	rotate(tmp, tmp, center, angle);
+	GapsFiller gapsFiller(9, tmp[0], disp);
+
 	//select a few board intersections
-	intersectionDetector.selectBoardIntersections(selectedIntersections, shiftedOrigCenter);
+	intersectionDetector.selectBoardIntersections(selectedIntersections, tmp[0]);
 	if(globEval != NULL) globEval->saveStepTime("Refined all points");
 
 	if(selectedIntersections.size() <= 4){
@@ -129,9 +135,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	if(globEval != NULL) globEval->saveStepTime("Determined all intersections' colors");
 
 
-#ifndef USE_JNI
-	if(globEval != NULL) globEval->checkColorCorrectness(pieces, filledIntersections, bounding.x, bounding.y);
-#endif
+	//if(globEval != NULL) globEval->checkColorCorrectness(pieces, filledIntersections, bounding.x, bounding.y);
 
 
 	//rearrange color values
@@ -212,8 +216,9 @@ void loadAndProcessImage(char *filename) {
 		circle(grayDisplay, p, 8, Scalar(0, 0, 255), 1, 4);
 	}
 
+	imshow("grayImage", grayDisplay);
+
 	eval.setImage(colorDisplay);
-//	eval.checkIntersectionCorrectness(intersections);
 	eval.checkOverallCorrectness(filledIntersections);
 
 	Mat output(Size(src.cols, src.rows*2), CV_8UC4);
