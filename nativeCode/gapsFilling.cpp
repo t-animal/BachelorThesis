@@ -53,6 +53,10 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 	lastY = intersections[0].y;
 	int smallestX = intersections[0].x;
 	int col = 0, row = 0;
+
+	Point closestLocation;
+	Point2f closestPoint;
+	double closestDistance = 99999;
 	for (auto i : intersections) {
 		if (i.x - lastX < 0) {
 			//new line
@@ -60,9 +64,20 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 			col = 0;
 
 			//insert additional lines, if there's a line without keypoints
-			while (lastY + averageDistance * 1.5 < i.y) {
-				row++;
+			while (lastY + averageDistance * 1.3 < i.y) {
 				lastY += averageDistance;
+
+				for(int i=0; i < 6; i++){
+					Point2f newPoint = Point2f(smallestX+i*averageDistance, lastY);
+					if(norm(center-newPoint) < closestDistance){
+						closestDistance = norm(center-newPoint);
+						closestLocation = Point(col, row);
+						closestPoint = newPoint;
+					}
+					circle(disp, newPoint, 8, Scalar(120), 2);
+				}
+
+				row++;
 			}
 
 			//if we have an outlier to the left => shift all others one to the right
@@ -87,8 +102,23 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 			//if there are keypoints missing in the middle of the line => skip colums
 			while (i.x - lastX > averageDistance * 1.15) {
 				lastX += averageDistance;
+
+				Point2f newPoint = Point2f(lastX, i.y);
+				if(norm(center-newPoint) < closestDistance){
+					closestDistance = norm(center-newPoint);
+					closestLocation = Point(col, row);
+					closestPoint = newPoint;
+				}
+				circle(disp, newPoint, 8, Scalar(120), 2);
+
 				col++;
 			}
+		}
+
+		if(norm(center-i) < closestDistance){
+			closestDistance = norm(center-i);
+			closestLocation = Point(col, row);
+			closestPoint = i;
 		}
 
 		keypoints.push_back(Point2f(col * KPDIST + center.x, row * KPDIST + center.y));
@@ -99,57 +129,18 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 		col++;
 	}
 
-	lastX = intersections[0].x;
-	lastY = intersections[0].y;
-	smallestX = intersections[0].x;
-
-	bool firstLine = true;
-	int rowsAboveCenter = 0, colsLeftOfCenter = 0;
+	circle(disp, center, 2, Scalar(0,0,255), 3);
 	for (auto i : intersections) {
-		if (i.x - lastX < 0) { //todo kann kanputt gehen, bei einem in erster und erstem weiter links in zweiter zeile
-			//new line
-
-			if (lastY < center.y)
-				rowsAboveCenter++;
-
-			//insert additional lines, if there's a line without keypoints
-			while (lastY + averageDistance * 1.5 < i.y) {
-				if (lastY + averageDistance * 1.5 < center.y)
-					rowsAboveCenter++;
-				lastY += averageDistance;
-			}
-
-			//if we have an outlier to the left => shift all others one to the right
-			if (i.x < smallestX - averageDistance * 0.5) {
-				int outlierCount = round((smallestX - i.x) / averageDistance);
-				smallestX = i.x;
-				colsLeftOfCenter += outlierCount;
-			}
-
-			firstLine = false;
-		}else{
-
-			//if there are keypoints missing in the middle of the line => skip colums
-			while (i.x - lastX > averageDistance * 1.15) {
-				lastX += averageDistance;
-				if (lastX < center.x - 0.5 * averageDistance && firstLine)
-					colsLeftOfCenter++;
-			}
-
-			if (i.x < center.x - 0.5 * averageDistance && firstLine)
-				colsLeftOfCenter++;
-
-			//first piece of first line is right of center => mark negative because we're gonna shift it right later
-			if (i.x > center.x && i == intersections[0])
-				colsLeftOfCenter = round((center.x - i.x) / averageDistance);
-
-		}
-		lastX = i.x;
-		lastY = i.y;
+		circle(disp, i, 5, Scalar(120,120,120), 3);
 	}
+	circle(disp,  closestPoint, 5, Scalar(255,0,0), 3);
+	imshow("disp", disp);
+
+	int rowsAboveCenter = closestLocation.y;
+	int colsLeftOfCenter = closestLocation.x;
 
 	for (Point2f &kp : keypoints) {
-		kp.y -= (rowsAboveCenter - 1) * KPDIST;
+		kp.y -= (rowsAboveCenter) * KPDIST;
 		kp.x -= colsLeftOfCenter * KPDIST;
 	}
 
