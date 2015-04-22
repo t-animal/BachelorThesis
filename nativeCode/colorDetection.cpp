@@ -8,17 +8,19 @@ using namespace std;
 using namespace cv;
 
 void ColorDetector::getColors(uchar *pieces){
-	rectangle(src, Point(src.cols/2-20, src.rows/2-20), Point(src.cols/2+20, src.rows/2+20), Scalar(0,0,0), -1);
-	floodFill(src, noArray(), Point(src.cols/2, src.rows/2), Scalar(120), NULL);
-	//todo:rectangle dinge!
-	//todo const garantieren!
+	Mat mask;
+	src.copyTo(mask);
+
+	rectangle(mask, Point(src.cols/2-20, src.rows/2-20), Point(src.cols/2+20, src.rows/2+20), Scalar(0,0,0), -1);
+	floodFill(mask, noArray(), Point(src.cols/2, src.rows/2), Scalar(120), NULL);
+	bitwise_xor(src, mask, src);
+
 	uchar *start = src.datastart;
 	while(start != src.dataend){
-		if(*start == 0)
-			*start = 255;
-
-		if(*start != 255)
+		if(*start == 120)
 			*start = 0;
+		else
+			*start = 255;
 
 		start++;
 	}
