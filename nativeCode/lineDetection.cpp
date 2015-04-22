@@ -262,7 +262,6 @@ void LineDetector::detectVertHorzLines_HOUGH (vector<Vec4i> &horz, vector<Vec4i>
 	GaussianBlur(src, dst, Size(kernelSize, kernelSize), sigma);
 	Canny(dst, dst, cannyThresh1, cannyThresh2, aperture);
 	dst.convertTo(dst, CV_8UC1);
-	waitKey();
 
 	HoughLinesP(dst, lines, 1, CV_PI/angleResolution, houghThresh, minLength, maxGap);
 	for (size_t i = 0; i < lines.size(); i++) {

@@ -7,7 +7,7 @@ class GapsFiller{
 private:
 	int squareLength;
 	cv::Point2f center;
-//	cv::Mat &src;
+	cv::Mat disp;
 
 	/*
 	 * Generates a set of "perfect" keypoints modeling a Go-Board of \p squareLength size
@@ -29,8 +29,8 @@ private:
 public:
 	GapsFiller(int squareLength, cv::Point2f center)
 		: squareLength(squareLength), center(center){};
-//	GapsFiller(int squareLength, cv::Point2f &center, cv::Mat &img)
-//		:squareLength(squareLength), center(center), src(img){};
+	GapsFiller(int squareLength, cv::Point2f center, cv::Mat img)
+		:squareLength(squareLength), center(center), disp(img){};
 
 	/*
 	 * Fills in the gaps of intersections which have not been found on basis of the ones already found

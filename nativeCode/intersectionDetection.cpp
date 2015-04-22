@@ -47,7 +47,7 @@ Point2f IntersectionDetector::computeIntersect(Vec4i a, Vec4i b) {
 }
 
 
-void IntersectionDetector::getIntersections(vector<Point2f> &interSects, int maxOffset) {
+void IntersectionDetector::getIntersections(vector<Point2f> &intersections, int maxOffset) {
 	for (auto h : horz) {
 		for (auto v : vert) {
 			Point2f newIntersect = computeIntersect(h, v);
@@ -63,10 +63,10 @@ void IntersectionDetector::getIntersections(vector<Point2f> &interSects, int max
 		}
 	}
 
-	interSects = this->intersections;
+	this->intersections = &intersections;
 }
 
-void IntersectionDetector::getIntersections_FAST(vector<Point2f> &interSects){
+void IntersectionDetector::getIntersections_FAST(vector<Point2f> &intersections){
 	vector<KeyPoint> keypoints;
 	Mat dst;
 	cvtColor(src, dst, COLOR_BGR2GRAY);
@@ -77,11 +77,11 @@ void IntersectionDetector::getIntersections_FAST(vector<Point2f> &interSects){
 		intersections.push_back(kp.pt);
 	}
 
-	interSects = this->intersections;
+	this->intersections = &intersections;
 }
 
 
-void IntersectionDetector::getIntersections_ORB(vector<Point2f> &interSects){
+void IntersectionDetector::getIntersections_ORB(vector<Point2f> &intersections){
 	vector<KeyPoint> keypoints;
 	Mat dst;
 	cvtColor(src, dst, COLOR_BGR2GRAY);
@@ -94,14 +94,14 @@ void IntersectionDetector::getIntersections_ORB(vector<Point2f> &interSects){
 		intersections.push_back(kp.pt);
 	}
 
-	interSects = this->intersections;
+	this->intersections = &intersections;
 }
 
 void IntersectionDetector::selectIntersectionsCloud(vector<Point2f> &selectedIntersections){
 	double curDist, closestDistance = 9999, secondClosestDistance = 9999;
 	Point2f firstIntersection, nextIntersection;
 	Point2f center(src.cols/2, src.rows/2);
-	for (auto p : intersections) {
+	for (auto p : *intersections) {
 		if((curDist = norm(center-p)) < closestDistance){
 			nextIntersection = firstIntersection;
 			firstIntersection = p;
@@ -121,7 +121,7 @@ void IntersectionDetector::selectIntersectionsCloud(vector<Point2f> &selectedInt
 	do {
 		curLength = selectedIntersections.size();
 		for(auto si : selectedIntersections){
-			for(auto i : intersections){
+			for(auto i : *intersections){
 				if(norm(si-i) < curAverageDistance*1.5){
 					bool select = true;
 					for(auto si2:selectedIntersections){
@@ -148,9 +148,10 @@ void IntersectionDetector::selectBoardIntersections(vector<Point2f> &selectedInt
 	Point2f mp(src.cols/2, src.rows/2);
 
 	//select all intersections within 150px of the center of the image
-	for(auto i : intersections){
-		if(abs(mp.x-i.x) < 150 && abs(mp.y - i.y) < 150)
+	for(auto i : *intersections){
+		if(abs(mp.x-i.x) < 150 && abs(mp.y - i.y) < 150){
 			selectedIntersections.push_back(i);
+		}
 	}
 
 	sort(selectedIntersections, UpperLeftPointSorter);
@@ -158,12 +159,12 @@ void IntersectionDetector::selectBoardIntersections(vector<Point2f> &selectedInt
 
 
 void IntersectionDetector::removeDuplicateIntersections(){
-	for(Point2f &i : intersections){
-		for(Point2f &j : intersections){
+	for(Point2f &i : *intersections){
+		for(Point2f &j : *intersections){
 			if(i == j || i.x < 0 || j.x < 0)
 				continue;
 
-			if(norm(i-j)< 20){
+			if(norm(i-j) < 20){
 				j.x = -100;
 				j.y = -100;
 			}
