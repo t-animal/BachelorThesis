@@ -24,7 +24,7 @@ Evaluater *globEval = NULL;
 void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
 		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles, char *board) {
 
-	globEval != NULL && globEval->setStartTime();
+	if(globEval != NULL) globEval->setStartTime();
 //	resize(src, src, Size(), 0.75, 0.75, INTER_LINEAR);
 //	globEval->saveStepTime("Resized input");
 
@@ -37,7 +37,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	src.convertTo(bgr, CV_8UC4);
 	gray.convertTo(threshed, CV_8UC1);
 	adaptiveThreshold(threshed, threshed, 255, ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 31, 1);
-	globEval != NULL && globEval->saveStepTime("Created working copies");
+	if(globEval != NULL) globEval->saveStepTime("Created working copies");
 
 
 	//segment board from background
@@ -45,7 +45,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	boardSegmenter.calculateBoundingBox(bounding);
 
 	boardSegmenter.segmentImages(src, gray, hsv, bgr, threshed);
-	globEval != NULL && globEval->saveStepTime("Threshholded image and calculated bounding box");
+	if(globEval != NULL) globEval->saveStepTime("Threshholded image and calculated bounding box");
 
 
 	//create pipeline
@@ -58,23 +58,23 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 	//detect lines
 	lineDetector.detectVertHorzLines_HOUGH(horz, vert);
-	globEval != NULL && globEval->saveStepTime("Detected all lines");
+	if(globEval != NULL) globEval->saveStepTime("Detected all lines");
 
 
 	//detect intersections in these lines
 	intersectionDetector.getIntersections(intersections);
-	globEval != NULL && globEval->saveStepTime("Found all intersections");
+	if(globEval != NULL) globEval->saveStepTime("Found all intersections");
 
 
-	//globEval != NULL && globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
+	if(globEval != NULL) globEval -> checkIntersectionCorrectness(intersections, bounding.x, bounding.y);
 
 
 	//detect pieces
 	pieceDetector.detectPieces(darkCircles, lightCircles);
-	globEval != NULL && globEval->saveStepTime("Detected all pieces");
+	if(globEval != NULL) globEval->saveStepTime("Detected all pieces");
 
 
-	//globEval != NULL && globEval -> checkPieceCorrectness(darkCircles, lightCircles, bounding.x, bounding.y);
+	//if(globEval != NULL) globEval -> checkPieceCorrectness(darkCircles, lightCircles, bounding.x, bounding.y);
 
 
 	for (auto c : darkCircles) {
@@ -87,7 +87,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 	//remove duplicates
 	intersectionDetector.removeDuplicateIntersections();
-	globEval != NULL && globEval->saveStepTime("Removed all duplicates");
+	if(globEval != NULL) globEval->saveStepTime("Removed all duplicates");
 
 	if(intersections.size() == 0){
 		LOGD("#ERR: No intersections found, cannot continue");
@@ -102,7 +102,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 	//select a few board intersections
 	intersectionDetector.selectBoardIntersections(selectedIntersections);
-	globEval != NULL && globEval->saveStepTime("Refined all points");
+	if(globEval != NULL) globEval->saveStepTime("Refined all points");
 
 	if(selectedIntersections.size() <= 4){
 		LOGD("#ERR: Too few intersections selected, cannot continue");
@@ -112,7 +112,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 	//fill gaps using these and generate complete set of board intersections
 	gapsFiller.fillGaps(selectedIntersections, filledIntersections);
-	globEval != NULL && globEval->saveStepTime("Filled all gaps");
+	if(globEval != NULL) globEval->saveStepTime("Filled all gaps");
 
 
 	//rotate these back
@@ -124,11 +124,11 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	//get color on the intersections
 	uchar pieces[81];
 	colorDetector.getColors(pieces);
-	globEval != NULL && globEval->saveStepTime("Determined all intersections' colors");
+	if(globEval != NULL) globEval->saveStepTime("Determined all intersections' colors");
 
 
 #ifndef USE_JNI
-	globEval != NULL && globEval->checkColorCorrectness(pieces, filledIntersections, bounding.x, bounding.y);
+	if(globEval != NULL) globEval->checkColorCorrectness(pieces, filledIntersections, bounding.x, bounding.y);
 #endif
 
 
@@ -144,7 +144,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	boardSegmenter.unsegmentPoints(filledIntersections, selectedIntersections, intersections);
 	boardSegmenter.unsegmentPoints(lightCircles, darkCircles);
 
-	globEval != NULL && globEval->saveStepTime("Finished detection");
+	if(globEval != NULL) globEval->saveStepTime("Finished detection");
 }
 
 
