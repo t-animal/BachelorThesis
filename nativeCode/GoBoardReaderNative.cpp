@@ -31,6 +31,7 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	Mat gray, hsv, bgr, threshed;
 	Rect bounding;
 	vector<Vec4i> horz, vert;
+	Point2f originalCenter(src.cols/2, src.rows/2);
 
 	cvtColor(src, gray, COLOR_BGR2GRAY);
 	cvtColor(src, hsv, COLOR_BGR2HSV);
@@ -49,10 +50,11 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 
 
 	//create pipeline
+
 	LineDetector lineDetector(bgr);
 	IntersectionDetector intersectionDetector(vert, horz, bgr);
 	PieceDetector pieceDetector(hsv);
-	GapsFiller gapsFiller(9, Point2f(src.cols/2, src.rows/2));
+	GapsFiller gapsFiller(9, Point2f(originalCenter.x-bounding.x, originalCenter.y-bounding.y), bgr);
 	ColorDetector colorDetector(threshed, filledIntersections);
 
 
