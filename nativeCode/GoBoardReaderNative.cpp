@@ -22,11 +22,12 @@ using namespace std;
 Evaluater *globEval = NULL;
 
 void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
-		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles, char *board) {
+		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles, char *board, Mat_<Point2f> *prevIntersections=0) {
 
 	if(globEval != NULL) globEval->setStartTime();
 //	resize(src, src, Size(), 0.75, 0.75, INTER_LINEAR);
 //	globEval->saveStepTime("Resized input");
+
 
 	Mat gray, hsv, bgr, threshed;
 	Rect bounding;
@@ -127,6 +128,14 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	rotate(intersections, intersections, center, angle*-1);
 	rotate(selectedIntersections, selectedIntersections, center, angle*-1);
 	rotate(filledIntersections, filledIntersections, center, angle*-1);
+
+	if(prevIntersections != 0){
+		for(int i=0; i<prevIntersections->rows; i++){
+			Point2f current = filledIntersections[i];
+			Point2f old = boardSegmenter.segmentPoint(prevIntersections->at<Point2f>(0,i));
+			filledIntersections[i] = Point2f((current.x*0.75+old.x*0.25), (current.y*0.75+old.y*0.25));
+		}
+	}
 
 
 	//get color on the intersections
@@ -267,14 +276,16 @@ int main(int argc, char** argv) {
 extern "C" {
 	JNIEXPORT void JNICALL Java_de_t_1animal_goboardreader_DetectorActivity_detect(
 			JNIEnv * jenv, jobject obj, jlong src, jlong java_intersections, jlong java_selectedIntersections,
-			jlong java_filledIntersections, jlong java_darkCircles, jlong java_lightCircles, jintArray java_board) {
+			jlong java_filledIntersections, jlong java_darkCircles, jlong java_lightCircles, jintArray java_board,
+			jlong java_prevIntersections) {
 
 		vector<Point2f> selectedIntersections, intersections, filledIntersections;
 		vector<Point3f> darkCircles, lightCircles;
 
 		char board[81];
 
-		detect(*(Mat*) src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles, board);
+		detect(*(Mat*) src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles, board,
+				(Mat_<Point2f>*) java_prevIntersections);
 
 		jint *jboard = jenv->GetIntArrayElements(java_board, NULL);
 		for(int i=0; i<81; i++){

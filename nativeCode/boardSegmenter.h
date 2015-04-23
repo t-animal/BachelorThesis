@@ -17,10 +17,17 @@ public:
 	template<typename T> void segmentImages(T &img);
 	template<typename T, typename... Args> void segmentImages(T &img, Args&... args);
 
+	template<typename T> T& segmentPoint(T &point);
 	template<typename T> T& unsegmentPoint(T &point);
 	template<typename T> void unsegmentPoints(std::vector<T> &points);
 	template<typename T, typename... Args> void unsegmentPoints(std::vector<T> &points, Args&... args);
 };
+
+template<typename T> T& BoardSegmenter::segmentPoint(T &point){
+	point.x-=boundingBox.x;
+	point.y-=boundingBox.y;
+	return point;
+}
 
 template<typename T> T& BoardSegmenter::unsegmentPoint(T &point){
 	point.x+=boundingBox.x;

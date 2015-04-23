@@ -39,6 +39,7 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	private static final Scalar YELLOW = new Scalar(255, 255, 0, 20);
 
 	private Mat grayImage, colorImage, detectionImage, output;
+	private MatOfPoint2f prevIntersections;
 	private CameraManipulatingView mOpenCvCameraView;
 	private boolean saveNextImage = false;
 
@@ -150,7 +151,7 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 
 		MatOfPoint2f intersections = new MatOfPoint2f();
 		MatOfPoint2f selectedIntersections = new MatOfPoint2f();
-		MatOfPoint3f filledIntersections = new MatOfPoint3f();
+		MatOfPoint2f filledIntersections = new MatOfPoint2f();
 		MatOfPoint3f darkCircles = new MatOfPoint3f();
 		MatOfPoint3f lightCircles = new MatOfPoint3f();
 
@@ -159,9 +160,18 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 			board[i] = '0';
 		}
 
-		detect(detectionImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
-				selectedIntersections.getNativeObjAddr(), filledIntersections.getNativeObjAddr(),
-				darkCircles.getNativeObjAddr(), lightCircles.getNativeObjAddr(), board);
+		if (prevIntersections == null) {
+			detect(detectionImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
+					selectedIntersections.getNativeObjAddr(), filledIntersections.getNativeObjAddr(),
+					darkCircles.getNativeObjAddr(), lightCircles.getNativeObjAddr(), board, 0);
+		} else {
+			detect(detectionImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
+					selectedIntersections.getNativeObjAddr(), filledIntersections.getNativeObjAddr(),
+					darkCircles.getNativeObjAddr(), lightCircles.getNativeObjAddr(), board,
+					prevIntersections.getNativeObjAddr());
+			prevIntersections.release();
+		}
+		prevIntersections = filledIntersections;
 
 		for (int i = 0; i < intersections.rows(); i++) {
 			double[] p = intersections.get(i, 0);
@@ -244,7 +254,6 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 
 		intersections.release();
 		selectedIntersections.release();
-		filledIntersections.release();
 		darkCircles.release();
 		lightCircles.release();
 
@@ -281,7 +290,7 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	};
 
 	public native void detect(long mgray, long intersections, long selectedIntersections, long filledIntersections,
-			long darkCircles, long lightCircles, int board[]);
+			long darkCircles, long lightCircles, int board[], long prevIntersections);
 
 	public native void saveAsYAML(long image, String filename);
 }
