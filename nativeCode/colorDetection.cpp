@@ -25,19 +25,18 @@ void ColorDetector::getColors(uchar *pieces){
 		start++;
 	}
 
-	//optimized values from "zusammenfassung_colors_best.yml"
 	int speckleSize = Evaluater::conf("COLORS_SPECKLESIZE", 1L);
 	int rectSize = Evaluater::conf("COLORS_RECTSIZE", 31L);
 	int blackThresh = Evaluater::conf("COLORS_BLACKTHRESH", 76L);
 	int whiteThresh = Evaluater::conf("COLORS_WHITETHRESH", 224L);
 
-	erode(src, src, Mat(), Point(-1, -1), 2);
-	dilate(src, src, Mat(), Point(-1, -1), 2);
+	erode(src, src, Mat(), Point(-1, -1), speckleSize);
+	dilate(src, src, Mat(), Point(-1, -1), speckleSize);
 
 	int curPiece = 0;
 	for(auto i : intersections){
 		Mat subPix;
-		getRectSubPix(src, Size(20,20), i, subPix);
+		getRectSubPix(src, Size(rectSize, rectSize), i, subPix);
 		if((sum(subPix)/400)[0] < blackThresh){
 			pieces[curPiece++] = 'b';//sum(subPix)[0]/100*(-1);
 			continue;
