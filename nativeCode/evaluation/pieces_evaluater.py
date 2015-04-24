@@ -4,10 +4,7 @@ from evaluaterUtils import *
 
 params = Storage()
 
-#params.PIECES_GAUSS_V       =  range(7, 18, 2)   #13 +-5
-#params.PIECES_GAUSS_V       =  [7, 9]   #faui00a
-#params.PIECES_GAUSS_V       =  [11, 13] #faui00b
-params.PIECES_GAUSS_V       =  [15, 17] #faui00c
+params.PIECES_GAUSS_V       =  range(7, 18, 2)   #13 +-5
 params.PIECES_GAUSS_S       =  range(19, 30, 2)  #25 +-5
 
 params.PIECES_THRESH_V      =  range(50, 91, 5)  #70 +-20
