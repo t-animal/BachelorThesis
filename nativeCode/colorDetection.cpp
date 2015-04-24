@@ -48,8 +48,6 @@ void ColorDetector::getColors(uchar *pieces) {
 		}
 
 		bool isBorder = curPiece / 9 == 0 || curPiece / 9 == 8 || curPiece % 9 == 0 || curPiece % 9 == 8;
-		if(isBorder)
-			cout << pixelSum << " " << (pixelSum > whiteThresh + borderLower) << endl;
 		if (pixelSum > (whiteThresh + (isBorder?borderLower:0))) {
 			pieces[curPiece++] = 'w'; //sum(subPix)[0]/100;
 			continue;
