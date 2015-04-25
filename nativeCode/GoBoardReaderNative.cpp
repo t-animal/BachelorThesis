@@ -203,21 +203,11 @@ void loadAndProcessImage(char *filename) {
 
 	vector<Point2f> selectedIntersections, intersections, filledIntersections;
 	vector<Point3f> darkCircles, lightCircles;
-	char board1[81];
+	char board[81];
 	Mat_<double> transformationMatrix = Mat::eye(Size(3,3), CV_64F);
 
 	Evaluater eval(filename);
 	globEval = &eval;
-
-	detect(src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles, board1, transformationMatrix);
-
-	eval = Evaluater(filename);
-	globEval = &eval;
-	selectedIntersections.clear();
-	intersections.clear();
-	filledIntersections.clear();
-	darkCircles.clear();lightCircles.clear();;
-	char board[81];
 
 	detect(src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles, board, transformationMatrix);
 
