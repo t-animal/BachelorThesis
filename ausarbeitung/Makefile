@@ -3,10 +3,10 @@
 all: Thesis.pdf
 
 Thesis.pdf: Thesis.tex
-	latexmk -pdf -pdflatex="pdflatex -halt-on-error  --synctex=1" -use-make $<
+	latexmk -pdf -pdflatex="xelatex -halt-on-error  --synctex=1" -use-make $<
 
 continous:
-	latexmk -pdf -pvc -pdflatex="pdflatex -halt-on-error --synctex=1" -use-make --synctex=1Thesis.tex
+	latexmk -pdf -pvc -pdflatex="xelatex -halt-on-error --synctex=1" -use-make --synctex=1Thesis.tex
 
 clean:
 	latexmk -c

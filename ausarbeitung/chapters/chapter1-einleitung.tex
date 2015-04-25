@@ -1,6 +1,20 @@
 %!TEX root = ../Thesis.tex
 
-\chapter{Einleitung}
-	%Motivation
-	%Related Work
-	%Related Patents (patent screening, scholar.google.com)
+\chapter{Introduction}
+	\section{Motivation}
+	The game of go (Japanese \begingroup\setmainfont{Droid Sans Japanese}\small\begin{CJK}{UTF8}{min}囲碁\end{CJK}\endgroup ) is ancient. It is actually older than christianity and chess. However even though its rules are simpler than the rules of chess it is -- outside of Asia -- not nearly as wide-spread as the latter. When learning go one comes to a certain point where one single error often decides the whole game. Often the winning player will be able to remove many of his or her opponent's pieces from the board resulting in a devastating defeat. This can be quite frustrating and it is hard to learn from such mistakes because they often manifest not until some moves after they have been made.
+
+	The solution to this is obvious: Record a game and analyze it later, maybe resume it at the questionable move and see if it would have turned out otherwise. While there are advanced players who can ''store'' an entire game in their head most have to rely on a notation on paper, pocket computers or mobile apps, especially new players.	As this process drains on concentration many players tend to not note games.
+
+	There are ways to store board games in an automated fashion, not requiring any interaction by the players. For chess there are specialized boards (DGT chess boards) starting at around 20€, which usually have special (magnetic) pieces or small holes with light sensors to automatically record a game and send the data to a computer, mobile	device or other hardware for display and analyzation. However for go there is -- to my knowledge -- no such thing. Also, the need for specialized hardware makes a solution like this very unappealing.
+
+	What makes the situation worse is that while there is a notation called Kifu (Japanese \begingroup\setmainfont{Droid Sans Japanese}\small\begin{CJK}{UTF8}{min}棋譜\end{CJK}\endgroup ) for the recording of games it is -- again outside of Asia -- not very widespread and no numerical system as in chess (where the columns and rows are determined by a number and a letter) has been generally accepted. Ideally a recording system would save the moves in an independent fashion that makes it easy to transfer into the existing systems' formats or choose one system and save it in its data format. Once such a system exists there are other applications that can be thought of, like playing against a computer or via the internet another human and using real pieces in the process. Anyhow it might lead to more players successfully learning how to play go (well) and thus contribute to its spread in the western world, if just a little. %TODO: Uebergang
+
+	The ubiquity of mobile devices with built in cameras lets one solution appear very attractive: Have a mobile application record the game, analyze it via a computer vision application and save the result when it detects a new move. This	work intends to provide such a solution and show the efforts taken to create it.
+
+	After presenting related work and possibly related patents I will first describe the part of the application that does the actual detection and go on to the integration of it in an Android app. Thereafter I will discuss impact of different algorithms that have been evaluated regarding detection quality and performance and provide an assessment to what extent the goal of an automated recording device for go games has been reached. I will conclude with an outlook on possibilities for future work improving upon the solution at hand and a summary of this work.
+
+
+	\section{Related Work}
+	\section{Related Patents}
+

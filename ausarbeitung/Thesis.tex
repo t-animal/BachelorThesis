@@ -1,25 +1,28 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-%  Bachelorarbeit Adler Tilman 01.06.2015         
+%  Bachelorarbeit Adler Tilman 01.06.2015
 %  "Titel"
 %  Lehrstuhl fuer Mustererkennung, FAU Erlangen-Nuernberg
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% ++ LME LateX Dokument 
+% ++ LME LateX Dokument
 %    Die Verwendung der option "german" bindet german.sty ein.
 %    For english papers, use the "english" option and talk to your advisor.
-\documentclass[german,bt]{package/lmedoc}
+\documentclass[english,bt]{package/lmedoc}
 %\documentclass[english,bt]{lmedoc}
 
 % ++ Umlaut Unterstuetzung
 %    Paket "inputenc" kann verwendet werden, um z.B. Umlaute oder das scharfe S
 %    direkt (als Nicht-ASCII-Zeichen) einzubinden. Dabei auf die korrekte
-%    Kodiermethode achten (z.B. Linux: latin1)! 
-\usepackage[utf8]{inputenc}
+%    Kodiermethode achten (z.B. Linux: latin1)!
+\usepackage{fontspec}
+\usepackage{CJKutf8}
+\setmainfont{Bookman Old Style}
+
 
 % ++ es werden keine underfull hboxes als Fehler ausgegeben,
-%    da das ja nur heiﬂt, dass die Seite noch nicht ganz voll ist
+%    da das ja nur hei√üt, dass die Seite noch nicht ganz voll ist
 \hbadness=10000
 
 
@@ -41,7 +44,6 @@
 
 
 \cleardoublepage
-
 
 Ich versichere, dass ich die Arbeit ohne fremde Hilfe und ohne Benutzung
 anderer als der angegebenen Quellen angefertigt habe und dass die Arbeit
