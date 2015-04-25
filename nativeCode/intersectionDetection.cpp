@@ -150,12 +150,18 @@ void IntersectionDetector::selectBoardIntersections(vector<Point2f> &selectedInt
 			mp = Point2f(src.cols/2, src.rows/2);
 
 	//select all intersections within 150px of the center of the image
-	for(auto i : *intersections){
-		if(abs(mp.x-i.x) < 150 && abs(mp.y - i.y) < 150){
-			selectedIntersections.push_back(i);
+	//todo evaluate, ob fester wert oder variabel
+	int radius = 85;
+	while(selectedIntersections.size() < 20 && radius < 150){
+		selectedIntersections.clear();
+		radius += 5;
+
+		for(auto i : *intersections){
+			if(abs(mp.x-i.x) < radius && abs(mp.y - i.y) < radius){
+				selectedIntersections.push_back(i);
+			}
 		}
 	}
-
 	sort(selectedIntersections, UpperLeftPointSorter);
 }
 
