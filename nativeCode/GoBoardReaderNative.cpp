@@ -62,7 +62,7 @@ void detect(Mat &input, vector<Point2f> &intersections, vector<Point2f> &selecte
 
 
 	//create pipeline
-	LineDetector lineDetector(bgr);
+	LineDetector lineDetector(bgr, 1, 1);
 	IntersectionDetector intersectionDetector(vert, horz, bgr);
 	PieceDetector pieceDetector(hsv);
 	ColorDetector colorDetector(threshed, filledIntersections);
