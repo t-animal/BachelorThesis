@@ -8,6 +8,7 @@ private:
 	int squareLength;
 	cv::Point2f center;
 	cv::Mat disp;
+	cv::Mat H;
 
 	/*
 	 * Generates a set of "perfect" keypoints modeling a Go-Board of \p squareLength size
@@ -39,5 +40,7 @@ public:
 			std::vector<cv::Point2f> intersections,          //!< the intersections that have been found so far
 			std::vector<cv::Point2f> &filledIntersections    //!< the return vector for the filled intersections
 	);
+
+	cv::Mat getImageTransformationMatrix();
 };
 #endif

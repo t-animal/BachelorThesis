@@ -155,8 +155,16 @@ void GapsFiller::fillGaps(vector<Point2f> intersections, vector<Point2f> &filled
 	if (intersections.size() < 4 || object.size() != intersections.size()) {
 //		LOGD("homography detection impossible: object: %d, intersections: %d", object.size(), intersections.size());
 	} else {
-		Mat H = findHomography(object, intersections, RANSAC, 5);
+		H = findHomography(object, intersections, RANSAC, 5);
 		perspectiveTransform(filledIntersections, filledIntersections, H);
 		perspectiveTransform(object, object, H);
 	}
+}
+
+Mat GapsFiller::getImageTransformationMatrix(){
+	Mat H;
+	this->H.copyTo(H);
+	((double*)H.data)[2] = 0.0;
+	((double*)H.data)[5] = 0.0;
+	return H;
 }

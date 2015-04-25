@@ -21,18 +21,27 @@ using namespace std;
 
 Evaluater *globEval = NULL;
 
-void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
-		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles, char *board, Mat_<Point2f> *prevIntersections=0) {
+void detect(Mat &input, vector<Point2f> &intersections, vector<Point2f> &selectedIntersections,
+		vector<Point2f> &filledIntersections, vector<Point3f> &darkCircles, vector<Point3f> &lightCircles, char *board,
+		Mat_<double> &transformationMatrix, Mat_<Point2f> *prevIntersections=0) {
 
 	if(globEval != NULL) globEval->setStartTime();
 //	resize(src, src, Size(), 0.75, 0.75, INTER_LINEAR);
 //	globEval->saveStepTime("Resized input");
 
 
-	Mat gray, hsv, bgr, threshed;
+	Mat gray, hsv, bgr, threshed, src;
+	src = input.clone();
 	Rect bounding;
 	vector<Vec4i> horz, vert;
 	Point2f originalCenter(src.cols/2, src.rows/2);
+
+	warpPerspective(src, src, transformationMatrix, src.size(), INTER_LINEAR | WARP_INVERSE_MAP);
+	vector<Point2f> tmp1;
+	tmp1.push_back(originalCenter);
+	invert(transformationMatrix, transformationMatrix);
+	perspectiveTransform(tmp1, tmp1, transformationMatrix);
+	originalCenter = tmp1[0];
 
 	cvtColor(src, gray, COLOR_BGR2GRAY);
 	cvtColor(src, hsv, COLOR_BGR2HSV);
@@ -155,9 +164,16 @@ void detect(Mat src, vector<Point2f> &intersections, vector<Point2f> &selectedIn
 	}
 
 
-	//shift intersections back
+	invert(transformationMatrix, transformationMatrix);
+	//shift intersections back, save transformation matrix
 	boardSegmenter.unsegmentPoints(filledIntersections, selectedIntersections, intersections);
 	boardSegmenter.unsegmentPoints(lightCircles, darkCircles);
+	perspectiveTransform(filledIntersections, filledIntersections, transformationMatrix);
+	perspectiveTransform(selectedIntersections, selectedIntersections, transformationMatrix);
+	perspectiveTransform(intersections, intersections, transformationMatrix);
+//	perspectiveTransform(lightCircles, lightCircles, transformationMatrix);
+//	perspectiveTransform(darkCircles, darkCircles, transformationMatrix);
+	transformationMatrix = gapsFiller.getImageTransformationMatrix();
 
 	if(globEval != NULL) globEval->saveStepTime("Finished detection");
 }
@@ -187,12 +203,23 @@ void loadAndProcessImage(char *filename) {
 
 	vector<Point2f> selectedIntersections, intersections, filledIntersections;
 	vector<Point3f> darkCircles, lightCircles;
-	char board[81];
+	char board1[81];
+	Mat_<double> transformationMatrix = Mat::eye(Size(3,3), CV_64F);
 
 	Evaluater eval(filename);
 	globEval = &eval;
 
-	detect(src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles, board);
+	detect(src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles, board1, transformationMatrix);
+
+	eval = Evaluater(filename);
+	globEval = &eval;
+	selectedIntersections.clear();
+	intersections.clear();
+	filledIntersections.clear();
+	darkCircles.clear();lightCircles.clear();;
+	char board[81];
+
+	detect(src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles, board, transformationMatrix);
 
 	//paint the points onto another image
 	Mat grayDisplay, colorDisplay;
