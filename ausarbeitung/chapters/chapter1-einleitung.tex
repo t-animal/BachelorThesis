@@ -28,9 +28,9 @@
 	While the author assumes the approach can be used on consecutive frames one problem when using only line detection remains: during later phases of the game many stones will be placed especially in the center of the image. The lines are occluded and there's no way left to detect the board.
 	\\
 
-	Alexander K. Seewald \cite{seewald2010automatic} managed to circumvent this by detecting the intersections using the SIFT algorithm specifically during endgame situations. These are then classified (as before but additionally as ''empty inside the grid ┼'', ''empty on the edge ┬'' and ''empty on the corners ┐'') by an SVD and further refined by estimating the board position using the corners and classifying the not previously missed stones by average brightness.
+	Alexander K. Seewald \cite{seewald2010automatic} managed to circumvent this by detecting the intersections using the SIFT algorithm specifically during endgame situations. These are then classified (as before but additionally as ''empty inside the grid ┼'', ''empty on the edge ┬'' and ''empty on the corners ┐'') by an SVD and further refined by estimating the board position using the corners and classifying the previously missed stones by average brightness.
 
-	While he solved the problem of detecting end game states this came at the price of performance. With 5 seconds runtime on a PC for an 8 by 8 grid this solution seems unpractical for slower mobile processors.
+	While he solved the problem of detecting end game states this came at the price of performance. With five seconds runtime on a PC for an 8 by 8 grid this solution seems unpractical for slower mobile processors.
 
 	\section{Related Patents}
 
