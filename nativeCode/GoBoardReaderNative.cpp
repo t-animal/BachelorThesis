@@ -47,7 +47,7 @@ void detect(Mat &input, vector<Point2f> &intersections, vector<Point2f> &selecte
 	cvtColor(src, hsv, COLOR_BGR2HSV);
 	src.convertTo(bgr, CV_8UC4);
 	gray.convertTo(threshed, CV_8UC1);
-	adaptiveThreshold(threshed, threshed, 255, ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 31, 1);
+	adaptiveThreshold(threshed, threshed, 255, ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 45, 1);
 	if(globEval != NULL) globEval->saveStepTime("Created working copies");
 
 
