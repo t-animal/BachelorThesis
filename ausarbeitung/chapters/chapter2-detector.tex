@@ -17,14 +17,31 @@
 	\end{enumerate}
 
 	\section{Pre-processing}
-	Mobile devices don't have the same computing power as desktop hardware does. Therefore our first step was to reduce the image size without losing information. To do so, we thresholded the grayscale input image using a mean adaptive threshold with a low constant value \emph{C} and a window size of what we expected to be roughly the width of one square on the board (approximately 45px, as measured in one of our sample images).
+	Mobile devices don't have the same computing power as desktop hardware does. Therefore our first step is to reduce the image size without losing relevant information. To do so, we threshold the grayscale input image using a mean adaptive threshold with a low constant value \emph{C} and a window size of what we expected to be roughly the width of one square on the board (approximately 45px, as measured in one of our sample images).
 
-	Under the assumption that at least part of the board is in the center of the image we can segment it from the background now with high confidence by a simple connect-component analysis. On our testcase this failed only in one situation where the board lay in grass in the evening. Hard shadows connected the board with the background. On a flat surface this is not a problem.
+	Under the assumption that at least part of the board is in the center of the image we can segment it now from the background with high confidence by a simple connect-component analysis. On our testcase this fails only in one situation where the board lies in grass in the evening. Hard shadows connect the board with the background. On a flat surface this is not a problem.
 
 	This step does not just improve speed but also detection performance because interfering background information like patterned wood table tops can be cut off.
 
-	\section{Erkennen eines leeren Spielbretts}
-		%Anwendung der Algorithmen
+	\section{Detecting visible intersections}
+	\subsection{Using Hough lines detection}
+	Having cropped the image to the board we use line detection to find the visible grid lines. For this we evaluated two different well known methods. Our first approach was to use probabilistic hough lines after applying a Canny edge detector. We furthermore found, that blurring the image with a light gaussian improves detection quality and speed.
+
+	For each line the absolute pitch to the x-axis and the y-axis of the image is calculated and compared to a specific threshold. Initially we set this pretty high to eliminate as many false lines as possible from the image, however it turned out that the image segmentation in the first step allows us to lower the value to one, i.e. each line is either classified as horizontal or vertical and only perfectly diagonal lines are discarded.
+
+	The resulting lines can now be intersected with each other and most of the intersections are well detected.
+	\\
+
+	\subsection{Using LSD}
+	%TODO cite
+	We then tried applying the Line Segment Detector \cite{} on the output of the Canny edge detector. Surprisingly it turned out to be too good and requires significant post-processing. For every square in the grid the LSD finds four line segments. Consequently two adjacent sqares produce two parallel lines. This method is also very prone to noise and produces many short, false positive lines, especially around game pieces.
+
+	Therefore our first postprocessing step is to eliminate short line segments. Afterwards for each line we count the number of parallels closeby and keep only those with a count of at least one. Having reduced the number of false positives significantly we classify the lines the same way as described above. However we still have many false positives when intersecting the resulting lines because one line on the board might be represented by several detected line segments. Thus as last postprocessing step we merge nearby line segments into one if they are close and parallel to each other.
+	\\
+
+	\subsection{Using corner detectors}
+	Another option to detect the intersection directly without line detection might be to use a corner detector. We tested the FAST \cite{} detector on a slightly blurred image for this task. However it provides too many false positives to be of any use. Especially around black stones it is extremely unreliable. The ORB detector which uses FAST internally does not increase quality either.
+
 	\section{Erkennen eines Bretts mit Steinen}
 	\section{Hochrechnen der Kreuzungen}
 	\section{Erkennen der Farbe}
