@@ -300,9 +300,10 @@ extern "C" {
 		vector<Point3f> darkCircles, lightCircles;
 
 		char board[81];
+		Mat_<double> transformationMatrix = Mat::eye(Size(3,3), CV_64F);
 
 		detect(*(Mat*) src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles, board,
-				(Mat_<Point2f>*) java_prevIntersections);
+				transformationMatrix, (Mat_<Point2f>*) java_prevIntersections);
 
 		jint *jboard = jenv->GetIntArrayElements(java_board, NULL);
 		for(int i=0; i<81; i++){
