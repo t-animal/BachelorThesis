@@ -29,7 +29,7 @@
 
 	For each line the absolute pitch to the x-axis and the y-axis of the image is calculated and compared to a specific threshold. Initially we set this pretty high to eliminate as many false lines as possible from the image, however it turned out that the image segmentation in the first step allows us to lower the value to one, i.e. each line is either classified as horizontal or vertical and only perfectly diagonal lines are discarded.
 
-	The resulting lines can now be intersected with each other and most of the intersections are well detected.
+	The resulting lines can now be intersected with each other. We are using the whole line, not just line segments here, because then it is sufficient to detect a short part of a grid line.
 
 	\subsection{Using LSD}
 	%TODO cite
@@ -64,5 +64,20 @@
 
 	The centers of the detected squares are then added to intersections just like the centers of the circles when using hough transformation.
 
-	\section{Hochrechnen der Kreuzungen}
+	\section{Calculating missing intersections}
+	Having collected a set of probable intersections we now must fill in gaps where neither lines nor pieces have been detected. Also we need to somehow figure out which detected intersections are valid and actually are part of the board and which are simply intersections of grid lines with the outer edge of the board or other noise.
+
+	First we calculate the average angle of the horizontal lines from the previous step and rotate the image to justify them. Then we select a number of intersections in the center of the board by selecting all intersections inside a square around the center. To do so, we assume the center of the board is the closest (detected or yet undetected) intersection to the center of the image. While this assumption can hardly be made in setups where the image is taken by bystanders or from randomly located cameras, we argue that when trying to record a game a user will be able to adjust the camera location accordingly. Another possibility could be to prompt the user for the center of the board, which is easily done via the touchscreen of the smartphone. We did not implement this approach for time reasons, but it should yield equal quality.
+
+	%TODO: anzahl evaluieren und hier eintragen
+	If the number of selected intersections is too small, we increase the window size and try again.
+
+	Those intersections are now modeled as a subset of actual board intersections. We determine the median distance between neighboring intersections -- using the mean yielded worse results. Then we iterate row-wise over the selected intersections from the top left to the bottom right (to facilitate this we sort the intersections before selection). For every intersection we save the current row and column (on the board, not the image) and add a keypoint to our model at this location. If we encounter a gap between two intersection that is larger than the median distance we increase the column count accordingly. The same happens in y-direction with the row count. If we find an intersection is an outlier to the left we increase the column count of all previous keypoints accordingly.
+
+	The interim result of this iteration is a submodel of the board with equidistant keypoints where every keypoint correspondents to a selected intersection.
+
+	During the iteration we also add virtual intersections to fill in gaps in our intersection set. From this filled up intersection set we select the intersection closest to the image center and assume it is the intersection in the center of the board. Using the center intersection row and column count we can shift our model to the correct position within the board.
+
+	Our updated interim result is now a submodel of the board located correctly inside the whole model, which we can feed into the RANSAC algorithm, as we made sure every keypoint corresponds to an intersection thus creating homography between them. This serves three purposes. First, the RANSAC algorithm tolerates outliers, i.e. intersections which have been detected slightly wrong. Second, we can use the homography information to rectify subsequent images and increase detection quality. Lastly the transformation matrix can also be used to warp a complete model of the board and lay it onto the image. Now we know the location of every intersection -- including those, which have not been detected previously.
+
 	\section{Erkennen der Farbe}
