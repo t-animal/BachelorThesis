@@ -88,6 +88,9 @@
 
 	Our updated interim result is now a submodel of the board located correctly inside the whole model, which we can feed into the RANSAC algorithm, as we made sure every keypoint corresponds to an intersection thus creating homography between them. This serves three purposes. First, the RANSAC algorithm tolerates outliers, i.e. intersections which have been detected slightly wrong. Second, we can use the homography information to rectify subsequent images and increase detection quality. Lastly the transformation matrix can also be used to warp a complete model of the board and lay it onto the image. Now we know the location of every intersection -- including those, which have not been detected previously.
 
+	\section{Postprocessing}
+	\label{detector-postprocessing}
+
 	\section{Classifying intersections}
 	\label{detector-classifying}
 	We can now evaluate the board at the intersections to find whether there's a piece there or not and if so of which color it is. The first step here is to use an adaptive threshold and to segment the board using a connect component analysis similarly to the preprocessing step. The result is a binary image showing only the lines and black pieces. Highlights within the black pieces from reflections are still a problem but can be removed well enough by erosion and dilution.
@@ -101,3 +104,7 @@
 		\end{cases}
 	\end{equation}
 	where $C$ is a constant value that is added to the white threshold on the edge of the grid. This is necesarry because the lines are not continued there and less black pixels from them are contributed.
+
+	%TODO: evtl postprocessing (gleitender durchschnitt der intersections)
+	%TODO: rotation der intersections
+	%TODO: unsegmentation der intersections
