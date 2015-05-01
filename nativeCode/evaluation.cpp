@@ -128,7 +128,7 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 	string test;
 	FileStorage fs = getMemoryStorage();
 
-	fs << "avg_matched" << (int) (matched / (float) allIntersects.size() * 100);
+	fs << "avg_matched" << (matched / (float) allIntersects.size() * 100);
 	fs << "sum_available" << (int) allIntersects.size();
 	fs << "sum_matched" << matched;
 	fs << "sum_wrong" << insideKeypoints - matched;
