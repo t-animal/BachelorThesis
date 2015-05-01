@@ -42,6 +42,14 @@
 
 	\section{User interaction}
 	\label{android-ui}
-	This information has to be displayed to the user. While often computer vision applications draw directly onto the analyzed image we decided to show the detected information separately and debugging output on the image.
+	\begin{figure}[h]
+		\center
+		\includegraphics[width=0.7\textwidth]{images/android_ui.png}
+		\caption{The app showing some debugging information and the detection result in a split screen}
+		\label{fig:android_ui}
+	\end{figure}
+	This information has to be displayed to the user. While often computer vision applications draw directly onto the analyzed image we decided to show the detected information separately and debugging output on the image, because we want to showcase a possible way how the app might be responding to the user and give him an insight of whether and how it's working.
+
 
 	Android offers methods to draw custom views via \texttt{Canvas} and \texttt{Paint} objects similarly to OpenCV. In order to have a comparable experience when using the detector on a desktop computer and via the app we decided, however, to draw the result by cropping the input image and draw the result next to it using OpenCV.
+
