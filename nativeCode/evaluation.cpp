@@ -120,9 +120,16 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 				}
 			}
 
+		}else{
+			circle(image, i, 10, Scalar(255, 255, 255), 4);
+			continue;
 		}
 		if (!wasMatched)
 			circle(image, i, 10, Scalar(0, 0, 255), 4);
+	}
+	for(auto ref : intersectCopy){
+		if(ref.x >= 0)
+			circle(image, ref, 10, Scalar(150, 150, 150), 4);
 	}
 
 	string test;
