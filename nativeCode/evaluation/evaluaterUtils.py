@@ -14,7 +14,7 @@ from thread import start_new_thread
 
 DEVNULL = open(os.devnull, 'wb')
 HOME = os.path.expanduser("~")
-PATH = "../../test/files/03b0c66/unprocessed/"
+PATH = "../../test/files/train/unprocessed/"
 HOSTNAME = socket.gethostname()
 
 class Storage():
@@ -120,8 +120,9 @@ def handleServerMode(secret, prefix):
 		except KeyboardInterrupt:
 			conn.send("NCK")
 			raise KeyboardInterrupt
-		except Exception:
+		except Exception as e:
 			print "Encountered an exception, sending nack"
+			print e
 			conn.send("NCK")
 		else:
 			conn.send("ACK")
@@ -252,7 +253,7 @@ def main(secret, params):
 				assignedEnvs[server] = 0
 
 			print "Evaluating "+str(totalParams)+" sets of parameters on "+str(len(servers))+" machines"
-			print "Expected calculation time: "+str(totalParams*3/len(servers)/60)+" minutes"
+			print "Expected calculation time: "+str(totalParams*4.58/len(servers)/60)+" minutes"
 
 			#can't see another way to notify this thread of finished other threads :(
 			start_new_thread(finishedNotifiee,())
