@@ -10,9 +10,43 @@
 
 	Each board configuration was photographed from different angles in $\varphi$ (azimuth) and $\theta$ (polar) direction and from two directions, i.e. facing the board from the side a player would and rotated by 90\textdegree~ as a third person would see the board.
 
-	We ended up with: 29 images taken in cold neon light on a uniformly colored, gray desk; 26 images taken in the same light on a textured, brown carpet; 25 images taken on a sunny day in the shadow on a stone surface; 17 images in warm artificial light on a textured paper background. Furthermore we have 5 images taken in the sun on an evening in which the board lay in grass.
+	\begin{figure}
+		\begin{subfigure}[b]{0.3\textwidth}
+			\includegraphics[width=\textwidth]{images/warmLight_many_leftMedium.png}
+			\caption{Paper in warm light; camera left on medium height}
+		\end{subfigure}
+		~
+		\begin{subfigure}[b]{0.3\textwidth}
+				\includegraphics[width=\textwidth]{images/neonDesk_empty_centerAbove.png}
+				\caption{Plain gray desk in neon light; camera centered high}
+		\end{subfigure}
+		~
+		\begin{subfigure}[b]{0.3\textwidth}
+				\includegraphics[width=\textwidth]{images/shadowStone_some_rightAbove.png}
+				\caption{Dark stone surface in the shadow; camera right high}
+		\end{subfigure}
+		\\
+		\begin{subfigure}[b]{0.3\textwidth}
+				\includegraphics[width=\textwidth]{images/neonFloor_many_centerLow.png}
+				\caption{Brown carpet in neon light; camera centered low}
+		\end{subfigure}
+		~
+		\begin{subfigure}[b]{0.3\textwidth}
+				\includegraphics[width=\textwidth]{images/neonFloor_many_centerLow_rotated.png}
+				\caption{Like (d) but from bystanders'	 perspective}
+		\end{subfigure}
+		~
+		\begin{subfigure}[b]{0.3\textwidth}
+			\includegraphics[width=\textwidth]{images/sunnyGrass_empty_centerLow.png}
+			\caption{On grass in sunlight; camera centered low}
+		\end{subfigure}
 
-	While in the beginning we saved images to png we later switched to persisting the images into yml format and retake the previous images. This has the advantage that we can be absolutely sure that the input to our test instances are the same as they would be on a phone, as no png coding and decoding takes place. Also we had problems in the beginning because OpenCV's image persisting function presumably does not recognize that the camera image is encoded in RGB (see \ref{android-detector}), which lead to different results on our desktop hardware than on our Android phone.
+		\caption{Some examples of different ligthing conditions, angles and backgrounds as well as different piece count}
+	\end{figure}
+
+	We ended up with: 29 images taken in cold neon light on a plain gray desk; 26 images taken in the same light on a textured, brown carpet; 25 images taken on a sunny day in the shadow on a stone surface; 17 images in warm artificial light on a textured paper background. Furthermore we have 5 images taken in the sun on an evening in which the board lay in grass.
+
+	The images were taken by starting the app normally but then instead of starting detection saving the input image on the internal memory of the device. While in the beginning we saved images to png we later switched to persisting the images into yml format and retake the previous images. This has the advantage that we can be absolutely sure that the input to our test instances are the same as they would be on a phone, as no png coding and decoding takes place. Also we had problems in the beginning because OpenCV's image persisting function presumably does not recognize that the camera image is encoded in RGB (see \ref{android-detector}), which lead to different results on our desktop hardware than on our Android phone.
 
 	31 of the images were randomly chosen as a test set evenly spread over all lighting conditions as well as piece and angle configurations. The grass images were not part of the test set as they soon turned out to be very difficult. We included them in the training set, though. This set was used to improve our detector.
 
