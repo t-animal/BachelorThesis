@@ -41,10 +41,11 @@
 			\caption{On grass in sunlight; camera centered low}
 		\end{subfigure}
 
-		\caption{Some examples of different ligthing conditions, angles and backgrounds as well as different piece count}
+		\caption{Some examples of different lighting conditions, angles and backgrounds as well as different piece count}
+		\label{fig:sampeImages}
 	\end{figure}
 
-	We ended up with: 29 images taken in cold neon light on a plain gray desk; 26 images taken in the same light on a textured, brown carpet; 25 images taken on a sunny day in the shadow on a stone surface; 17 images in warm artificial light on a textured paper background. Furthermore we have 5 images taken in the sun on an evening in which the board lay in grass.
+	We ended up with: 29 images taken in cold neon light on a plain gray desk; 26 images taken in the same light on a textured, brown carpet; 25 images taken on a sunny day in the shadow on a stone surface; 17 images in warm artificial light on a textured paper background. Furthermore we have 5 images taken in the sun on an evening in which the board lay in grass. See \ref{fig:sampeImages} for some examples from the image set.
 
 	The images were taken by starting the app normally but then instead of starting detection saving the input image on the internal memory of the device. While in the beginning we saved images to png we later switched to persisting the images into yml format and retake the previous images. This has the advantage that we can be absolutely sure that the input to our test instances are the same as they would be on a phone, as no png coding and decoding takes place. Also we had problems in the beginning because OpenCV's image persisting function presumably does not recognize that the camera image is encoded in RGB (see \ref{android-detector}), which lead to different results on our desktop hardware than on our Android phone.
 
