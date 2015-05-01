@@ -247,16 +247,16 @@ void LineDetector::detectVertHorzLines_HOUGH (vector<Vec4i> &horz, vector<Vec4i>
 	Mat dst;
 	vector<Vec4i> lines;
 
-// Parameters from: currentTime:2015-04-13 20:29:05.569829
+// Parameters from: currentTime:'2015-05-01 19:06:45.513663'
 	int kernelSize = Evaluater::conf("LINES_HOUGH_GAUSSKERNEL", 3L);
 	double sigma = Evaluater::conf("LINES_HOUGH_GAUSSSIGMA", 2.);
-	double cannyThresh1 = Evaluater::conf("LINES_HOUGH_CANNYTHRESH1", 50.);
-	double cannyThresh2 = Evaluater::conf("LINES_HOUGH_CANNYTHRESH2", 200.);
+	double cannyThresh1 = Evaluater::conf("LINES_HOUGH_CANNYTHRESH1", 55.);
+	double cannyThresh2 = Evaluater::conf("LINES_HOUGH_CANNYTHRESH2", 205.);
 	int aperture = Evaluater::conf("LINES_HOUGH_CANNYAPERTURE", 3L);
 
 	int angleResolution = Evaluater::conf("LINES_HOUGH_ANGLERES", 180L);
-	int houghThresh = Evaluater::conf("LINES_HOUGH_HOUGHTHRESH", 55L);
-	int minLength = Evaluater::conf("LINES_HOUGH_HOUGHMINLENGTH", 55.);
+	int houghThresh = Evaluater::conf("LINES_HOUGH_HOUGHTHRESH", 50L);
+	int minLength = Evaluater::conf("LINES_HOUGH_HOUGHMINLENGTH", 57.);
 	int maxGap = Evaluater::conf("LINES_HOUGH_HOUGHMAXGAP", 5.);
 
 	GaussianBlur(src, dst, Size(kernelSize, kernelSize), sigma);
