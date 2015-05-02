@@ -2,6 +2,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "intersectionDetection.h"
+#include "evaluation.h"
 
 using namespace std;
 using namespace cv;
@@ -70,14 +71,22 @@ void IntersectionDetector::getIntersections_FAST(vector<Point2f> &intersections)
 	vector<KeyPoint> keypoints;
 	Mat dst;
 	cvtColor(src, dst, COLOR_BGR2GRAY);
-	GaussianBlur(dst, dst, Size(3,3), 2);
-	FASTX(dst, keypoints, 20, true, FastFeatureDetector::TYPE_9_16);
+	int kernelSize = Evaluater::conf("INTERSECT_FAST_GAUSSKERNEL", 3L);
+	int sigma = Evaluater::conf("INTERSECT_FAST_GAUSSSIGMA", 2L);
+	int threshold = Evaluater::conf("INTERSECT_FAST_THRESHOLD", 20L);
+	bool nonMaxSupp = Evaluater::conf("INTERSECT_FAST_NONMAXSUPP", 1L);
+	int type = Evaluater::conf("INTERSECT_FAST_TYPE", 2L);
+
+	GaussianBlur(dst, dst, Size(kernelSize, kernelSize), sigma);
+	FASTX(dst, keypoints, threshold, nonMaxSupp, type);
 
 	for(KeyPoint kp : keypoints){
 		intersections.push_back(kp.pt);
 	}
 
 	this->intersections = &intersections;
+
+	removeDuplicateIntersections();
 }
 
 
