@@ -11,7 +11,7 @@ void BoardSegmenter::calculateBoundingBox(Rect &bBox){
 	Mat img;
 	src.copyTo(img);
 
-	rectangle(img, Point(img.cols/2-20, img.rows/2-20), Point(img.cols/2+20, img.rows/2+20), Scalar(0,0,0), -1);
+	rectangle(img, Point(img.cols/2-40, img.rows/2-40), Point(img.cols/2+40, img.rows/2+40), Scalar(0,0,0), -1);
 	floodFill(img, noArray(), Point(img.cols/2, img.rows/2), Scalar(120), &boundingBox);
 
 	boundingBox.x -= 10;
