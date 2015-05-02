@@ -54,14 +54,84 @@
 	To do so we assumed that there is a global maximum for the overall quality of results when adjusting parameters of the used algorithms. Even if this assumption were wrong we optimized for a local maximum. Then we tried manually to find roughly the optimal parameters for some randomly chosen images for every algorithm. Finally we adjusted them automatedly by brute forcely trying every combination of parameters in the vicinity of the manually chosen on every image on a cluster of 45 oktacore machines and checking the results against the annotations.
 
 	\section{Visible intersections}
+	%TODO: eigentlich ist visible intersections falsch, weil ja auch unsichtbare gematcht werden
 	When evaluating the detection rate of visible intersections we first checked if the intersection was within the boundaries of the annotated board and a padding of 15 pixels. If not the intersection was considered uninteresting and did neither count positively nor negatively. If it was inside the board we searched the nearest annotated intersection for every detected one. If there was none within a range of 15 pixels the intersection was counted as a false positive. But if there was, then the annotated intersection was marked as detected and not considered as a possible match for other intersections. The threshold was chosen roughly as a quarter of the average distance between two intersections and a third of the diameter of a piece as measured in some sample images.
 
-	In the end we measured the quality of the algorithm as the ratio of detected to undetected intersections while also considering the number of false positives.
+	While optimizing the parameters used in our algorithm, we measured the quality as the ratio of detected to undetected intersections, also considering the number of false positives. \ref{fig:linesCorrectness} shows those three values in relation to each other. Not all tested parameter combinations could be shown, though. Therefore we sorted the combinations after the number of correctly matched intersections and sampled the number of entries down by choosing every $n$th entry.
 
 	\subsection{HOUGH}
-	%todo
+	In comparison to the other algorithms detecting the lines using Hough transformation performs best quality-wise. As \ref{fig:houghCorrectness} shows, we still had to compromise when choosing the final parameter set. There is no obvious combination which yields no false positives and matches all intersections. We chose the parameter combination matching the most intersections with statistically at most one false positive per image. This resulted in 89.67\% (5084 out of 5670) correct detection rate in our training set, with a total of 68 incorrect intersections (0.01199\% of available intersections).
+
+	The graphic shows also that that the quality of the line detection does not depend very much on the parameters used: there's only a few parameter combinations that yield very poor results and hardly any that results in finding no intersection at all. As would be expected the average number of false positives rises with the percentage of correctly found intersections. Luckily, there is enough variance yet that even at a high detection rate we can find entries with on average less than one false intersection per image.
+
+	\begin{figure}
+		\pgfplotsset{width=\textwidth, height=6.5cm, compat=1.11}
+		\begin{subfigure}{\textwidth}
+			\begin{tikzpicture}
+				\begin{semilogyaxis}[
+					ylabel={Intersections count},
+					xlabel={Different parameter combinations},
+					xtick style={draw=none},
+					xticklabels={,,},
+					axis x line=bottom,
+					axis y line=left,
+					legend style={at={(1,0.05)}, anchor=south east},
+					xmin=0,
+					ymin=0,
+					xmax=610,
+					ymax=6000
+					]
+					\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,5670}) -- ({rel axis cs:0,0}|-{axis cs:0,5670});
+					\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,70}) -- ({rel axis cs:0,0}|-{axis cs:0,70});
+
+					\addplot[color=red, smooth]          table[x expr=\coordindex+1, y=matched, mark=none] {plots/lines_hough_part.csv};
+					\addplot[color=red!40!black, smooth] table[x expr=\coordindex+1, y=wrong, mark=none] {plots/lines_hough_part.csv};
+
+					\addlegendentry{Correct intersections}
+					\addlegendentry{False positive intersections}
+				\end{semilogyaxis}
+			\end{tikzpicture}
+			\label{fig:houghCorrectness}
+			\caption{Showing the data from the Houghlines detector. This shows only a representative subset of 605 combinations of a total tested of 60481}
+		\end{subfigure}
+		\\
+		\begin{subfigure}{\textwidth}
+			\begin{tikzpicture}
+				\begin{semilogyaxis}[
+					ylabel={Intersections count},
+					xlabel={Different parameter combinations},
+					xtick style={draw=none},
+					xticklabels={,,},
+					axis x line=bottom,
+					axis y line=left,
+					legend style={at={(1,0.05)}, anchor=south east},
+					xmin=0,
+					ymin=0,
+					xmax=610,
+					ymax=6000
+					]
+					\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,5670}) -- ({rel axis cs:0,0}|-{axis cs:0,5670});
+					\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,70}) -- ({rel axis cs:0,0}|-{axis cs:0,70});
+
+					\addplot[color=blue, smooth]          table[x expr=\coordindex+1, y=matched, mark=none, smooth,] {plots/lines_lsd_part.csv};
+					\addplot[color=blue!40!black, smooth] table[x expr=\coordindex+1, y=wrong, mark=none, smooth, blue] {plots/lines_lsd_part.csv};
+
+					\addlegendentry{Correct intersections}
+					\addlegendentry{False positive intersections}
+				\end{semilogyaxis}
+			\end{tikzpicture}
+			\label{fig:lsdCorrectness}
+			\caption{Showing the data from LSD detector. This shows only a representative subset of 605 combinations of a total tested of 58321}
+		\end{subfigure}
+
+	\label{fig:linesCorrectness}
+	\caption{Correctly found intersections compared to false positives, totally available intersections (upper gray line) and number of analyzed images (lower gray line) per evaluated parameter combination. The x-axis does not imply any order of the tested combinations; results have been simply sorted after number of correct intersections}
+	\end{figure}
+
+
 	\subsection{LSD}
-	%todo
+	As noted in \ref{detector-visible-lsd} the Line Segment Detector needs significant postprocessing to give any reasonable results. Still it is easily outperformed by the variant using hough transformation. In \ref{fig:lsdCorrectness} it can easily be seen that the amount of false positives does not go below the amount of input images when roughly a quarter of all available intersections should be detected. Furthermore the average ratio of correct results to false positives is nearly over all combinations worse than its hough counterpart's. Only in the segment where both detect nearly 100\% of all correct intersections. The total number of wrong intersections ranges in the thousands here, though, making this segment unusable for the application.
+
 	\subsection{FAST}
 	%todo
 
