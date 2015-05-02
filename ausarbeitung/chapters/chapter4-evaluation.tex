@@ -65,7 +65,7 @@
 	The graphic shows also that that the quality of the line detection does not depend very much on the parameters used: there's only a few parameter combinations that yield very poor results and hardly any that results in finding no intersection at all. As would be expected the average number of false positives rises with the percentage of correctly found intersections. Luckily, there is enough variance yet that even at a high detection rate we can find entries with on average less than one false intersection per image.
 
 	\begin{figure}
-		\pgfplotsset{width=\textwidth, height=6.5cm, compat=1.11}
+		\pgfplotsset{width=\textwidth, height=5.5cm, compat=1.11}
 		\begin{subfigure}{\textwidth}
 			\begin{tikzpicture}
 				\begin{semilogyaxis}[
@@ -122,6 +122,35 @@
 			\end{tikzpicture}
 			\label{fig:lsdCorrectness}
 			\caption{Showing the data from LSD detector. This shows only a representative subset of 605 combinations of a total tested of 58321}
+		\end{subfigure}
+		\\
+		\begin{subfigure}{\textwidth}
+			\begin{tikzpicture}
+				\begin{semilogyaxis}[
+					ylabel={Intersections count},
+					xlabel={Different parameter combinations},
+					xtick style={draw=none},
+					xticklabels={,,},
+					axis x line=bottom,
+					axis y line=left,
+					legend style={at={(1,0.05)}, anchor=south east},
+					xmin=0,
+					ymin=0,
+					xmax=610,
+					ymax=15000
+					]
+					\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,5670}) -- ({rel axis cs:0,0}|-{axis cs:0,5670});
+					\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,70}) -- ({rel axis cs:0,0}|-{axis cs:0,70});
+
+					\addplot[color=green, smooth]          table[x expr=\coordindex+1, y=matched, mark=none, smooth,] {plots/intersects_fast_part.csv};
+					\addplot[color=green!40!black, smooth] table[x expr=\coordindex+1, y=wrong, mark=none, smooth, blue] {plots/intersects_fast_part.csv};
+
+					\addlegendentry{Correct intersections}
+					\addlegendentry{False positive intersections}
+				\end{semilogyaxis}
+			\end{tikzpicture}
+			\label{fig:fastCorrectness}
+			\caption{Showing the data from FAST detector. This shows only a representative subset of 605 combinations of a total tested of 1440}
 		\end{subfigure}
 
 	\label{fig:linesCorrectness}
