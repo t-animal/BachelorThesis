@@ -36,15 +36,43 @@
 
 	\subsection{Using LSD}
 	\label{detector-visible-lsd}
-	%TODO cite
 	%TODO update with  updated algorithm
-	We then tried applying the Line Segment Detector \cite{} on the output of the Canny edge detector. We had to backport this from OpenCV 3 as it is not available in the aforementioned version. Surprisingly it turned out to be too exact and requires significant post-processing. For every square in the grid the LSD finds four line segments. Consequently two adjacent squares produce two parallel lines. This method is also very prone to noise and produces many short, false positive lines, especially around game pieces.
+	We then tried applying the Line Segment Detector \cite{von2012lsd} on the output of the Canny edge detector. We had to backport this from OpenCV 3 as it is not available in the aforementioned version. Surprisingly it turned out to be too exact and requires significant post-processing. For every square in the grid the LSD finds four line segments. Consequently two adjacent squares produce two parallel lines. This method is also very prone to noise and produces many short, false positive lines, especially around game pieces, as can be seen in \ref{fig:lsdPostprocessingFirst}.
 
-	Therefore our first postprocessing step is to eliminate short line segments. Afterwards for each line we count the number of parallels close-by and keep only those with a count of at least one. Having reduced the number of false positives significantly we classify the lines the same way as described above. However we still have many false positives when intersecting the resulting lines because one line on the board might be represented by several detected line segments. Thus as last postprocessing step we merge nearby line segments into one if they are close and parallel to each other.
+	Therefore our first postprocessing step is to eliminate short line segments (see \ref{fig:lsdPostprocessingLength}). Afterwards for each line we count the number of parallels close-by and keep only those with a count of at least one, as most line segments pertaining to the grid have a parallel line. Having reduced the number of false positives significantly we classify the lines the same way as described above into horizontal and vertical lines. If we now intersected those, we would still have many false positives, because one line which spans the whole length of the grid on the board might be represented by several detected line segments. As we prolong them into infinity when intersecting small differences in direction add up and produce intersections at the wrong place. Thus as last postprocessing step we merge nearby line segments into one if they are close and parallel to each other and filter once again for line length, this time with a slightly higher threshold.
+
+	\begin{figure}
+		\begin{subfigure}{0.23\textwidth}
+			\includegraphics[width=\textwidth]{images/lsd_first.png}
+			\label{fig:lsdPostprocessingFirst}
+			\caption{Unfiltered LSD output}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}{0.23\textwidth}
+			\includegraphics[width=\textwidth]{images/lsd_length.png}
+			\label{fig:lsdPostprocessingLength}
+			\caption{... filtered for line length,}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}{0.23\textwidth}
+			\includegraphics[width=\textwidth]{images/lsd_parallel.png}
+			\label{fig:lsdPostprocessingParallel}
+			\caption{... filtered for parallels, }
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}{0.23\textwidth}
+			\includegraphics[width=\textwidth]{images/lsd_final.png}
+			\label{fig:lsdPostprocessingFinal}
+			\caption{and stitched and filtered for length}
+		\end{subfigure}
+
+		\caption{The postprocessing steps necessary for the LSD}
+	\end{figure}
+
 
 	\subsection{Using corner detectors}
 	\label{detector-visible-corners}
-	Another option to detect the intersection directly without line detection might be to use a corner detector. We tested the FAST \cite{} detector on a slightly blurred image for this task. However it provides too many false positives to be of any use. Especially around black stones it is extremely unreliable. The ORB detector which uses FAST internally does not increase quality either.
+	Another option to detect the intersection directly without line detection might be to use a corner detector. We tested the FAST \cite{rosten2006machine} detector on a slightly blurred image for this task. However it provides too many false positives to be of any use. Especially around black stones it is extremely unreliable. The ORB detector which uses FAST internally does not increase quality either.
 
 	\section{Detecting occluded intersections}
 	\subsection{Using Hough circles}
