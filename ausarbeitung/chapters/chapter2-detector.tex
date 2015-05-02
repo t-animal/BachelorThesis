@@ -37,6 +37,7 @@
 	\subsection{Using LSD}
 	\label{detector-visible-lsd}
 	%TODO cite
+	%TODO update with  updated algorithm
 	We then tried applying the Line Segment Detector \cite{} on the output of the Canny edge detector. We had to backport this from OpenCV 3 as it is not available in the aforementioned version. Surprisingly it turned out to be too exact and requires significant post-processing. For every square in the grid the LSD finds four line segments. Consequently two adjacent squares produce two parallel lines. This method is also very prone to noise and produces many short, false positive lines, especially around game pieces.
 
 	Therefore our first postprocessing step is to eliminate short line segments. Afterwards for each line we count the number of parallels close-by and keep only those with a count of at least one. Having reduced the number of false positives significantly we classify the lines the same way as described above. However we still have many false positives when intersecting the resulting lines because one line on the board might be represented by several detected line segments. Thus as last postprocessing step we merge nearby line segments into one if they are close and parallel to each other.
