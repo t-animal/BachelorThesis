@@ -94,6 +94,7 @@
 
 	\subsection{Using contours}
 	\label{detector-occluded-contours}
+	%TODO updaten
 	Finding pieces with hough transformation is slow, though, and we were not contempt with the result to speed ratio. That is why we investigated further and chose to try analyzing the image topologically using OpenCV's \emph{findContours} function.
 
 	We preprocess the image the same way as before. This results in blobs for each piece whose contours can be detected nicely. Those can then be fitted nicely into quadratic rectangles. All contours whose bounding box is not more or less quadratic we discard. Sometimes two stones next to each other meld into one blob and result in non-quadratic bounding boxes. Those could be split into two, but we did not see the need for that.
