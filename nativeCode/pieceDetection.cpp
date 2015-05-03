@@ -83,16 +83,34 @@ void PieceDetector::detectPieces(vector<Point3f> &darkPieces, vector<Point3f> &l
 	bitwise_not(v, v);
 
 	vector<vector<Point> > contours;
+	vector<Rect> boundings;
 	findContours(v, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
 
-	for (auto c : contours) {
+	for(auto &c : contours){
 		Rect bounding = boundingRect(c);
+		if(abs(bounding.width - bounding.height/2) < 5){
+			bounding.height = bounding.height/2;
+			boundings.push_back(bounding);
+			bounding.y += bounding.height;
+			boundings.push_back(bounding);
+		}else if(abs(bounding.height - bounding.width/2) < 5){
+			bounding.width = bounding.width/2;
+			boundings.push_back(bounding);
+			bounding.x += bounding.width;
+			boundings.push_back(bounding);
+		}else{
+			boundings.push_back(bounding);
+		}
+	}
 
-		if (bounding.height != 0 && abs(1.0 - (float) bounding.width / bounding.height) < 0.3) {
+	for (auto b : boundings) {
+		float ratio = b.height!=0? (float) b.width / b.height : 99;
+		if (b.height != 0 && ratio >= 0.05 &&
+				((ratio > 0.5 && ratio < 1.5) ||  (1/ratio > 0.5 && 1/ratio < 1.5))) {
 
-			int centerX = bounding.x + bounding.width / 2;
-			int centerY = bounding.y + bounding.height / 2;
-			int diameter = (bounding.width + bounding.height) / 4;
+			int centerX = b.x + b.width / 2;
+			int centerY = b.y + b.height / 2;
+			int diameter = (b.width + b.height) / 4;
 
 			if(diameter > minDiameter && diameter < maxDiameter)
 				darkPieces.push_back(Point3f(centerX, centerY, diameter));
@@ -100,10 +118,30 @@ void PieceDetector::detectPieces(vector<Point3f> &darkPieces, vector<Point3f> &l
 	}
 
 	findContours(h, contours, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE);
+	boundings.clear();
+
+	for(auto &c : contours){
+		Rect bounding = boundingRect(c);
+		if(abs(bounding.width - bounding.height/2) < 5){
+			bounding.height = bounding.height/2;
+			boundings.push_back(bounding);
+			bounding.y += bounding.height;
+			boundings.push_back(bounding);
+		}else if(abs(bounding.height - bounding.width/2) < 5){
+			bounding.width = bounding.width/2;
+			boundings.push_back(bounding);
+			bounding.x += bounding.width;
+			boundings.push_back(bounding);
+		}else{
+			boundings.push_back(bounding);
+		}
+	}
 	for (auto c : contours) {
 		Rect bounding = boundingRect(c);
 
-		if (bounding.height != 0 && abs(1.0 - (float) bounding.width / bounding.height) < 0.3) {
+		float ratio = bounding.height!=0? (float) bounding.width / bounding.height : 99;
+		if (bounding.height != 0 && ratio >= 0.05 &&
+				((ratio > 0.5 && ratio < 1.5) ||  (1/ratio > 0.5 && 1/ratio < 1.5))) {
 
 			int centerX = bounding.x + bounding.width / 2;
 			int centerY = bounding.y + bounding.height / 2;
