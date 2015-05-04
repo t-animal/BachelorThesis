@@ -1,0 +1,143 @@
+---
+PIECES_GAUSS_S: '23'
+PIECES_GAUSS_V: '9'
+PIECES_SPECKLES: '7'
+PIECES_THRESH_H: '77'
+PIECES_THRESH_S: '0.220000'
+PIECES_THRESH_V: '89'
+avg_correct: 552210134.2238145
+currentTime: '2015-05-04 00:17:33.639373'
+sum_available: 1037
+sum_matched: 738
+sum_wrong: 22
+totalFiles: 70
+---
+PIECES_GAUSS_S: '23'
+PIECES_GAUSS_V: '9'
+PIECES_SPECKLES: '7'
+PIECES_THRESH_H: '59'
+PIECES_THRESH_S: '0.220000'
+PIECES_THRESH_V: '89'
+avg_correct: 552210134.2238144
+currentTime: '2015-05-04 00:17:29.989943'
+sum_available: 1037
+sum_matched: 738
+sum_wrong: 22
+totalFiles: 70
+---
+PIECES_GAUSS_S: '23'
+PIECES_GAUSS_V: '9'
+PIECES_SPECKLES: '7'
+PIECES_THRESH_H: '80'
+PIECES_THRESH_S: '0.220000'
+PIECES_THRESH_V: '89'
+avg_correct: 552210134.2238145
+currentTime: '2015-05-04 00:17:34.115560'
+sum_available: 1037
+sum_matched: 738
+sum_wrong: 22
+totalFiles: 70
+---
+PIECES_GAUSS_S: '23'
+PIECES_GAUSS_V: '9'
+PIECES_SPECKLES: '7'
+PIECES_THRESH_H: '62'
+PIECES_THRESH_S: '0.220000'
+PIECES_THRESH_V: '89'
+avg_correct: 552210134.2238145
+currentTime: '2015-05-04 00:17:29.671275'
+sum_available: 1037
+sum_matched: 738
+sum_wrong: 22
+totalFiles: 70
+---
+PIECES_GAUSS_S: '23'
+PIECES_GAUSS_V: '9'
+PIECES_SPECKLES: '7'
+PIECES_THRESH_H: '83'
+PIECES_THRESH_S: '0.220000'
+PIECES_THRESH_V: '89'
+avg_correct: 552210134.2238145
+currentTime: '2015-05-04 00:17:34.472821'
+sum_available: 1037
+sum_matched: 738
+sum_wrong: 22
+totalFiles: 70
+---
+PIECES_GAUSS_S: '23'
+PIECES_GAUSS_V: '9'
+PIECES_SPECKLES: '7'
+PIECES_THRESH_H: '65'
+PIECES_THRESH_S: '0.220000'
+PIECES_THRESH_V: '89'
+avg_correct: 552210134.2238145
+currentTime: '2015-05-04 00:17:30.542584'
+sum_available: 1037
+sum_matched: 738
+sum_wrong: 22
+totalFiles: 70
+---
+PIECES_GAUSS_S: '23'
+PIECES_GAUSS_V: '9'
+PIECES_SPECKLES: '7'
+PIECES_THRESH_H: '86'
+PIECES_THRESH_S: '0.220000'
+PIECES_THRESH_V: '89'
+avg_correct: 552210134.2238145
+currentTime: '2015-05-04 00:17:34.744256'
+sum_available: 1037
+sum_matched: 738
+sum_wrong: 22
+totalFiles: 70
+---
+PIECES_GAUSS_S: '23'
+PIECES_GAUSS_V: '9'
+PIECES_SPECKLES: '7'
+PIECES_THRESH_H: '68'
+PIECES_THRESH_S: '0.220000'
+PIECES_THRESH_V: '89'
+avg_correct: 552210134.2238145
+currentTime: '2015-05-04 00:17:31.424391'
+sum_available: 1037
+sum_matched: 738
+sum_wrong: 22
+totalFiles: 70
+---
+PIECES_GAUSS_S: '23'
+PIECES_GAUSS_V: '9'
+PIECES_SPECKLES: '7'
+PIECES_THRESH_H: '89'
+PIECES_THRESH_S: '0.220000'
+PIECES_THRESH_V: '89'
+avg_correct: 552210134.2238145
+currentTime: '2015-05-04 00:17:35.555974'
+sum_available: 1037
+sum_matched: 738
+sum_wrong: 22
+totalFiles: 70
+---
+PIECES_GAUSS_S: '23'
+PIECES_GAUSS_V: '9'
+PIECES_SPECKLES: '7'
+PIECES_THRESH_H: '71'
+PIECES_THRESH_S: '0.220000'
+PIECES_THRESH_V: '89'
+avg_correct: 552210134.2238145
+currentTime: '2015-05-04 00:17:32.169991'
+sum_available: 1037
+sum_matched: 738
+sum_wrong: 22
+totalFiles: 70
+---
+PIECES_GAUSS_S: '23'
+PIECES_GAUSS_V: '9'
+PIECES_SPECKLES: '7'
+PIECES_THRESH_H: '74'
+PIECES_THRESH_S: '0.220000'
+PIECES_THRESH_V: '89'
+avg_correct: 552210134.2238144
+currentTime: '2015-05-04 00:17:32.730474'
+sum_available: 1037
+sum_matched: 738
+sum_wrong: 22
+totalFiles: 70
