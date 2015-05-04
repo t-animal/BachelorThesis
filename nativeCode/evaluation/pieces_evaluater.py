@@ -4,18 +4,26 @@ from evaluaterUtils import *
 
 params = Storage()
 
-params.PIECES_GAUSS_V       =  range(7, 18, 2)   #13 +-5
-params.PIECES_GAUSS_S       =  range(19, 30, 2)  #25 +-5
+## both:
+#params.PIECES_GAUSS_V			=  range(5, 10, 2)		#7 -+ 2
+#params.PIECES_GAUSS_S			=  range(23, 28, 2)		#25 -+ 2
 
-params.PIECES_THRESH_V      =  range(50, 91, 5)  #70 +-20
-params.PIECES_THRESH_S      = frange(0.02, 0.33, 3) #0.17 +-15
-params.PIECES_THRESH_H      =  range(50, 91, 5)  #70 +-20
+#params.PIECES_THRESH_V			=  range(50, 91, 3)		#70 +- 20
+#params.PIECES_THRESH_S			= frange(0.02, 0.33, 0.2)		#0.17 +- 15
+#params.PIECES_THRESH_H			=  range(150, 250, 3)		#70 -+ 20
 
-params.PIECES_SPECKLES      =  range(4, 7, 1)    # 5 +-1
+#params.PIECES_SPECKLES			=  range(4, 9, 1)		#6 +- 2
 
-params.PIECES_MINDIAMETER   =  range(0, 21, 3)   #10 +- 10
-params.PIECES_MINDIAMETER   =  range(20, 41, 3)   #30 +- 10
+## contour
+params.PIECES_MINDIAMETER		=  range(2, 21, 2)		#9 +- 10
+params.PIECES_MAXDIAMETER		=  range(22, 43, 2)		#32L +- 10
 
+params.PIECES_MAXRATIO			= frange(1.0, 2.1, 0.2) 		#1.5 +-5
+params.PIECES_MINRATIO			= frange(0.1, 1.1, 0.2) 		#0.5 +-5
+
+params.PIECES_SPLITDIFFERENCE	=  range(1, 11, 1)		#5L +- 5
+
+## hough
 #params.PIECES_MINDIST_DARK  =  range(10, 21, 2)  #15 +- 5
 #params.PIECES_MINRAD_DARK   =  range(15, 26, 2)  #20 +- 5
 #params.PIECES_MAXRAD_DARK   =  range( 6, 17, 2)  #11 +- 5
