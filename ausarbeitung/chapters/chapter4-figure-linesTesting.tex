@@ -1,0 +1,66 @@
+%!TEX root = ../Thesis.tex
+
+\begin{figure}
+	\pgfplotsset{width=\textwidth, height=5cm, compat=1.11}
+	\begin{subfigure}{0.32\textwidth}
+		\begin{tikzpicture}
+			\begin{axis}[
+				xticklabels={,,},
+				axis x line=bottom,
+				axis y line=left,
+				xmin=0,
+				ymin=0,
+				xmax=32,
+				ymax=85
+				]
+				\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,81}) -- ({rel axis cs:0,0}|-{axis cs:0,81});
+
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=red}]          table[x expr=\coordindex+1, y=matched] {plots/lines_hough_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=red!40!black}] table[x expr=\coordindex+1, y=wrong] {plots/lines_hough_testSet.csv};
+			\end{axis}
+		\end{tikzpicture}
+		\caption{Results of the Hough transformation detector}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.32\textwidth}
+		\begin{tikzpicture}
+			\begin{axis}[
+				xticklabels={,,},
+				axis x line=bottom,
+				axis y line=left,
+				xmin=0,
+				ymin=0,
+				xmax=32,
+				ymax=85
+				]
+				\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,81}) -- ({rel axis cs:0,0}|-{axis cs:0,81});
+
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=blue}]          table[x expr=\coordindex+1, y=matched] {plots/lines_lsd_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=blue!40!black}] table[x expr=\coordindex+1, y=wrong] {plots/lines_lsd_testSet.csv};
+			\end{axis}
+		\end{tikzpicture}
+		\caption{Results of the LSD detector (NOT FINAL YET, DO NOT SUBMIT!)}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.32\textwidth}
+		\begin{tikzpicture}
+			\begin{axis}[
+				xticklabels={,,},
+				axis x line=bottom,
+				axis y line=left,
+				xmin=0,
+				ymin=0,
+				xmax=32,
+				ymax=85
+				]
+				\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,81}) -- ({rel axis cs:0,0}|-{axis cs:0,81});
+
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=green}]          table[x expr=\coordindex+1, y=matched] {plots/intersections_fast_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=green!40!black}] table[x expr=\coordindex+1, y=wrong] {plots/intersections_fast_testSet.csv};
+			\end{axis}
+		\end{tikzpicture}
+		\caption{Results of the corner detector (NOT FINAL, DO NOT SUBMIT!!)}
+	\end{subfigure}
+
+\caption{Correctly found intersections compared to false positives and totally available intersections in the test image set per image}
+\end{figure}
