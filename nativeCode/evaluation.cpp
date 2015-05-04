@@ -267,11 +267,10 @@ void Evaluater::checkPieceCorrectness(const vector<Point3f> &blackPieces, const 
 	FileStorage fs = getMemoryStorage();
 
 	int totalPieceCount = this->blackPieces.size() + this->whitePieces.size();
-	fs << "avg_correct" << (totalPieceCount == 0? INT_MAX : (int) (matched / (float) totalPieceCount* 100));
+	fs << "avg_correct" << (totalPieceCount == 0? INT_MAX : (float) (matched / (float) totalPieceCount* 100));
 	fs << "sum_available" << (int) (this->blackPieces.size() + this->whitePieces.size());
 	fs << "sum_matched" << matched;
 	fs << "sum_wrong" << insidePieces - matched;
-	fs << "avg_quality" << (insidePieces - matched == 0?  9999.0 : matched / (float) (insidePieces - matched));
 
 	saveParameters(fs);
 
