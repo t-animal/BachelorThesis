@@ -19,6 +19,7 @@
 				\addplot[only marks, mark=*, mark options={scale=1.1, fill=red!40!black}] table[x expr=\coordindex+1, y=wrong] {plots/lines_hough_testSet.csv};
 			\end{axis}
 		\end{tikzpicture}
+		\label{fig:linesTest-hough}
 		\caption{Results of the Hough transformation detector}
 	\end{subfigure}
 	\hfill
@@ -39,7 +40,8 @@
 				\addplot[only marks, mark=*, mark options={scale=1.1, fill=blue!40!black}] table[x expr=\coordindex+1, y=wrong] {plots/lines_lsd_testSet.csv};
 			\end{axis}
 		\end{tikzpicture}
-		\caption{Results of the LSD detector (NOT FINAL YET, DO NOT SUBMIT!)}
+		\label{fig:linesTest-lsd}
+		\caption{Results of the LSD detector}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}{0.32\textwidth}
@@ -59,8 +61,10 @@
 				\addplot[only marks, mark=*, mark options={scale=1.1, fill=green!40!black}] table[x expr=\coordindex+1, y=wrong] {plots/intersections_fast_testSet.csv};
 			\end{axis}
 		\end{tikzpicture}
-		\caption{Results of the corner detector (NOT FINAL, DO NOT SUBMIT!!)}
+		\label{fig:linesTest-fast}
+		\caption{Results of the corner detector}
 	\end{subfigure}
 
+\label{fig:linesTest}
 \caption{Correctly found intersections compared to false positives and totally available intersections in the test image set per image}
 \end{figure}

@@ -70,17 +70,43 @@
 	\subsubsection{LSD}
 	As noted in \ref{detector-visible-lsd} the Line Segment Detector needs significant postprocessing to give any reasonable results. Still it is easily outperformed by the variant using hough transformation. In \ref{fig:lsdCorrectness} it can easily be seen that the amount of false positives does not go below the amount of input images when roughly a quarter of all available intersections should be detected. Furthermore the average ratio of correct results to false positives is nearly over all combinations worse than its hough counterpart's. Only in the segment where both detect nearly 100\% of all correct intersections. The total number of wrong intersections ranges in the thousands here, though, making this segment unusable for the application.
 
+	We can expect the detector to perform significantly worse as the chosen parameter combination performs at a detection rate of only 20.53\% (1164 out of 5670) with 69 false positives. To achieve a detection rate similar to the one of the hough detector we would have to accept more than 10 false positives per image.
+	%TODO: was, wenn gras ausgenommen wird?
+
 	\subsubsection{FAST}
 	Even worse performs the FAST corner detector when used for detection of the intersections. It is the only detector that resulted in more false positives than correct intersections in some combination. The ratio of false positives to correct intersections is in no combination better than the of the intersections of lines detected using LSD or Hough transformation.
 
+	The chosen parameter combination yields a mere 2.7\% 155 correctly detected intersections with 70 wrongly placed ones. Overall the detector seems to stick too much to the lines themselves and places many intersections around them and at the border of the black pieces. %nonmax suppression ist egal erwaehnen?
+
 	\subsection{Performance on the testing set}
+	\subsubsection{HOUGH}
+	The hough detector produces quite good results in the test set. Those images where no (on the left in \ref{fig:linesTest-hough}) hardly any pieces lie on the board are detected de facto perfectly. It does have some issues with boards with pieces on them and drops significantly when there are many pieces on the board (on the right in \ref{fig:linesTest-hough}). This was to be expected, though, and the performance is still better compared with the other two algorithms.
+
+	\subsubsection{LSD}
+	\subsubsection{FAST}
+
+	\begin{table}
+		\begin{tabular}{|r|r||c|c|c|}
+			\cline{3-5}
+		    \multicolumn{2}{c|}{}											 		& Hough 	& LSD 		& FAST     \\
+			\cline{3-5}
+			\hline
+			\multirow{2}{*}{No pieces on the board}   		& True positive rate 	& 100\% 	& 30.3\%  	& 0.685\%  \\
+															& False positive rate 	& todo\% 	& todo\%  	& todo\%  \\
+			\hline
+			\multirow{2}{*}{Some pieces on the board (7-13)}& True positive rate 	& 95.6\% 	& 11.4\% 	& 1.97\%   \\
+															& False positive rate 	& todo\% 	& todo\%  	& todo\%  \\
+			\hline
+			\multirow{2}{*}{Many pieces (27-34)} 			& True positive rate 	& 58.6\% 	& 9.02\% 	& 3.80\%   \\
+															& False positive rate 	& todo\% 	& todo\%  	& todo\%  \\
+			\hline
+		\end{tabular}
+		\label{tab:linesTest}
+		\caption{Something }
+	\end{table}
 
 	\input{chapters/chapter4-figure-linesTesting.tex}
 
-	\subsubsection{HOUGH}
-	\subsubsection{LSD}
-	\subsubsection{FAST}
-	%todo
 
 	\section{Occluded intersections}
 	\subsection{Optimizations on the training set}

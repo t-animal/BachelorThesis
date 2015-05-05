@@ -30,6 +30,7 @@
 			\end{semilogyaxis}
 		\end{tikzpicture}
 		\vspace{-20pt}
+		\label{fig:linesTraining-hough}
 		\caption{Representative subset of 605 combinations of 60481 tested for the Houghline detector}
 	\end{subfigure}
 	\vspace{20pt}
@@ -62,6 +63,7 @@
 			\end{semilogyaxis}
 		\end{tikzpicture}
 		\vspace{-20pt}
+		\label{fig:linesTraining-lsd}
 		\caption{Representative subset of 605 combinations of 58321 tested for the LSD detector.}
 	\end{subfigure}
 	\vspace{20pt}
@@ -94,8 +96,10 @@
 			\end{semilogyaxis}
 		\end{tikzpicture}
 		\vspace{-20pt}
+		\label{fig:linesTraining-fast}
 		\caption{Representative subset of 605 combinations of 1440 tested for the FAST detector}
 	\end{subfigure}
 
-	\caption{Correctly found intersections compared to false positives, totally available intersections (upper gray line) and number of analyzed images (lower gray line) per evaluated parameter combination. The x-axis does not imply any order of the tested combinations; results have been simply sorted after number of correct intersections}
+	\label{fig:linesTraining}
+	\caption{The x-axis shows different combinations of parameters that we have evaluated. On the y-axis the true positives, false positives, totally available intersections (upper gray line) and number of analyzed images (lower gray line) per combination can be seen. The x-axis does not imply any order of the tested combinations; results have been simply sorted after number of correct intersections. We chose the parameter combination with the highest true positive rate whilst less false positives than evaluated files (orange line)}
 \end{figure}
