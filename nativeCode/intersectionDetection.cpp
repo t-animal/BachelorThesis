@@ -71,11 +71,12 @@ void IntersectionDetector::getIntersections_FAST(vector<Point2f> &intersections)
 	vector<KeyPoint> keypoints;
 	Mat dst;
 	cvtColor(src, dst, COLOR_BGR2GRAY);
+	//values from currentTime: '2015-05-02 22:02:06.525161'
 	int kernelSize = Evaluater::conf("INTERSECT_FAST_GAUSSKERNEL", 3L);
-	int sigma = Evaluater::conf("INTERSECT_FAST_GAUSSSIGMA", 2L);
-	int threshold = Evaluater::conf("INTERSECT_FAST_THRESHOLD", 20L);
+	int sigma = Evaluater::conf("INTERSECT_FAST_GAUSSSIGMA", 3L);
+	int threshold = Evaluater::conf("INTERSECT_FAST_THRESHOLD", 13L);
 	bool nonMaxSupp = Evaluater::conf("INTERSECT_FAST_NONMAXSUPP", 1L);
-	int type = Evaluater::conf("INTERSECT_FAST_TYPE", 2L);
+	int type = Evaluater::conf("INTERSECT_FAST_TYPE", 0L);
 
 	GaussianBlur(dst, dst, Size(kernelSize, kernelSize), sigma);
 	FASTX(dst, keypoints, threshold, nonMaxSupp, type);
