@@ -15,22 +15,26 @@ params = Storage()
 #params.PIECES_SPECKLES			=  range(4, 9, 1)		#6 +- 2
 
 ## contour
-params.PIECES_MINDIAMETER		=  range(2, 21, 2)		#9 +- 10
-params.PIECES_MAXDIAMETER		=  range(22, 43, 2)		#32L +- 10
+# params.PIECES_MINDIAMETER		=  range(2, 21, 2)		#9 +- 10
+# params.PIECES_MAXDIAMETER		=  range(22, 43, 2)		#32L +- 10
 
-params.PIECES_MAXRATIO			= frange(1.0, 2.1, 0.2) 		#1.5 +-5
-params.PIECES_MINRATIO			= frange(0.1, 1.1, 0.2) 		#0.5 +-5
+# params.PIECES_MAXRATIO			= frange(1.0, 2.1, 0.2) 		#1.5 +-5
+# params.PIECES_MINRATIO			= frange(0.1, 1.1, 0.2) 		#0.5 +-5
 
-params.PIECES_SPLITDIFFERENCE	=  range(1, 11, 1)		#5L +- 5
+# params.PIECES_SPLITDIFFERENCE	=  range(1, 11, 1)		#5L +- 5
 
 ## hough
-#params.PIECES_MINDIST_DARK  =  range(10, 21, 2)  #15 +- 5
-#params.PIECES_MINRAD_DARK   =  range(15, 26, 2)  #20 +- 5
-#params.PIECES_MAXRAD_DARK   =  range( 6, 17, 2)  #11 +- 5
+# params.PIECES_MINDIST_DARK	 	= range(22, 43, 3) #32 +- 10
+# params.PIECES_MINRAD_DARK	 	= range(14, 35, 3) #24 +- 10
+# params.PIECES_MAXRAD_DARK	 	= range(35, 56, 3) #45 +- 10
 
-#params.PIECES_MINDIST_LIGHT =  range(10, 21, 2)  #13 +- 5
-#params.PIECES_MINRAD_LIGHT  =  range(25, 36, 2)  #30 +- 5
-#params.PIECES_MAXRAD_LIGHT  =  range( 6, 17, 2)  #11 +- 5
+params.PIECES_MINDIST_LIGHT	 	= range(26, 47, 3) #36 +- 5
+params.PIECES_MINRAD_LIGHT	 	= range(6, 27, 3) #16 +- 5
+params.PIECES_MAXRAD_LIGHT	 	= range(35, 55, 3) #45 +- 10
+
+params.PIECES_ACCUTHRESH_LIGHT	= [999]#range(40, 61, 3) #50 +- 10
+params.PIECES_ACCUTHRESH_DARK	= range(40, 61, 3) #50 +- 10
+
 
 secret = """saimuu6ohxooRiob6ieyoocheiwiehootu6uic7nohVoh3Shie1reithu2aic8z
 			u1iJo0paik3Apu5Phadei7iewae0waeZohpaaixau7Bee5nah4ahmugaol3phoo6ong6ooyae5engo7ie

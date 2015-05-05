@@ -62,19 +62,21 @@ void PieceDetector::detectPieces(vector<Point3f> &darkPieces, vector<Point3f> &l
 	//improve performance by only performing detection once
 	//TODO: increase performance further, evtl only one houghcircle somehow?
 	bitwise_and(s, h, h);
-
+#define CIRCLE_HOUGH
 #ifdef CIRCLE_HOUGH
 
-	int minDistDark = Evaluater::conf("PIECES_MINDIST_DARK", 15L);
-	int minRadDark = Evaluater::conf("PIECES_MINRAD_DARK", 20L);
-	int maxRadDark = Evaluater::conf("PIECES_MAXRAD_DARK", 11L);
-	int minDistLight = Evaluater::conf("PIECES_MINDIST_LIGHT", 13L);
-	int minRadLight = Evaluater::conf("PIECES_MINRAD_LIGHT", 30L);
-	int maxRadLight = Evaluater::conf("PIECES_MAXRAD_LIGHT", 11L);
+	int minDistDark = Evaluater::conf("PIECES_MINDIST_DARK", 32L);
+	int minRadDark = Evaluater::conf("PIECES_MINRAD_DARK", 24L);
+	int maxRadDark = Evaluater::conf("PIECES_MAXRAD_DARK", 45L);
+	int minDistLight = Evaluater::conf("PIECES_MINDIST_LIGHT", 36L);
+	int minRadLight = Evaluater::conf("PIECES_MINRAD_LIGHT", 16L);
+	int maxRadLight = Evaluater::conf("PIECES_MAXRAD_LIGHT", 45L);
+	int accuThreshLight = Evaluater::conf("PIECES_ACCUTHRESH_LIGHT", 50L);
+	int accuThreshDark = Evaluater::conf("PIECES_ACCUTHRESH_DARK", 50L);
 
 	//          (Input, Output,   method,            dp, minDist,      param1, param2, minRad,  maxRad )
-	HoughCircles(h, lightPieces, CV_HOUGH_GRADIENT, 3, src.rows / minDistLight, 900, 50, src.rows / minRadLight, src.rows / maxRadLight);
-	HoughCircles(v, darkPieces,  CV_HOUGH_GRADIENT, 3, src.rows / minDistDark,  900, 50, src.rows / minRadDark, src.rows / maxRadDark);
+	HoughCircles(h, lightPieces, CV_HOUGH_GRADIENT, 3, minDistLight, 900, accuThreshLight, minRadLight, maxRadLight);
+	HoughCircles(v, darkPieces,  CV_HOUGH_GRADIENT, 3, minDistDark,  900, accuThreshDark, minRadDark, maxRadDark);
 #else
 
 	int minDiameter = Evaluater::conf("PIECES_MINDIAMETER", 9L);
