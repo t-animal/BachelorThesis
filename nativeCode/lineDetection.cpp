@@ -150,12 +150,13 @@ void LineDetector::detectVertHorzLines_LSD (vector<Vec4i> &horz, vector<Vec4i> &
 	src.copyTo(remain);
 #endif
 
+	//chosen from currentTime: '2015-05-02 18:02:38.440363'
 	int kernelSize = Evaluater::conf("LINES_LSD_GAUSSKERNEL", 7L);
-	double gausSigma = Evaluater::conf("LINES_LSD_GAUSSSIGMA", 5.);
-	double scale = Evaluater::conf("LINES_LSD_SCALE", 0.5);
-	double lsdSigma = Evaluater::conf("LINES_LSD_SIGMA", 1.25);
-	double lsdAngleThresh = Evaluater::conf("LINES_LSD_ANGLETHRESH", 10.0);
-	double lsdDensityThresh = Evaluater::conf("LINES_LSD_DENSITYTHRESH", 0.5);
+	double gausSigma = Evaluater::conf("LINES_LSD_GAUSSSIGMA", 7.);
+	double scale = Evaluater::conf("LINES_LSD_SCALE", 0.4);
+	double lsdSigma = Evaluater::conf("LINES_LSD_SIGMA", 1.55);
+	double lsdAngleThresh = Evaluater::conf("LINES_LSD_ANGLETHRESH", 7.0); //das hier ist der parameter, der die fp bestimmt
+	double lsdDensityThresh = Evaluater::conf("LINES_LSD_DENSITYTHRESH", 0.7);
 
 	GaussianBlur(src, dst, Size(kernelSize, kernelSize), gausSigma);
 	Canny(src, dst, 55, 205, 3);
