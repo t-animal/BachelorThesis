@@ -11,12 +11,12 @@
 				xmin=0,
 				ymin=0,
 				xmax=32,
-				ymax=85
+				ymax=1
 				]
 				\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,81}) -- ({rel axis cs:0,0}|-{axis cs:0,81});
 
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=red}]          table[x expr=\coordindex+1, y=matched] {plots/lines_hough_testSet.csv};
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=red!40!black}] table[x expr=\coordindex+1, y=wrong] {plots/lines_hough_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=red}]          table[x expr=\coordindex+1, y expr=\thisrow{matched}/81] {plots/lines_hough_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=red!40!black}] table[x expr=\coordindex+1, y expr=\thisrow{wrong}/(81+\thisrow{matched})] {plots/lines_hough_testSet.csv};
 			\end{axis}
 		\end{tikzpicture}
 		\label{fig:linesTest-hough}
@@ -32,12 +32,12 @@
 				xmin=0,
 				ymin=0,
 				xmax=32,
-				ymax=85
+				ymax=1
 				]
 				\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,81}) -- ({rel axis cs:0,0}|-{axis cs:0,81});
 
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=blue}]          table[x expr=\coordindex+1, y=matched] {plots/lines_lsd_testSet.csv};
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=blue!40!black}] table[x expr=\coordindex+1, y=wrong] {plots/lines_lsd_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=blue}]          table[x expr=\coordindex+1, y expr=\thisrow{matched}/81] {plots/lines_lsd_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=blue!40!black}] table[x expr=\coordindex+1, y expr=\thisrow{wrong}/(81+\thisrow{matched})] {plots/lines_lsd_testSet.csv};
 			\end{axis}
 		\end{tikzpicture}
 		\label{fig:linesTest-lsd}
@@ -53,12 +53,12 @@
 				xmin=0,
 				ymin=0,
 				xmax=32,
-				ymax=85
+				ymax=1
 				]
 				\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,81}) -- ({rel axis cs:0,0}|-{axis cs:0,81});
 
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=green}]          table[x expr=\coordindex+1, y=matched] {plots/intersections_fast_testSet.csv};
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=green!40!black}] table[x expr=\coordindex+1, y=wrong] {plots/intersections_fast_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=green}]          table[x expr=\coordindex+1, y expr=\thisrow{matched}/81] {plots/intersections_fast_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=green!40!black}] table[x expr=\coordindex+1, y expr=\thisrow{wrong}/(81+\thisrow{matched})] {plots/intersections_fast_testSet.csv};
 			\end{axis}
 		\end{tikzpicture}
 		\label{fig:linesTest-fast}
