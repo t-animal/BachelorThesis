@@ -15,8 +15,10 @@
 				]
 				\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,81}) -- ({rel axis cs:0,0}|-{axis cs:0,81});
 
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=red}]          table[x expr=\coordindex+1, y expr=\thisrow{matched}/81] {plots/lines_hough_testSet.csv};
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=red!40!black}] table[x expr=\coordindex+1, y expr=\thisrow{wrong}/(81+\thisrow{matched})] {plots/lines_hough_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=red!40!black}]
+					table[x expr=\coordindex+1, y expr=\thisrow{matched}/(\thisrow{matched}+\thisrow{wrong})] {plots/lines_hough_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=red}]
+					table[x expr=\coordindex+1, y expr=\thisrow{matched}/81] {plots/lines_hough_testSet.csv};
 			\end{axis}
 		\end{tikzpicture}
 		\label{fig:linesTest-hough}
@@ -36,8 +38,10 @@
 				]
 				\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,81}) -- ({rel axis cs:0,0}|-{axis cs:0,81});
 
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=blue}]          table[x expr=\coordindex+1, y expr=\thisrow{matched}/81] {plots/lines_lsd_testSet.csv};
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=blue!40!black}] table[x expr=\coordindex+1, y expr=\thisrow{wrong}/(81+\thisrow{matched})] {plots/lines_lsd_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=blue!40!black}]
+					table[x expr=\coordindex+1, y expr=\thisrow{matched}/(\thisrow{matched}+\thisrow{wrong})] {plots/lines_lsd_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=blue}]
+					table[x expr=\coordindex+1, y expr=\thisrow{matched}/81] {plots/lines_lsd_testSet.csv};
 			\end{axis}
 		\end{tikzpicture}
 		\label{fig:linesTest-lsd}
@@ -57,8 +61,10 @@
 				]
 				\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,81}) -- ({rel axis cs:0,0}|-{axis cs:0,81});
 
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=green}]          table[x expr=\coordindex+1, y expr=\thisrow{matched}/81] {plots/intersections_fast_testSet.csv};
-				\addplot[only marks, mark=*, mark options={scale=1.1, fill=green!40!black}] table[x expr=\coordindex+1, y expr=\thisrow{wrong}/(81+\thisrow{matched})] {plots/intersections_fast_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=green!40!black}]
+					table[x expr=\coordindex+1, y expr=\thisrow{matched}/(\thisrow{matched}+\thisrow{wrong})] {plots/intersections_fast_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=green}]
+					table[x expr=\coordindex+1, y expr=\thisrow{matched}/81] {plots/intersections_fast_testSet.csv};
 			\end{axis}
 		\end{tikzpicture}
 		\label{fig:linesTest-fast}
@@ -66,5 +72,5 @@
 	\end{subfigure}
 
 \label{fig:linesTest}
-\caption{Correctly found intersections compared to false positives and totally available intersections in the test image set per image}
+\caption{True positive rate (light color filled circles) and precision (dark color filled circles) per image in our test set.}
 \end{figure}

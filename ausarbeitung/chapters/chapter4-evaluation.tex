@@ -80,39 +80,57 @@
 
 	\subsection{Performance on the testing set}
 	\subsubsection{HOUGH}
-	The hough detector produces quite good results in the test set. Those images where no (on the left in \ref{fig:linesTest-hough}) hardly any pieces lie on the board are detected de facto perfectly. It does have some issues with boards with pieces on them and drops significantly when there are many pieces on the board (on the right in \ref{fig:linesTest-hough}). This was to be expected, though, and the performance is still better compared with the other two algorithms.
+	The hough detector produces quite good results in the test set. Those images where no (on the left in \ref{fig:linesTest-hough}) hardly any pieces lie on the board are detected de facto perfectly. It does have some issues with boards with pieces on them and drops significantly (to about 60\% of the performance without pieces) when there are many pieces on the board (on the right in \ref{fig:linesTest-hough}). This was to be expected, though, and the performance is still better compared with the other two algorithms.
 
-	\subsubsection{LSD}
-	\subsubsection{FAST}
-
-	\begin{table}
-		\begin{tabular}{|r|r||c|c|c|}
+	\begin{table}[b]
+		\begin{tabular}{|r|r||>{\bfseries}c|c|c|}
 			\cline{3-5}
 		    \multicolumn{2}{c|}{}											 		& Hough 	& LSD 		& FAST     \\
 			\cline{3-5}
 			\hline
 			\multirow{2}{*}{No pieces on the board}   		& True positive rate 	& 100\% 	& 30.3\%  	& 0.685\%  \\
-															& False positive rate 	& todo\% 	& todo\%  	& todo\%  \\
+			%
+															& Precision			 	& 99.4\% 	& 94.2\%  	& 83.3\%  \\
+			%																					  245/260	  5/6
 			\hline
 			\multirow{2}{*}{Some pieces on the board (7-13)}& True positive rate 	& 95.6\% 	& 11.4\% 	& 1.97\%   \\
-															& False positive rate 	& todo\% 	& todo\%  	& todo\%  \\
+			%
+															& Precision 			& 98.6\% 	& 91.2\%  	& 53.3\%  \\
+			%																					  114/125	  16/30
 			\hline
 			\multirow{2}{*}{Many pieces (27-34)} 			& True positive rate 	& 58.6\% 	& 9.02\% 	& 3.80\%   \\
-															& False positive rate 	& todo\% 	& todo\%  	& todo\%  \\
+			%
+															& Precision			 	& 95.5\% 	& 94.0\%  	& 68.8\%  \\
+			%																					  95/101	  33/48
 			\hline
 		\end{tabular}
 		\label{tab:linesTest}
-		\caption{Something }
+		\caption{Quality of the tested algorithms on our test set. The hough transformation based algorithm dominates all categories.}
 	\end{table}
 
+	\subsubsection{LSD}
+	As was to be expected from the data of our training set the Line Segment Detector performed significantly worse than the Hough lines detector. The relative performance was actually still lower on our testing set than on our training set, where it reached 22\% of the quality of the hough detector, while on our testing data it could only achieve 20\% -- and that is only looking at the true positive rate. In total it matched 18\% of the available intersections. We can see that the precision ranks lower, too, and that it deals less well with pieces on the board than the first examined algorithm (its true positive rate sinks to one third when there are lots of pieces on the board compared to when there are none).
+
+	\subsubsection{FAST}
+	The corner detector based approach obviously does not yield results which justify further analysis. Interestingly, though, the percentage of correctly detected intersections rises with the number of pieces on the board. This might be because the white pieces reduce the amount of visible intersections making it more probable for a keypoint to lie on one, when being placed along visible edges.
+
 	\input{chapters/chapter4-figure-linesTesting.tex}
+	\clearpage
 
 
 	\section{Occluded intersections}
 	\subsection{Optimizations on the training set}
-	\input{chapters/chapter4-figure-piecesTraining.tex}
+	We optimized the parameters for thresholding and detecting light and dark pieces separately for both detection methods. We chose the final parameter set like we did for the line detection algorithms by sorting after true positive rate and selecting the best scoring algorithm below a specific threshold on false positives. We set the false positive threshold a lot lower, though, at a maximum of seven false positives for either color. That is because we found that wrongly classified pieces tended to have a greater impact on detection quality than false positives in the line detection step. Both algorithms still performed good enough to provide a significant amount of additional intersections.
+
+	Due to how we optimized our parameters we could not adjust the thresholding values for both methods or even all parameters at once. Therefore we first set the contours to very general settings and used it to find a parameter set of the thresholding step where there were not too many false positives and the detection rate was not too low.
+	%TODO: nochmal auf optimierte erkenner parameter optimieren
+
 	\subsubsection{Contours}
+	The chosen parameters yielded 84.23\% (438 of 520) detection rate with 3 false positives on the white pieces and 61.12\% (316 of 517) detection rate with 7 false positives on the black pieces. When added together this results in a 72.71\% (754 of 1037) detection rate with 10 false positives.
+
 	\subsubsection{Hough}
+	The chosen parameters yielded 78.27\% (407 of 520) detection rate with 5 false positives on the white pieces and 69.05\% (357 of 517) detection rate with 6 false positives on the black pieces. When added together this results in a 73.67\% (764 of 1037) detection rate with 11 false positives.
+
 	\subsection{Performance on the testing set}
 	\subsubsection{Contours}
 	\subsubsection{Hough}

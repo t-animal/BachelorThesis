@@ -25,8 +25,8 @@
 				\addplot[color=red, smooth]          table[x expr=\coordindex+1, y=matched, mark=none] {plots/lines_hough_part.csv};
 				\addplot[color=red!40!black, smooth] table[x expr=\coordindex+1, y=wrong, mark=none] {plots/lines_hough_part.csv};
 
-				%\addlegendentry{Correct intersections}
-				%\addlegendentry{False positive intersections}
+				\addlegendentry{Sum of true positives on all images}
+				\addlegendentry{Sum of all false positives on all images}
 			\end{semilogyaxis}
 		\end{tikzpicture}
 		\vspace{-20pt}
@@ -58,8 +58,8 @@
 				\addplot[color=blue, smooth]          table[x expr=\coordindex+1, y=matched, mark=none, smooth,] {plots/lines_lsd_part.csv};
 				\addplot[color=blue!40!black, smooth] table[x expr=\coordindex+1, y=wrong, mark=none, smooth, blue] {plots/lines_lsd_part.csv};
 
-				\addlegendentry{Correct intersections}
-				\addlegendentry{False positive intersections}
+				\addlegendentry{Sum of true positives on all images}
+				\addlegendentry{Sum of all false positives on all images}
 			\end{semilogyaxis}
 		\end{tikzpicture}
 		\vspace{-20pt}
@@ -91,8 +91,8 @@
 				\addplot[color=green, smooth]          table[x expr=\coordindex+1, y=matched, mark=none, smooth,] {plots/intersects_fast_part.csv};
 				\addplot[color=green!40!black, smooth] table[x expr=\coordindex+1, y=wrong, mark=none, smooth, blue] {plots/intersects_fast_part.csv};
 
-				\addlegendentry{Correct intersections}
-				\addlegendentry{False positive intersections}
+				\addlegendentry{Sum of true positives on all images}
+				\addlegendentry{Sum of all false positives on all images}
 			\end{semilogyaxis}
 		\end{tikzpicture}
 		\vspace{-20pt}
