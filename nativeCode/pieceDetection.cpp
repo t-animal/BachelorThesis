@@ -62,28 +62,37 @@ void PieceDetector::detectPieces(vector<Point3f> &darkPieces, vector<Point3f> &l
 	//improve performance by only performing detection once
 	//TODO: increase performance further, evtl only one houghcircle somehow?
 	bitwise_and(s, h, h);
-#define CIRCLE_HOUGH
+//#define CIRCLE_HOUGH
 #ifdef CIRCLE_HOUGH
 
+	//values taken from currentTime: '2015-05-07 02:19:09.554146' (dark) and currentTime: '2015-05-07 01:53:17.784595' (light)
 	int minDistDark = Evaluater::conf("PIECES_MINDIST_DARK", 32L);
-	int minRadDark = Evaluater::conf("PIECES_MINRAD_DARK", 24L);
-	int maxRadDark = Evaluater::conf("PIECES_MAXRAD_DARK", 45L);
-	int minDistLight = Evaluater::conf("PIECES_MINDIST_LIGHT", 36L);
-	int minRadLight = Evaluater::conf("PIECES_MINRAD_LIGHT", 16L);
-	int maxRadLight = Evaluater::conf("PIECES_MAXRAD_LIGHT", 45L);
-	int accuThreshLight = Evaluater::conf("PIECES_ACCUTHRESH_LIGHT", 50L);
-	int accuThreshDark = Evaluater::conf("PIECES_ACCUTHRESH_DARK", 50L);
+	int minRadDark = Evaluater::conf("PIECES_MINRAD_DARK", 14L);
+	int maxRadDark = Evaluater::conf("PIECES_MAXRAD_DARK", 35L);
+	int minDistLight = Evaluater::conf("PIECES_MINDIST_LIGHT", 26L);
+	int minRadLight = Evaluater::conf("PIECES_MINRAD_LIGHT", 12L);
+	int maxRadLight = Evaluater::conf("PIECES_MAXRAD_LIGHT", 39L);
+	int accuThreshLight = Evaluater::conf("PIECES_ACCUTHRESH_LIGHT", 40L);
+	int accuThreshDark = Evaluater::conf("PIECES_ACCUTHRESH_DARK", 40L);
 
 	//          (Input, Output,   method,            dp, minDist,      param1, param2, minRad,  maxRad )
 	HoughCircles(h, lightPieces, CV_HOUGH_GRADIENT, 3, minDistLight, 900, accuThreshLight, minRadLight, maxRadLight);
 	HoughCircles(v, darkPieces,  CV_HOUGH_GRADIENT, 3, minDistDark,  900, accuThreshDark, minRadDark, maxRadDark);
 #else
 
-	int minDiameter = Evaluater::conf("PIECES_MINDIAMETER", 9L);
-	int maxDiameter = Evaluater::conf("PIECES_MAXDIAMETER", 32L);
-	double maxRatio = Evaluater::conf("PIECES_MAXRATIO", 1.5);
-	double minRatio = Evaluater::conf("PIECES_MINRATIO", 0.5);
-	int splitRatio = Evaluater::conf("PIECES_SPLITDIFFERENCE", 5L);
+	//values taken from currentTime: '2015-05-07 04:04:08.575342'
+	int minDiameterDark = Evaluater::conf("PIECES_MINDIAMETER_DARK", 10L);
+	int maxDiameterDark = Evaluater::conf("PIECES_MAXDIAMETER_DARK", 24L);
+	double maxRatioDark = Evaluater::conf("PIECES_MAXRATIO_DARK", 1.6);
+	double minRatioDark = Evaluater::conf("PIECES_MINRATIO_DARK", 0.7);
+	int splitRatioDark = Evaluater::conf("PIECES_SPLITDIFFERENCE_DARK", 1L);
+
+	//values from currentTime: '2015-05-07 02:57:10.985502'
+	int minDiameterLight = Evaluater::conf("PIECES_MINDIAMETER_LIGHT", 10L);
+	int maxDiameterLight = Evaluater::conf("PIECES_MAXDIAMETER_LIGHT", 26L);
+	double maxRatioLight = Evaluater::conf("PIECES_MAXRATIO_LIGHT", 2.0);
+	double minRatioLight = Evaluater::conf("PIECES_MINRATIO_LIGHT", 0.1);
+	int splitRatioLight = Evaluater::conf("PIECES_SPLITDIFFERENCE_LIGHT", 6L);
 
 	bitwise_not(h, h);
 	bitwise_not(v, v);
@@ -94,12 +103,12 @@ void PieceDetector::detectPieces(vector<Point3f> &darkPieces, vector<Point3f> &l
 
 	for(auto &c : contours){
 		Rect bounding = boundingRect(c);
-		if(abs(bounding.width - bounding.height/2) < splitRatio){
+		if(abs(bounding.width - bounding.height/2) < splitRatioDark){
 			bounding.height = bounding.height/2;
 			boundings.push_back(bounding);
 			bounding.y += bounding.height;
 			boundings.push_back(bounding);
-		}else if(abs(bounding.height - bounding.width/2) < splitRatio){
+		}else if(abs(bounding.height - bounding.width/2) < splitRatioDark){
 			bounding.width = bounding.width/2;
 			boundings.push_back(bounding);
 			bounding.x += bounding.width;
@@ -112,13 +121,13 @@ void PieceDetector::detectPieces(vector<Point3f> &darkPieces, vector<Point3f> &l
 	for (auto b : boundings) {
 		float ratio = b.height!=0? (float) b.width / b.height : 99;
 		if (b.height != 0 && ratio >= 0.05 &&
-				((ratio > minRatio && ratio < maxRatio) ||  (1/ratio > minRatio && 1/ratio < maxRatio))) {
+				((ratio > minRatioDark && ratio < maxRatioDark) ||  (1/ratio > minRatioDark && 1/ratio < maxRatioDark))) {
 
 			int centerX = b.x + b.width / 2;
 			int centerY = b.y + b.height / 2;
 			int diameter = (b.width + b.height) / 4;
 
-			if(diameter > minDiameter && diameter < maxDiameter)
+			if(diameter > minDiameterDark && diameter < maxDiameterDark)
 				darkPieces.push_back(Point3f(centerX, centerY, diameter));
 		}
 	}
@@ -128,12 +137,12 @@ void PieceDetector::detectPieces(vector<Point3f> &darkPieces, vector<Point3f> &l
 
 	for(auto &c : contours){
 		Rect bounding = boundingRect(c);
-		if(abs(bounding.width - bounding.height/2) < splitRatio){
+		if(abs(bounding.width - bounding.height/2) < splitRatioLight){
 			bounding.height = bounding.height/2;
 			boundings.push_back(bounding);
 			bounding.y += bounding.height;
 			boundings.push_back(bounding);
-		}else if(abs(bounding.height - bounding.width/2) < splitRatio){
+		}else if(abs(bounding.height - bounding.width/2) < splitRatioLight){
 			bounding.width = bounding.width/2;
 			boundings.push_back(bounding);
 			bounding.x += bounding.width;
@@ -147,13 +156,13 @@ void PieceDetector::detectPieces(vector<Point3f> &darkPieces, vector<Point3f> &l
 
 		float ratio = bounding.height!=0? (float) bounding.width / bounding.height : 99;
 		if (bounding.height != 0 && ratio >= 0.05 &&
-				((ratio > minRatio && ratio < maxRatio) ||  (1/ratio > minRatio && 1/ratio < maxRatio))) {
+				((ratio > minRatioLight && ratio < maxRatioLight) ||  (1/ratio > minRatioLight && 1/ratio < maxRatioLight))) {
 
 			int centerX = bounding.x + bounding.width / 2;
 			int centerY = bounding.y + bounding.height / 2;
 			int diameter = (bounding.width + bounding.height) / 4;
 
-			if(diameter > minDiameter && diameter < maxDiameter)
+			if(diameter > minDiameterLight && diameter < maxDiameterLight)
 				lightPieces.push_back(Point3f(centerX, centerY, diameter));
 
 		}
