@@ -61,5 +61,7 @@ public:
 	 * Removes duplicates, ie intersections closer to each other than a specific threshhold
 	 */
 	void removeDuplicateIntersections();
+
+	static void sort(std::vector<cv::Point2f> &intersections);
 };
 #endif

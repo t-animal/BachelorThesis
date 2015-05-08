@@ -127,11 +127,11 @@ void detect(Mat &input, vector<Point2f> &intersections, vector<Point2f> &selecte
 		return;
 	}
 
-
 	//fill gaps using these and generate complete set of board intersections
 	gapsFiller.fillGaps(selectedIntersections, filledIntersections);
 	if(globEval != NULL) globEval->saveStepTime("Filled all gaps");
 
+	gapsFiller.refine(intersections, filledIntersections);
 
 	//rotate these back
 	rotate(intersections, intersections, center, angle*-1);

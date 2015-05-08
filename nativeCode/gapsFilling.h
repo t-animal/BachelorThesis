@@ -41,6 +41,8 @@ public:
 			std::vector<cv::Point2f> &filledIntersections    //!< the return vector for the filled intersections
 	);
 
+	void refine(std::vector<cv::Point2f> intersections, std::vector<cv::Point2f> &filledIntersections);
+
 	cv::Mat getImageTransformationMatrix();
 };
 #endif

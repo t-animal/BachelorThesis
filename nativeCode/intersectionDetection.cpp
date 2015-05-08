@@ -172,7 +172,11 @@ void IntersectionDetector::selectBoardIntersections(vector<Point2f> &selectedInt
 			}
 		}
 	}
-	sort(selectedIntersections, UpperLeftPointSorter);
+	sort(selectedIntersections);
+}
+
+void IntersectionDetector::sort(vector<Point2f> &intersections){
+	cv::sort(intersections, UpperLeftPointSorter);
 }
 
 

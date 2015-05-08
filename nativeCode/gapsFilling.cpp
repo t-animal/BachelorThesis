@@ -7,6 +7,7 @@
 
 #include "gapsFilling.h"
 #include "util.h"
+#include "intersectionDetection.h"
 
 using namespace std;
 using namespace cv;
@@ -64,7 +65,7 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 			col = 0;
 
 			//insert additional lines, if there's a line without keypoints
-			while (lastY + averageDistance * 1.3 < i.y) {
+			while (lastY + averageDistance * 1.75 < i.y) {
 				lastY += averageDistance;
 
 				for(int i=0; i < 6; i++){
@@ -74,14 +75,15 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 						closestLocation = Point(col, row);
 						closestPoint = newPoint;
 					}
-					circle(disp, newPoint, 8, Scalar(120), 2);
+					circle(disp, newPoint, 8, Scalar(255), 2);
+					imshow("disp", disp);
 				}
 
 				row++;
 			}
 
 			//if we have an outlier to the left => shift all others one to the right
-			if (i.x < smallestX - averageDistance * 0.5) {
+			if (i.x < smallestX - averageDistance * 0.75) {
 				int outlierCount = round((smallestX - i.x) / averageDistance);
 				for (Point2f &kp : keypoints) {
 					kp.x += KPDIST * outlierCount;
@@ -90,7 +92,7 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 			}
 
 			//if we have a missing intersection at the beginning of the line => skip columns
-			if (i.x > smallestX + averageDistance * 0.5) {
+			if (i.x > smallestX + averageDistance * 0.75) {
 				while (smallestX + col * averageDistance < i.x) {
 					col++; //todo rechnerisch bestimmen
 				}
@@ -109,7 +111,8 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 					closestLocation = Point(col, row);
 					closestPoint = newPoint;
 				}
-				circle(disp, newPoint, 8, Scalar(120), 2);
+				circle(disp, newPoint, 8, Scalar(255), 2);
+				imshow("disp", disp);
 
 				col++;
 			}
@@ -123,6 +126,9 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 
 		keypoints.push_back(Point2f(col * KPDIST + center.x, row * KPDIST + center.y));
 
+		circle(disp, i, 8, Scalar(255), 2);
+		imshow("disp", disp);
+
 		lastX = i.x;
 		lastY = i.y;
 
@@ -131,9 +137,9 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 
 	circle(disp, center, 2, Scalar(0,0,255), 3);
 	for (auto i : intersections) {
-		circle(disp, i, 5, Scalar(120,120,120), 3);
+		circle(disp, i, 5, Scalar(255,255,255), 3);
 	}
-	circle(disp,  closestPoint, 5, Scalar(255,0,0), 3);
+	circle(disp,  closestPoint, 5, Scalar(0,0,255), 3);
 	imshow("disp", disp);
 
 	int rowsAboveCenter = closestLocation.y;
@@ -142,7 +148,11 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 	for (Point2f &kp : keypoints) {
 		kp.y -= (rowsAboveCenter) * KPDIST;
 		kp.x -= colsLeftOfCenter * KPDIST;
+
+		circle(disp, kp, 2, Scalar(0,255,255), 3);
 	}
+	imshow("disp", disp);
+
 
 	cout << "#" << "rowsAboveCenter " << rowsAboveCenter << " colsLeftOfCenter " << colsLeftOfCenter << endl;
 }
@@ -154,11 +164,83 @@ void GapsFiller::fillGaps(vector<Point2f> intersections, vector<Point2f> &filled
 
 	if (intersections.size() < 4 || object.size() != intersections.size()) {
 //		LOGD("homography detection impossible: object: %d, intersections: %d", object.size(), intersections.size());
+		return;
 	} else {
 		H = findHomography(object, intersections, RANSAC, 5);
 		perspectiveTransform(filledIntersections, filledIntersections, H);
 		perspectiveTransform(object, object, H);
 	}
+}
+
+void GapsFiller::refine(vector<Point2f> intersections, vector<Point2f> &filledIntersections){
+	vector<Point2f> selectedIntersections, filledIntersections2, object;
+	IntersectionDetector::sort(filledIntersections);
+	generateReferenceKeypoints(filledIntersections2, 9);
+
+	int row=0, col=0;
+	int prevX = intersections[0].x;
+	float closestDistance = 999999;
+	Point closestLocation(-1,-1);
+	Point2f closestPoint;
+	for(auto &i : filledIntersections){
+		if(i.x<prevX){
+			col=0;
+			row++;
+		}
+		bool matched=false;
+		for(auto j : intersections){
+			if(norm(i-j) < 15){
+				i.x = j.x;
+				i.y = j.y;
+				selectedIntersections.push_back(j);
+				object.push_back(Point2f(col * KPDIST + center.x, row * KPDIST + center.y));
+
+				circle(disp, i, 3, Scalar(0,150,255), 4);
+
+				if(norm(center-i) < closestDistance){
+					closestDistance = norm(center-i);
+					closestLocation = Point(col, row);
+					closestPoint = i;
+				}
+				matched = true;
+				break;
+			}
+		}
+		if(!matched){
+			circle(disp, i, 3, Scalar(0,0,255), 7);
+		}
+		col++;
+		prevX = i.x;
+	}
+	for(auto j : intersections){
+		circle(disp, j, 2, Scalar(255,255,255), 2);
+	}
+
+	int rowsAboveCenter = closestLocation.y;
+	int colsLeftOfCenter = closestLocation.x;
+
+	for (Point2f &kp : object) {
+		kp.y -= (rowsAboveCenter) * KPDIST;
+		kp.x -= colsLeftOfCenter * KPDIST;
+	}
+
+	if (selectedIntersections.size() < 4 || object.size() != selectedIntersections.size()) {
+//		LOGD("homography detection impossible: object: %d, intersections: %d", object.size(), intersections.size());
+		return;
+	} else {
+		H = findHomography(object, selectedIntersections, RANSAC, 5);
+		perspectiveTransform(filledIntersections2, filledIntersections2, H);
+		perspectiveTransform(object, object, H);
+	}
+
+	for(auto i:filledIntersections)
+		circle(disp, i, 9, Scalar(0,255,0), 5);
+	for(auto i:filledIntersections2)
+		circle(disp, i, 9, Scalar(0,120,0), 5);
+	imshow("disp", disp);
+	filledIntersections.clear();
+	filledIntersections.insert(filledIntersections.end(), filledIntersections2.begin(), filledIntersections2.end());
+//	filledIntersections = filledIntersections2;
 }
 
 Mat GapsFiller::getImageTransformationMatrix(){
