@@ -291,7 +291,7 @@ int main(int argc, char** argv) {
 #ifdef USE_JNI
 
 extern "C" {
-	JNIEXPORT void JNICALL Java_de_t_1animal_goboardreader_DetectorActivity_detect(
+	JNIEXPORT void JNICALL Java_de_t_1animal_goboardreader_BusinessLogic_detect(
 			JNIEnv * jenv, jobject obj, jlong src, jlong java_intersections, jlong java_selectedIntersections,
 			jlong java_filledIntersections, jlong java_darkCircles, jlong java_lightCircles, jintArray java_board,
 			jlong java_prevIntersections) {
@@ -321,7 +321,7 @@ extern "C" {
 		vector_Point3f_to_Mat(lightCircles, *((Mat*)java_lightCircles));
 	}
 
-	JNIEXPORT void JNICALL Java_de_t_1animal_goboardreader_DetectorActivity_saveAsYAML(
+	JNIEXPORT void JNICALL Java_de_t_1animal_goboardreader_BusinessLogic_saveAsYAML(
 			JNIEnv *jenv, jobject obj, jlong src, jstring filename) {
 
 		const char *path = jenv->GetStringUTFChars(filename, 0);
