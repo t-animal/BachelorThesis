@@ -4,8 +4,8 @@ from evaluaterUtils import *
 
 params = Storage()
 
-params.COLORS_SPECKLESIZE =  range(0, 5, 1) #2   +- 2
-params.COLORS_RECTSIZE    =  range(5, 36, 2) #20  +-15
+params.COLORS_SPECKLESIZE =  range(0, 7, 1) #2   +- 2
+params.COLORS_RECTSIZE    =  range(1, 41, 2) #20  +-20
 params.COLORS_BLACKTHRESH =  range(40, 80, 4) #80  +-40
 params.COLORS_WHITETHRESH =  range(180, 261, 4) #220 +-40
 
