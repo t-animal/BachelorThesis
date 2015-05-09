@@ -65,7 +65,7 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 			col = 0;
 
 			//insert additional lines, if there's a line without keypoints
-			while (lastY + averageDistance * 1.75 < i.y) {
+			while (lastY + averageDistance * 1.3 < i.y) {
 				lastY += averageDistance;
 
 				for(int i=0; i < 6; i++){
@@ -76,14 +76,13 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 						closestPoint = newPoint;
 					}
 					circle(disp, newPoint, 8, Scalar(255), 2);
-					imshow("disp", disp);
 				}
 
 				row++;
 			}
 
 			//if we have an outlier to the left => shift all others one to the right
-			if (i.x < smallestX - averageDistance * 0.75) {
+			if (i.x < smallestX - averageDistance * 0.5) {
 				int outlierCount = round((smallestX - i.x) / averageDistance);
 				for (Point2f &kp : keypoints) {
 					kp.x += KPDIST * outlierCount;
@@ -92,7 +91,7 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 			}
 
 			//if we have a missing intersection at the beginning of the line => skip columns
-			if (i.x > smallestX + averageDistance * 0.75) {
+			if (i.x > smallestX + averageDistance * 0.5) {
 				while (smallestX + col * averageDistance < i.x) {
 					col++; //todo rechnerisch bestimmen
 				}
@@ -102,7 +101,7 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 		}else{
 
 			//if there are keypoints missing in the middle of the line => skip colums
-			while (i.x - lastX > averageDistance * 1.15) {
+			while (i.x - lastX > averageDistance * 1.5) {
 				lastX += averageDistance;
 
 				Point2f newPoint = Point2f(lastX, i.y);
@@ -112,7 +111,6 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 					closestPoint = newPoint;
 				}
 				circle(disp, newPoint, 8, Scalar(255), 2);
-				imshow("disp", disp);
 
 				col++;
 			}
@@ -127,7 +125,6 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 		keypoints.push_back(Point2f(col * KPDIST + center.x, row * KPDIST + center.y));
 
 		circle(disp, i, 8, Scalar(255), 2);
-		imshow("disp", disp);
 
 		lastX = i.x;
 		lastY = i.y;
@@ -140,7 +137,6 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 		circle(disp, i, 5, Scalar(255,255,255), 3);
 	}
 	circle(disp,  closestPoint, 5, Scalar(0,0,255), 3);
-	imshow("disp", disp);
 
 	int rowsAboveCenter = closestLocation.y;
 	int colsLeftOfCenter = closestLocation.x;
@@ -151,10 +147,9 @@ void GapsFiller::generateCorrespondingKeypoints(vector<Point2f> &keypoints, vect
 
 		circle(disp, kp, 2, Scalar(0,255,255), 3);
 	}
-	imshow("disp", disp);
 
 
-	cout << "#" << "rowsAboveCenter " << rowsAboveCenter << " colsLeftOfCenter " << colsLeftOfCenter << endl;
+	//cout << "#" << "rowsAboveCenter " << rowsAboveCenter << " colsLeftOfCenter " << colsLeftOfCenter << endl;
 }
 
 void GapsFiller::fillGaps(vector<Point2f> intersections, vector<Point2f> &filledIntersections) {
@@ -177,6 +172,9 @@ void GapsFiller::refine(vector<Point2f> intersections, vector<Point2f> &filledIn
 	IntersectionDetector::sort(filledIntersections);
 	generateReferenceKeypoints(filledIntersections2, 9);
 
+	Mat disp;
+	this->disp.copyTo(disp);
+
 	int row=0, col=0;
 	int prevX = intersections[0].x;
 	float closestDistance = 999999;
@@ -188,6 +186,13 @@ void GapsFiller::refine(vector<Point2f> intersections, vector<Point2f> &filledIn
 			row++;
 		}
 		bool matched=false;
+
+		if(norm(center-i) < closestDistance){
+			closestDistance = norm(center-i);
+			closestLocation = Point(col, row);
+			closestPoint = i;
+		}
+
 		for(auto j : intersections){
 			if(norm(i-j) < 15){
 				i.x = j.x;
@@ -195,23 +200,22 @@ void GapsFiller::refine(vector<Point2f> intersections, vector<Point2f> &filledIn
 				selectedIntersections.push_back(j);
 				object.push_back(Point2f(col * KPDIST + center.x, row * KPDIST + center.y));
 
-				circle(disp, i, 3, Scalar(0,150,255), 4);
+				circle(disp, i, 3, Scalar(0,255,0), 4);
 
-				if(norm(center-i) < closestDistance){
-					closestDistance = norm(center-i);
-					closestLocation = Point(col, row);
-					closestPoint = i;
-				}
 				matched = true;
 				break;
 			}
 		}
 		if(!matched){
-			circle(disp, i, 3, Scalar(0,0,255), 7);
+			circle(disp, i, 2, Scalar(0,0,255), 2);
 		}
 		col++;
 		prevX = i.x;
 	}
+
+
+	circle(disp, closestPoint, 12, Scalar(180,250,255),6);
+	circle(disp, center, 12, Scalar(180,250,255),6);
 	for(auto j : intersections){
 		circle(disp, j, 2, Scalar(255,255,255), 2);
 	}
@@ -233,11 +237,7 @@ void GapsFiller::refine(vector<Point2f> intersections, vector<Point2f> &filledIn
 		perspectiveTransform(object, object, H);
 	}
 
-	for(auto i:filledIntersections)
-		circle(disp, i, 9, Scalar(0,255,0), 5);
-	for(auto i:filledIntersections2)
-		circle(disp, i, 9, Scalar(0,120,0), 5);
-	imshow("disp", disp);
+
 	filledIntersections.clear();
 	filledIntersections.insert(filledIntersections.end(), filledIntersections2.begin(), filledIntersections2.end());
 //	filledIntersections = filledIntersections2;
