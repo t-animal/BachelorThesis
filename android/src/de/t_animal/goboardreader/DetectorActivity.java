@@ -72,6 +72,11 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	public void onResume()
 	{
 		super.onResume();
+		if (prevGrayImage != null) {
+			prevGrayImage.release();
+			prevGrayImage = null;
+		}
+
 		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_3, this, mLoaderCallback);
 	}
 
