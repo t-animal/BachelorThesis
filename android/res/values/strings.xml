@@ -1,5 +1,13 @@
 <resources>
 
     <string name="app_name">GoBoardReader</string>
+    
+    <string name="action_record">Start recording</string>
+    <string name="action_stop">Stop recording</string>
+    <string name="action_pause">Pause recording</string>
+    
+    <string name="action_settings">Settings (not yet implemented ;) )</string>
+    <string name="action_goToRecord">Record a game</string>
+    <string name="action_goToReplay">Replay a game</string>
 
 </resources>

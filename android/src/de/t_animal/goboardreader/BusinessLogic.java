@@ -2,7 +2,9 @@ package de.t_animal.goboardreader;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.core.Core;
@@ -32,6 +34,11 @@ public class BusinessLogic {
 	private MatOfPoint2f prevIntersections;
 	private boolean saveNextImage = false;
 
+	private byte[] blackPieceProb = new byte[81];
+	private byte[] whitePieceProb = new byte[81];
+
+	private List<String> game = new ArrayList<String>();
+
 	private Context context;
 
 	public BusinessLogic(Context context) {
@@ -54,18 +61,45 @@ public class BusinessLogic {
 	}
 
 	public void onStop() {
-		grayImage.release();
-		prevGrayImage.release();
-		prevIntersections.release();
-		colorImage.release();
-		detectionImage.release();
-		output.release();
+		if (grayImage != null)
+			grayImage.release();
+
+		if (prevGrayImage != null)
+			prevGrayImage.release();
+
+		if (prevIntersections != null)
+			prevIntersections.release();
+
+		if (colorImage != null)
+			colorImage.release();
+
+		if (detectionImage != null)
+			detectionImage.release();
+
+		if (output != null)
+			output.release();
 	}
 
 	public void saveNextImage() {
 		synchronized (this) {
 			saveNextImage = true;
 		}
+	}
+
+	public void saveBoardState() {
+		String board = String.copyValueOf(getCurrentProbableBoard());
+
+		if (game.size() == 0 || !board.equals(game.get(game.size() - 1))) {
+			game.add(board);
+		}
+	}
+
+	public List<String> getGame() {
+		return game;
+	}
+
+	public void clearGame() {
+		game.clear();
 	}
 
 	public Mat analyseImage(CvCameraViewFrame inputFrame) {
@@ -76,9 +110,9 @@ public class BusinessLogic {
 		MatOfPoint3f darkCircles = new MatOfPoint3f();
 		MatOfPoint3f lightCircles = new MatOfPoint3f();
 
-		int[] board = new int[81];
+		char[] measuredBoard = new char[81];
 		for (int i = 0; i < 81; i++) {
-			board[i] = '0';
+			measuredBoard[i] = '0';
 		}
 
 		// release the previous output in case it has not been released
@@ -108,7 +142,7 @@ public class BusinessLogic {
 			diff.release();
 
 			output = createOutput(colorImage, intersections, selectedIntersections, filledIntersections, darkCircles,
-					lightCircles, board);
+					lightCircles, measuredBoard);
 
 			colorImage.release();
 
@@ -132,15 +166,18 @@ public class BusinessLogic {
 		if (prevIntersections == null) {
 			detect(detectionImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
 					selectedIntersections.getNativeObjAddr(), filledIntersections.getNativeObjAddr(),
-					darkCircles.getNativeObjAddr(), lightCircles.getNativeObjAddr(), board, 0);
+					darkCircles.getNativeObjAddr(), lightCircles.getNativeObjAddr(), measuredBoard, 0);
 		} else {
 			detect(detectionImage.getNativeObjAddr(), intersections.getNativeObjAddr(),
 					selectedIntersections.getNativeObjAddr(), filledIntersections.getNativeObjAddr(),
-					darkCircles.getNativeObjAddr(), lightCircles.getNativeObjAddr(), board,
-					prevIntersections.getNativeObjAddr());
+					darkCircles.getNativeObjAddr(), lightCircles.getNativeObjAddr(), measuredBoard,
+					0);
 			prevIntersections.release();
 		}
 		prevIntersections = filledIntersections;
+
+		updateProbableBoard(measuredBoard);
+		char board[] = getCurrentProbableBoard();
 
 		// create an output image
 		output = createOutput(colorImage, intersections, selectedIntersections, filledIntersections, darkCircles,
@@ -162,11 +199,44 @@ public class BusinessLogic {
 		detectionImage.release();
 
 		return output;
+	}
 
+	private void updateProbableBoard(char currentMeasurement[]) {
+		for (int i = 0; i < currentMeasurement.length; i++) {
+			if (currentMeasurement[i] == 'b') {
+				whitePieceProb[i] -= whitePieceProb[i] == 0 ? 0 : 1;
+				blackPieceProb[i] += blackPieceProb[i] == 10 ? 0 : 1;
+			} else if (currentMeasurement[i] == 'w') {
+				whitePieceProb[i] += whitePieceProb[i] == 10 ? 0 : 1;
+				blackPieceProb[i] -= blackPieceProb[i] == 0 ? 0 : 1;
+			} else if (currentMeasurement[i] == '0') {
+				whitePieceProb[i] -= whitePieceProb[i] == 0 ? 0 : 1;
+				blackPieceProb[i] -= blackPieceProb[i] == 0 ? 0 : 1;
+			}
+			System.out.print(whitePieceProb[i] + " " + blackPieceProb[i] + "   ");
+
+		}
+		System.out.println("===");
+	}
+
+	private char[] getCurrentProbableBoard() {
+		char[] board = new char[81];
+
+		for (int i = 0; i < board.length; i++) {
+			if (whitePieceProb[i] > 5) {
+				board[i] = 'w';
+			} else if (blackPieceProb[i] > 5) {
+				board[i] = 'b';
+			} else {
+				board[i] = '0';
+			}
+		}
+
+		return board;
 	}
 
 	private Mat createOutput(Mat colorImage, MatOfPoint2f intersections, MatOfPoint2f selectedIntersections,
-			MatOfPoint2f filledIntersections, MatOfPoint3f darkCircles, MatOfPoint3f lightCircles, int board[]) {
+			MatOfPoint2f filledIntersections, MatOfPoint3f darkCircles, MatOfPoint3f lightCircles, char board[]) {
 		for (int i = 0; i < intersections.rows(); i++) {
 			double[] p = intersections.get(i, 0);
 			Core.circle(colorImage, new Point(p[0], p[1]), 10, LIGHT_GRAY, 1);
@@ -270,9 +340,9 @@ public class BusinessLogic {
 
 	}
 
-	public native void detect(long mgray, long intersections, long selectedIntersections, long filledIntersections,
-			long darkCircles, long lightCircles, int board[], long prevIntersections);
+	private native void detect(long mgray, long intersections, long selectedIntersections, long filledIntersections,
+			long darkCircles, long lightCircles, char board[], long prevIntersections);
 
-	public native void saveAsYAML(long image, String filename);
+	private native void saveAsYAML(long image, String filename);
 
 }

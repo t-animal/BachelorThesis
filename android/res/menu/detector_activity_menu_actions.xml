@@ -1,0 +1,33 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <!-- Search, should appear as action button -->
+    
+    <item android:id="@+id/action_goToReplay"
+          android:icon="@drawable/ic_action_play"
+          android:title="@string/action_goToReplay"
+          android:showAsAction="ifRoom"
+          android:onClick="goToReplay" />
+    
+    <item android:id="@+id/action_stop"
+          android:icon="@drawable/ic_action_stop"
+          android:title="@string/action_stop"
+          android:showAsAction="ifRoom"
+          android:onClick="setStateStopped" />
+    
+    <item android:id="@+id/action_pause"
+          android:icon="@drawable/ic_action_pause"
+          android:title="@string/action_pause"
+          android:showAsAction="ifRoom" 
+          android:onClick="setStatePaused" />
+    
+    <item android:id="@+id/action_record"
+          android:icon="@drawable/ic_action_record"
+          android:title="@string/action_record"
+          android:showAsAction="ifRoom"
+          android:onClick="setStateRecording" />
+    
+    
+    <!-- Settings, should always be in the overflow -->
+    <item android:id="@+id/action_settings"
+          android:title="@string/action_settings"
+          android:showAsAction="never"/>
+</menu>
