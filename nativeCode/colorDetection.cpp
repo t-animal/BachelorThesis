@@ -28,11 +28,12 @@ void ColorDetector::getColors(uchar *pieces) {
 		start++;
 	}
 
-	int speckleSize = Evaluater::conf("COLORS_SPECKLESIZE", 1L);
-	int rectSize = Evaluater::conf("COLORS_RECTSIZE", 20L);
-	int blackThresh = Evaluater::conf("COLORS_BLACKTHRESH", 76L);
-	int whiteThresh = Evaluater::conf("COLORS_WHITETHRESH", 215L);
-	int borderLower = Evaluater::conf("COLORS_BORDERLOWERING", 35L);
+	//values from currentTime: '2015-05-09 19:56:35.167690'
+	int speckleSize = Evaluater::conf("COLORS_SPECKLESIZE", 2L);
+	int rectSize = Evaluater::conf("COLORS_RECTSIZE", 10L);
+	int blackThresh = Evaluater::conf("COLORS_BLACKTHRESH", 25L);
+	int whiteThresh = Evaluater::conf("COLORS_WHITETHRESH", 174L);
+	int borderLower = Evaluater::conf("COLORS_BORDERLOWERING", 65L);
 
 	erode(src, src, Mat(), Point(-1, -1), speckleSize);
 	dilate(src, src, Mat(), Point(-1, -1), speckleSize);
