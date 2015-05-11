@@ -1,0 +1,53 @@
+%!TEX root = ../Thesis.tex
+
+\begin{figure}
+	\pgfplotsset{width=\textwidth, height=5cm, compat=1.11}
+	\begin{subfigure}{0.45\textwidth}
+		\begin{tikzpicture}
+			\begin{axis}[
+				xticklabels={,,},
+				axis x line=bottom,
+				axis y line=left,
+				xmin=0,
+				ymin=0,
+				xmax=32,
+				ymax=1
+				]
+				\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,81}) -- ({rel axis cs:0,0}|-{axis cs:0,81});
+
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=orange!40!black}]
+					table[x expr=\coordindex+1, y expr=\thisrow{matched}/(\thisrow{matched}+\thisrow{wrong})] {plots/pieces_contour_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=orange}]
+					table[x expr=\coordindex+1, y expr=\thisrow{matched}/\thisrow{available}] {plots/pieces_contour_testSet.csv};
+			\end{axis}
+		\end{tikzpicture}
+		\caption{Results of the contour based detector}
+		\label{fig:piecesTest-contour}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}{0.45\textwidth}
+		\begin{tikzpicture}
+			\begin{axis}[
+				xticklabels={,,},
+				axis x line=bottom,
+				axis y line=left,
+				xmin=0,
+				ymin=0,
+				xmax=32,
+				ymax=1
+				]
+				\draw[gray] ({rel axis cs:1,0}|-{axis cs:0,81}) -- ({rel axis cs:0,0}|-{axis cs:0,81});
+
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=magenta!40!black}]
+					table[x expr=\coordindex+1, y expr=\thisrow{matched}/(\thisrow{matched}+\thisrow{wrong})] {plots/pieces_hough_testSet.csv};
+				\addplot[only marks, mark=*, mark options={scale=1.1, fill=magenta}]
+					table[x expr=\coordindex+1, y expr=\thisrow{matched}/\thisrow{available}] {plots/pieces_hough_testSet.csv};
+			\end{axis}
+		\end{tikzpicture}
+		\caption{Results of the hough transformation detector}
+		\label{fig:piecesTest-hough}
+	\end{subfigure}
+
+\caption{True positive rate (light color filled circles) and precision (dark color filled circles) per image in our test set.}
+\label{fig:piecesTest}
+\end{figure}

@@ -39,36 +39,38 @@
 	\subsubsection{Using LSD}
 	\label{detector-visible-lsd}
 	%TODO update with  updated algorithm
-	We then tried applying the Line Segment Detector \cite{von2012lsd} on the output of the Canny edge detector. We had to backport this from OpenCV 3 as it is not available in the aforementioned version. As was to be expected judging from the examples in von Gioi's paper this detector requires significant post-processing. For every square in the grid the LSD finds four line segments. Consequently two adjacent squares produce two parallel lines. This method is also prone to noisy backgrounds and produces many short, false positive lines. That is due to the nature of the detector of approximating circles with lines which comes into effect especially around black pieces, as can be seen in \ref{fig:lsdPostprocessingFirst}.
+	We then tried applying the Line Segment Detector \cite{von2012lsd} on the output of the Canny edge detector. We had to backport this from OpenCV 3 as it is not available in the aforementioned version. As was to be expected judging from the examples in von Gioi's paper this detector requires significant post-processing. For every square in the grid the LSD finds four line segments. Consequently two adjacent squares produce two parallel lines. This method is also prone to noisy backgrounds and produces many short, false positive lines. That is due to the nature of the detector of approximating circles with lines which comes into effect especially around black pieces, as can be seen in \autoref{fig:lsdPostprocessingFirst}.
 
-	Therefore our first postprocessing step is to eliminate short line segments (see \ref{fig:lsdPostprocessingLength}). Afterwards for each line we count the number of parallels close-by and keep only those with a count of at least one, as most line segments pertaining to the grid have a parallel line. Having reduced the number of false positives significantly we classify the lines the same way as described above into horizontal and vertical lines. If we now intersected those, we would still have many false positives, because one line which spans the whole length of the grid on the board might be represented by several detected line segments. As we prolong them into infinity when intersecting small differences in direction add up and produce intersections at the wrong place. Thus as last postprocessing step we merge nearby line segments into one if they are close and parallel to each other and filter once again for line length, this time with a slightly higher threshold.
+	Therefore our first postprocessing step is to eliminate short line segments (see \autoref{fig:lsdPostprocessingLength}). Afterwards for each line we count the number of parallels close-by and keep only those with a count of at least one, as most line segments pertaining to the grid have a parallel line. Having reduced the number of false positives significantly we classify the lines the same way as described above into horizontal and vertical lines. If we now intersected those, we would still have many false positives, because one line which spans the whole length of the grid on the board might be represented by several detected line segments. As we prolong them into infinity when intersecting small differences in direction add up and produce intersections at the wrong place. Thus as last postprocessing step we merge nearby line segments into one if they are close and parallel to each other and filter once again for line length, this time with a slightly higher threshold.
 
 	\begin{figure}
-		\begin{subfigure}{0.23\textwidth}
+	\begin{center}
+		\begin{subfigure}{0.33\textwidth}
 			\includegraphics[width=\textwidth]{images/lsd_first.png}
-			\label{fig:lsdPostprocessingFirst}
 			\caption{Unfiltered LSD output}
+			\label{fig:lsdPostprocessingFirst}
 		\end{subfigure}
-		\hfill
-		\begin{subfigure}{0.23\textwidth}
+		\hspace{2em}
+		\begin{subfigure}{0.33\textwidth}
 			\includegraphics[width=\textwidth]{images/lsd_length.png}
-			\label{fig:lsdPostprocessingLength}
 			\caption{... filtered for line length,}
+			\label{fig:lsdPostprocessingLength}
 		\end{subfigure}
-		\hfill
-		\begin{subfigure}{0.23\textwidth}
+		\\
+		\begin{subfigure}{0.33\textwidth}
 			\includegraphics[width=\textwidth]{images/lsd_parallel.png}
+			\caption{... filtered for at least one parallel, }
 			\label{fig:lsdPostprocessingParallel}
-			\caption{... filtered for parallels, }
 		\end{subfigure}
-		\hfill
-		\begin{subfigure}{0.23\textwidth}
+		\hspace{2em}
+		\begin{subfigure}{0.33\textwidth}
 			\includegraphics[width=\textwidth]{images/lsd_final.png}
+			\caption{and stitched and filtered once more for length}
 			\label{fig:lsdPostprocessingFinal}
-			\caption{and stitched and filtered for length}
 		\end{subfigure}
 
 		\caption{The postprocessing steps necessary for the LSD}
+	\end{center}
 	\end{figure}
 
 
@@ -108,7 +110,9 @@
 	\label{detector-calculate}
 	Having collected a set of probable intersections we now must fill in gaps where neither lines nor pieces have been detected. Also we need to somehow figure out which detected intersections are valid and actually are part of the board and which are simply intersections of grid lines with the outer edge of the board or other noise.
 
-	First we calculate the average angle of the horizontal lines from the previous step and rotate the image to justify them. Then we select a number of intersections in the center of the board by selecting all intersections inside a square around the center. To do so, we assume the center of the board is the closest (detected or yet undetected) intersection to the center of the image. While this assumption can hardly be made in setups where the image is taken by bystanders or from randomly located cameras, we argue that when trying to record a game a user will be able to adjust the camera location accordingly. Another possibility could be to prompt the user for the center of the board, which is easily done via the touchscreen of the smart phone. We did not implement this approach for time reasons, but it should yield equal quality.
+	First we calculate the average angle of the horizontal lines from the previous step and rotate the image to justify them. This does not fix perspective distortion but it allows us to sort the intersections by lines, which we need later to iterate over them row-wise.
+
+	Then we select a number of intersections in the center of the board by selecting all intersections inside a square around the center. To do so, we assume the center of the board is the closest (detected or yet undetected) intersection to the center of the image. While this assumption can hardly be made in setups where the image is taken by bystanders or from randomly located cameras, we argue that when trying to record a game a user will be able to adjust the camera location accordingly. Another possibility could be to prompt the user for the center of the board, which is easily done via the touchscreen of the smart phone. We did not implement this approach for time reasons, but it should yield equal quality.
 
 	%TODO: anzahl evaluieren und hier eintragen
 	If the number of selected intersections is too small, we increase the window size and try again.
@@ -123,6 +127,7 @@
 
 	\section{Postprocessing}
 	\label{detector-postprocessing}
+	After the interpolation step the mean error is still quite high, because small errors in the selected intersections result in large errors when interpolating from them. To fix these, we first shift interpolated intersections to a closeby measured intersection, if one is available. Then we re-do the interpolation step with all those intersections which have been moved, i.e. in which we can be confident. This step can be repeated several times until a desired detection quality has been reached or it yields no further improvement. This is also key to detecting larger boards, where this step can be used to first figure out a nine-by-nine subgrid and then interpolate from it to larger boards. We did not implement this, though, due to the lack of a 19x19 board.
 
 	\section{Classifying intersections}
 	\label{detector-classifying}
@@ -138,6 +143,5 @@
 	\end{equation}
 	where $C$ is a constant value that is added to the white threshold on the edge of the grid. This is necessary because the lines are not continued there and less black pixels from them are contributed.
 
-	%TODO: evtl postprocessing (gleitender durchschnitt der intersections)
 	%TODO: rotation der intersections
 	%TODO: unsegmentation der intersections
