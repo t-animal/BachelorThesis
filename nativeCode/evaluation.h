@@ -37,7 +37,7 @@ public:
 	void setImage(cv::Mat &image){ this->image = image; }
 	void checkIntersectionCorrectness(const std::vector<cv::Point2f>&, int xOffset, int yOffset);
 	void checkPieceCorrectness(const std::vector<cv::Point3f>&, const std::vector<cv::Point3f>&, int xOffset, int yOffset);
-	void checkOverallCorrectness(const std::vector<cv::Point2f>&);
+	void checkFilledCorrectness(const std::vector<cv::Point2f>&);
 	void checkColorCorrectness(uchar board[], std::vector<cv::Point2f> &intersections, int xOffset = 0, int yOffset = 0);
 
 	void setStartTime();

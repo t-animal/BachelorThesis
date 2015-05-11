@@ -147,7 +147,7 @@ void Evaluater::checkIntersectionCorrectness(const vector<Point2f> &intersection
 	cout << test << endl;
 }
 
-void Evaluater::checkOverallCorrectness(const vector<Point2f> &intersections) {
+void Evaluater::checkFilledCorrectness(const vector<Point2f> &intersections) {
 	if (!evaluatable)
 		return;
 
@@ -169,6 +169,22 @@ void Evaluater::checkOverallCorrectness(const vector<Point2f> &intersections) {
 			matchedCount++;
 		}
 	}
+
+	string output;
+	FileStorage fs = getMemoryStorage();
+
+	float percentage = allIntersects.size() != 0 ? matchedCount * 100.0 / allIntersects.size() : 0;
+
+	fs << "avg_correct" << percentage;
+	fs << "sum_available" << (int) allIntersects.size();
+	fs << "sum_matched" << matchedCount;
+	fs << "sum_wrong" << (int)(allIntersects.size() - matchedCount);
+
+	saveParameters(fs);
+
+	output = fs.releaseAndGetString();
+
+	cout << output << endl;
 
 	if (allIntersects.size() == 0) {
 		cout << "#There's no reference points";
