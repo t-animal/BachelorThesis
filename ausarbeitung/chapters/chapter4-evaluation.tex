@@ -181,6 +181,13 @@
 	\section{Speed on an Android device}
 	\subsection{Getting a baseline}
 	\subsection{Comparing runtime of different approaches}
+	The Line Segment Detector outperforms the Hough transformation by a factor of two on our testing hardware. Unfortunately, as mentioned before its quality is also only half as good. If the postprocessing could be improved using the LSD would increase the frame rate by about 15\%. We did not evaluate FAST corner detection here, because it is simply too unfit for the task.
+
+	Originally we created the contour based approach for the piece detection to increase the speed of our detector. This goal was reached as it performs at about 129\% of the speed of the circle detector. However when looking at the absolute difference of 72.9ms this does not make a real difference considering the total runtime of about one second.
+
+	... === TODO: Restlichte Zeitdinge zum vergleich noch evaluieren (Schnittpunkte, Refinement, Color detection) === ...
+	%TODO...
+
 	\pgfplotstableread[header=false]{
 	345.24 	{Hough lines}
 	168.46	{LSD lines}
@@ -217,7 +224,7 @@
 				\addplot[fill=red] table [select row=0, y expr=0] {\datatable};
 			  \end{axis}
 		\end{tikzpicture}
-		\caption{TODO}
+		\caption{Runtime of different parts of our application}
 		\label{fig:timeEvaluation}
 	\end{figure}
 
@@ -254,9 +261,15 @@
 	\section{Overall performance and live experiences}
 	We furthermore chose to use Houghlines as it was the only well-performing line detector. For the detection of pieces we used the contour based algorithm due to its speed advantages for the final application as it was released to the Google Play Store\footnote{It can be installed at \url{https://play.google.com/store/apps/details?id=de.t_animal.goboardreader}}.
 
-	... === TODO === ...
+	To test the application on real games we let KiGo generate sample games and played them in different lighting conditions. In total there were 180 moves that could be recorded in six games, also counting the handicap pieces placed on the board before a game starts.
 
-	We were contempt with these results and tried to max out the amount of pieces we could place on the board to see how well the algorithm performed under extreme circumstances. The result was pretty good. Detection was possible until the board was nearly completely covered in pieces. We then put a piece on each intersection in a checkerboard like pattern -- alternating black and white. Even this completely abnormal configuration could be detected with near 100\% accuracy as \autoref{fig:android_perfect_recognition} shows. The results were very unstable, though. That means between a correctly classified frame lay several discarded ones, which did not contribute to the detection result but prolonged the detection time.
+	Three games took place on the same desk as in our training data. One of those was detected perfectly without any error. In one there was a false positive which was detected on several occasions. In the last there was a false positive white piece which vanished when a black piece was put on its location. That means 100\% of all played pieces were detected correctly.
+
+	Two more games were played under difficult lighting conditions in an inner courtyard. The opening in the ceiling cast large reflections on the black stones. To make things worse there were strong winds shaking the camera. In total there were three pieces which were not detected persistently, i.e. they vanished and reappeared several times. Two pieces were not detected at all. One move was detected too late and there were two false positives. Under these difficult conditions 90.3\% of all pieces on the board were detected correctly.
+
+	Lastly we recreated a game on a desk near a window under neon lighting. Here we had one piece which was detected only non-persistently and one which was not detected at all. Also there was one false positive at the very end of the game, after both players had passed. That makes a 93.8\% detection ratio.
+
+	After these quite good results and we tried to max out the amount of pieces we could place on the board to see how well the algorithm performed under extreme circumstances. The result was pretty good. Detection was possible until the board was nearly completely covered in pieces. We then put a piece on each intersection in a checkerboard like pattern -- alternating black and white. Even this completely abnormal configuration could be detected with near 100\% accuracy as \autoref{fig:android_perfect_recognition} shows. The results were very unstable, though. That means between a correctly classified frame lay several discarded ones, which did not contribute to the detection result but prolonged the detection time. Of course this is not a valid state of a game of Go, but it goes to show the power of using intersections when detecting densely occupied boards.
 
 	\begin{figure}[h]
 		\center
