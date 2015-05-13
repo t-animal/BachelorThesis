@@ -90,7 +90,8 @@
 
 	This yields pretty good results, however there is still a lot of noise in the thresholded image. To reduce this we apply a Gaussian blur to the source image before thresholding and remove speckles afterwards by eroding and dilating the image slightly.
 
-	Even still black pieces are being detected better, as we describe in TODO===TODO. However it is not very important for us to have a perfect detection ratio in this step, because the results are not used to generate the end result but only to fill in gaps in the intersections previously detected.
+	After that white pieces are actually detected better than black ones, as we describe in \ref{evaluation-occluded-optimization}. However it is not very important for us to have a perfect detection ratio in this step, because the results are not used to generate the end result but only to fill in gaps in the intersections previously detected.
+
 	\subsection{Using Hough circles}
 	\label{detector-occluded-hough}
 	Go pieces are relatively round and can be detected using Hough circles to some extent as long as the image is taken from a relatively high angle. If the camera is positioned near to the plane in which the board lies the circles become ellipses. In order to still match the pieces the threshold in the accumulator space beyond which a circle center will be detected has to be chosen quite low. This results in many false positives where noise is located by chance in some near-circle configuration.
@@ -141,7 +142,7 @@
 		\text{otherwise} & \Rightarrow \text{empty}
 		\end{cases}
 	\end{equation}
-	where $C$ is a constant value that is added to the white threshold on the edge of the grid. This is necessary because the lines are not continued there and less black pixels from them are contributed.
+	where $C$ is a constant value that is added to the white threshold on the edge of the grid. This is necessary because the lines are not continued there and less black pixels from them are contributed.\
 
-	%TODO: rotation der intersections
-	%TODO: unsegmentation der intersections
+	\section{Realigning the detected positions}
+	As we don't just return the detected board but also intersection and piece locations, we have to realign them with the image. This is necessary because we rotated the detection image in \ref{detector-calculate} and cropped it in \ref{detector-preprocessing}. To undo this, we rotate all returned locations around the center with the negative previously used angle. We also shift them by the negative offset of the cropped image inside the input image.
