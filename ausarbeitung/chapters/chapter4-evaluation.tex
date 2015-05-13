@@ -181,7 +181,45 @@
 	\section{Speed on an Android device}
 	\subsection{Getting a baseline}
 	\subsection{Comparing runtime of different approaches}
+	\pgfplotstableread[header=false]{
+	345.24 	{Hough lines}
+	168.46	{LSD lines}
+	322.58	{Hough pieces}
+	249.69	{Contour pieces}
+	51.33 {Framework}
+	}\datatable
+	\pgfplotsset{
+    select row/.style={
+        x filter/.code={\ifnum\coordindex=#1\else\def\pgfmathresult{}\fi}
+    }
+}
+	\begin{figure}
+		\pgfplotsset{width=\textwidth, height=5cm, compat=1.11}
+		\begin{tikzpicture}
+			 \begin{axis}[
+				        xbar,
+				        bar shift=0pt,
+				        xmin=0,
+				        xmax=400,
+				        ytick={0, 1, 2.5, 3.5, 5},
+				        yticklabels from table={\datatable}{1},
+				        xmajorgrids = true,
+				        width=12cm,
+				        height=5.5cm,
+				        xlabel={Time in ms},
+				        nodes near coords, nodes near coords align={horizontal},
+				  ]
 
+				\addplot[fill=gray] table [select row=4, y expr=5] {\datatable};
+				\addplot[fill=orange] table [select row=3, y expr=3.5] {\datatable};
+				\addplot[fill=magenta] table [select row=2, y expr=2.5] {\datatable};
+				\addplot[fill=blue] table [select row=1, y expr=1] {\datatable};
+				\addplot[fill=red] table [select row=0, y expr=0] {\datatable};
+			  \end{axis}
+		\end{tikzpicture}
+		\caption{TODO}
+		\label{fig:timeEvaluation}
+	\end{figure}
 
 
 

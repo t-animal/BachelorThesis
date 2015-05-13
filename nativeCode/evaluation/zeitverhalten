@@ -1,0 +1,33 @@
+Only opencv:
+05-13 15:16:54.100: I/System.out(6746): After 100 passes avg time is: 49.44
+05-13 15:16:59.421: I/System.out(6746): After 200 passes avg time is: 53.22
+05-13 15:17:04.902: I/System.out(6746): After 300 passes avg time is: 54.81
+05-13 15:17:09.841: I/System.out(6746): After 400 passes avg time is: 49.39
+05-13 15:17:15.120: I/System.out(6746): After 500 passes avg time is: 52.79
+05-13 15:17:20.299: I/System.out(6746): After 600 passes avg time is: 51.79
+05-13 15:17:25.016: I/System.out(6746): After 700 passes avg time is: 47.17
+05-13 15:17:30.065: I/System.out(6746): After 800 passes avg time is: 50.49
+05-13 15:17:35.543: I/System.out(6746): After 900 passes avg time is: 54.78
+05-13 15:17:40.626: I/System.out(6746): After 1000 passes avg time is: 50.83
+05-13 15:17:46.098: I/System.out(6746): After 1100 passes avg time is: 54.72
+
+hough,contours:
+05-13 15:41:42.138: D/T_ANIMAL::GBR::NativeComponent(13033): After 100 passes avg lines time is: 338.630000
+05-13 15:41:42.400: D/T_ANIMAL::GBR::NativeComponent(13033): After 100 passes avg pieces time is: 251.910000
+05-13 15:43:30.230: D/T_ANIMAL::GBR::NativeComponent(13033): After 200 passes avg lines time is: 352.580000
+05-13 15:43:30.515: D/T_ANIMAL::GBR::NativeComponent(13033): After 200 passes avg pieces time is: 252.050000
+05-13 15:45:20.446: D/T_ANIMAL::GBR::NativeComponent(13033): After 300 passes avg lines time is: 344.520000
+05-13 15:45:20.678: D/T_ANIMAL::GBR::NativeComponent(13033): After 300 passes avg pieces time is: 245.110000
+05-13 15:44:14.951: D/T_ANIMAL::GBR::DetectorActivity(13033): After 300 passes avg time is: 1076.41
+05-13 15:46:06.478: D/T_ANIMAL::GBR::DetectorActivity(13033): After 400 passes avg time is: 1115.26
+
+lsd,hough
+05-13 15:49:59.609: D/T_ANIMAL::GBR::NativeComponent(18703): After 100 passes avg lines time is: 167.040000
+05-13 15:49:59.897: D/T_ANIMAL::GBR::NativeComponent(18703): After 100 passes avg pieces time is: 315.590000
+05-13 15:50:00.322: D/T_ANIMAL::GBR::DetectorActivity(18703): After 100 passes avg time is: 1001.24
+05-13 15:51:40.646: D/T_ANIMAL::GBR::NativeComponent(18703): After 200 passes avg lines time is: 164.440000
+05-13 15:51:40.951: D/T_ANIMAL::GBR::NativeComponent(18703): After 200 passes avg pieces time is: 316.860000
+05-13 15:51:41.217: D/T_ANIMAL::GBR::DetectorActivity(18703): After 200 passes avg time is: 1008.95
+05-13 15:53:25.614: D/T_ANIMAL::GBR::NativeComponent(18703): After 300 passes avg lines time is: 173.900000
+05-13 15:53:25.933: D/T_ANIMAL::GBR::NativeComponent(18703): After 300 passes avg pieces time is: 335.280000
+05-13 15:53:26.114: D/T_ANIMAL::GBR::DetectorActivity(18703): After 300 passes avg time is: 1048.97
