@@ -1,9 +1,11 @@
 %!TEX root = ../Thesis.tex
 
 \chapter{Evaluation and optimization}
+	\label{evaluation}
 	During the course of creating the application we tried different approaches to several interim steps. In this chapter we discuss how using different algorithms yielded different results.
 
 	\section{Dataset}
+	\label{evaluation-dataset}
 	In order to test and optimize our detector we created a set of 101 images and annotated them manually with the following information: each intersection on the board was marked with a point, either as an empty intersection, an intersection with a white piece on it or one occupied by a black piece. Also, the location of all pieces was marked with a circle, i.e. with a center and its approximate radius.
 
 	To have an image set that covers as many possible game situations as possible we took pictures in three different lighting conditions and on different backgrounds. Each time we took images of an empty board without any pieces, a board with only some few images and a configuration as it often happens during endgame. That is, many pieces on the board and lots of them in a line.
@@ -49,7 +51,7 @@
 
 	The images were taken by starting the app normally but then instead of starting detection saving the input image on the internal memory of the device. While in the beginning we saved images to png we later switched to persisting the images into yml format and retake the previous images. This has the advantage that we can be absolutely sure that the input to our test instances are the same as they would be on a phone, as no png coding and decoding takes place. Also we had problems in the beginning because OpenCV's image persisting function presumably does not recognize that the camera image is encoded in RGB (see \autoref{android-detector}), which lead to different results on our desktop hardware than on our Android phone.
 
-	31 of the images were randomly chosen as a test set evenly spread over all lighting conditions as well as piece and angle configurations. The grass images were not part of the test set as they soon turned out to be very difficult. We included them in the training set, though. This set was used to improve our detector.
+	31 of the images were randomly chosen as a test set evenly spread over all lighting conditions as well as piece and angle configurations. The grass images with pieces on the board were not part of the test set as they soon turned out to be very difficult. We included them in the training set, though. This set was used to improve our detector.
 
 	To do so we assumed that there is a global maximum for the overall quality of results when adjusting parameters of the used algorithms. Even if this assumption were wrong we optimized for a local maximum. Then we tried manually to find roughly the optimal parameters for some randomly chosen images for every algorithm. Finally we adjusted them automatedly by brute forcely trying every combination of parameters in the vicinity of the manually chosen on every image on a cluster of 45 oktacore machines and checking the results against the annotations.
 
@@ -59,32 +61,39 @@
 
 
 	\section{Visible intersections}
+	\label{evaluation-visible}
 	%TODO: eigentlich ist visible intersections falsch, weil ja auch unsichtbare gematcht werden
 	When evaluating the detection rate of visible intersections we first checked if the intersection was within the boundaries of the annotated board and a padding of 15 pixels. If not the intersection was considered uninteresting and did neither count positively nor negatively. If it was inside the board we searched the nearest annotated intersection for every detected one. If there was none within a range of 15 pixels the intersection was counted as a false positive. But if there was, then the annotated intersection was marked as detected and not considered as a possible match for other intersections. The threshold was chosen roughly as a quarter of the average distance between two intersections and a third of the diameter of a piece as measured in some sample images.
 
 	\input{chapters/chapter4-figure-linesTraining.tex}
 
 	\subsection{Optimizations on the training set}
-	While optimizing the parameters used in our algorithm, we measured the quality as the ratio of detected to undetected intersections, also considering the number of false positives. Traditionally one would calculate some ratio of true positives to false positives. However none of the usual measurement methods shows us a clear indicator what combinations of parameters to use, so we devised the following metric: We sorted the results by the number of correctly matched intersections and chose the highest one where the number of false positives was lower or equal than the number of images recognized ($|false\_positives| \leq |input\_images|$, i.e. statistically maximal one false positive per image). This is shown (albeit on a representative subset of all tested parameter combinations) in \autoref{optimizationlinesCorrectness}, where the parameters we chose is marked in orange.
+	\label{evaluation-visible-optimization}
+	While optimizing the parameters used in our algorithm, we measured the quality as the ratio of detected to undetected intersections, also considering the number of false positives. Traditionally one would calculate some ratio of true positives to false positives. However none of the usual measurement methods shows us a clear indicator what combinations of parameters to use, so we devised the following metric: We sorted the results by the number of correctly matched intersections and chose the highest one where the number of false positives was lower or equal than the number of images recognized ($|false\_positives| \leq |input\_images|$, i.e. statistically maximal one false positive per image). This is shown (albeit on a representative subset of all tested parameter combinations) in \autoref{fig:linesTraining}, where the parameters we chose is marked in orange.
 
 	\subsubsection{HOUGH}
-	In comparison to the other algorithms detecting the lines using Hough transformation performs best quality-wise. As \autoref{fig:houghCorrectness} shows, we still had to compromise when choosing the final parameter set. The one we chose as noted above resulted in 89.67\% (5084 out of 5670) correct detection rate in our training set, with a total of 68 incorrect intersections (0.01199\% of available intersections).
+	\label{evaluation-visible-optimization-hough}
+	In comparison to the other algorithms detecting the lines using Hough transformation performs best quality-wise. As \autoref{fig:linesTraining-hough} shows, we still had to compromise when choosing the final parameter set. The one we chose as noted above resulted in 89.67\% (5084 out of 5670) correct detection rate in our training set, with a total of 68 incorrect intersections (0.01199\% of available intersections).
 
 	The graphic shows also that that the quality of the line detection does not depend very much on the parameters used: there's only a few parameter combinations that yield very poor results and hardly any that results in finding no intersection at all. As would be expected the average number of false positives rises with the percentage of correctly found intersections. Luckily, there is enough variance yet that even at a high detection rate we can find entries with on average less than one false intersection per image.
 
 	\subsubsection{LSD}
+	\label{evaluation-visible-optimization-lsd}
 	As noted in \autoref{detector-visible-lsd} the Line Segment Detector needs significant postprocessing to give any reasonable results. Still it is easily outperformed by the variant using hough transformation. In \autoref{fig:linesTraining-lsd} it can easily be seen that the amount of false positives does not go below the amount of input images when roughly a quarter of all available intersections should be detected. Furthermore the average ratio of correct results to false positives is nearly over all combinations worse than its hough counterpart's. Only in the segment where both detect nearly 100\% of all correct intersections. The total number of wrong intersections ranges in the thousands here, though, making this segment unusable for the application.
 
 	We can expect the detector to perform significantly worse as the chosen parameter combination performs at a detection rate of only 20.53\% (1164 out of 5670) with 69 false positives. To achieve a detection rate similar to the one of the hough detector we would have to accept more than 10 false positives per image.
 	%TODO: was, wenn gras ausgenommen wird?
 
 	\subsubsection{FAST}
+	\label{evaluation-visible-optimization-fast}
 	Even worse performs the FAST corner detector when used for detection of the intersections. It is the only detector that resulted in more false positives than correct intersections in some combination. The ratio of false positives to correct intersections is in no combination better than the of the intersections of lines detected using LSD or Hough transformation.
 
-	The chosen parameter combination yields a mere 2.7\% 155 correctly detected intersections with 70 wrongly placed ones. Overall the detector seems to stick too much to the lines themselves and places many intersections around them and at the border of the black pieces. %nonmax suppression ist egal erwaehnen?
+	The chosen parameter combination yields a mere 2.7\% 155 correctly detected intersections with 70 wrongly placed ones. Overall the detector seems to stick too much to the lines themselves and places many intersections around them and at the border of the black pieces. %todo: nonmax suppression ist egal erwaehnen?
 
 	\subsection{Performance on the testing set}
+	\label{evaluation-visible-performance}
 	\subsubsection{HOUGH}
+	\label{evaluation-visible-performance-hough}
 	The hough detector produces quite good results in the test set. Those images where no (on the left in \autoref{fig:linesTest-hough}) hardly any pieces lie on the board are detected de facto perfectly. It does have some issues with boards with pieces on them and drops significantly (to about 60\% of the performance without pieces) when there are many pieces on the board (on the right in \autoref{fig:linesTest-hough}). This was to be expected, though, and the performance is still better compared with the other two algorithms.
 
 	\begin{table}[b]
@@ -114,32 +123,37 @@
 	\end{table}
 
 	\subsubsection{LSD}
+	\label{evaluation-visible-performance-lsd}
 	As was to be expected from the data of our training set the Line Segment Detector performed significantly worse than the Hough lines detector. The relative performance was actually still lower on our testing set than on our training set, where it reached 22\% of the quality of the hough detector, while on our testing data it could only achieve 20\% -- and that is only looking at the true positive rate. In total it matched 18\% of the available intersections. We can see that the precision ranks lower, too, and that it deals less well with pieces on the board than the first examined algorithm (its true positive rate sinks to one third when there are lots of pieces on the board compared to when there are none).
 
 	\subsubsection{FAST}
+	\label{evaluation-visible-performance-fast}
 	The corner detector based approach obviously does not yield results which justify further analysis. Interestingly, though, the percentage of correctly detected intersections rises with the number of pieces on the board. This might be because the white pieces reduce the amount of visible intersections making it more probable for a keypoint to lie on one, when being placed along visible edges.
 
 	\input{chapters/chapter4-figure-linesTesting.tex}
-	\clearpage
 
 
 
 
 
 	\section{Occluded intersections}
+	\label{evaluation-occluded}
 	\subsection{Optimizations on the training set}
+	\label{evaluation-occluded-optimization}
 	We optimized the parameters for thresholding and detecting light and dark pieces separately for both detection methods. We chose the final parameter set like we did for the line detection algorithms by sorting after true positive rate and selecting the best scoring algorithm below a specific threshold on false positives. We set the false positive threshold a lot lower, though, at a maximum of seven false positives for either color. That is because we found that wrongly classified pieces tended to have a greater impact on detection quality than false positives in the line detection step. Both algorithms still performed good enough to provide a significant amount of additional intersections.
 
 	Due to how we optimized our parameters we could not adjust the thresholding values for both methods or even all parameters at once. Therefore we first set the contours to very general settings and used it to find a parameter set of the thresholding step where there were not too many false positives and the detection rate was not too low.
-	%TODO: nochmal auf optimierte erkenner parameter optimieren
 
 	\subsubsection{Contours}
+	\label{evaluation-occluded-optimization-contours}
 	As described in \autoref{detector-occluded-contours} we selected rectangles around contours of blobs in the thresholded images when they were roughly quadratic. This works surprisingly well and we believe it could be improved still to perform as good as hough circle detection or even better, by using rotated rectangles. The chosen parameters yielded 84.23\% (438 of 520) detection rate with 3 false positives on the white pieces and 61.12\% (316 of 517) detection rate with 7 false positives on the black pieces. When added together this results in a 72.71\% (754 of 1037) detection rate with 10 false positives. Another optimization run on the threshold values did not increase the detection rate significantly.
 
 	\subsubsection{Hough}
+	\label{evaluation-occluded-optimization-hough}
 	The more obvious approach is to use hough circle detection to locate the pieces as mentioned in \autoref{detector-occluded-hough}. This approach correctly detected 78.27\% (407 of 520) with 5 false positives of the white pieces and 69.05\% (357 of 517) with 6 false positives of the black pieces. Summed up this is a 73.67\% (764 of 1037) detection rate with 11 false positives.
 
 	\subsection{Performance on the testing set}
+	\label{evaluation-occluded-performance}
 	\input{chapters/chapter4-figure-piecesTesting.tex}
 	Interestingly the contour based approach yields better results when there are less pieces on the board. This is probably due to how the algorithm handles two adjacent pieces which are connected. Not all of those are correctly split into two pieces and thus discarded. If this could be improved it would probably outperform its hough based counterpart.
 
@@ -179,8 +193,15 @@
 
 
 	\section{Speed on an Android device}
+	\label{evaluation-speed}
+	We evaluated all algorithms for their speed on our development phone, too. To do so, we measured the current time in milliseconds before entering the respective function and afterwards. To compensate for other apps interfering with the application and scheduling we took an average of 100 samples. 
+
 	\subsection{Getting a baseline}
+	\label{evaluation-speed-baseline}
+	It would be nice to achieve realtime results, i.e. at least 25 frames per second, i.e. one complete receiving and processing cycle should take at most 40ms. This is in part limited by the maximum speed which the framework can read images from the camera with. 
+
 	\subsection{Comparing runtime of different approaches}
+	\label{evaluation-speed-approaches}
 	The Line Segment Detector outperforms the Hough transformation by a factor of two on our testing hardware. Unfortunately, as mentioned before its quality is also only half as good. If the postprocessing could be improved using the LSD would increase the frame rate by about 15\%. We did not evaluate FAST corner detection here, because it is simply too unfit for the task.
 
 	Originally we created the contour based approach for the piece detection to increase the speed of our detector. This goal was reached as it performs at about 129\% of the speed of the circle detector. However when looking at the absolute difference of 72.9ms this does not make a real difference considering the total runtime of about one second.
@@ -229,10 +250,11 @@
 	\end{figure}
 
 
-
 	\section{Pre- and postprocessing}
+	\label{evaluation-prepostprocessing}
 
 	\subsection{Rectifying perspective distortion}
+	\label{evaluation-prepostprocessing-perspectiveRectifying}
 	The camera moves only slightly when hand-held or not at all when put on some kind of stand. Thus it should be feasible to use the orientation of the board in a previous frame to correct the orientation in the current frame. This information must only be discarded when the camera moves drastically or when the result in the current frame is very bad due to the correction. Therefore we enabled the detector to receive a transformation matrix, apply it to the input image before any operation happens and transform the results back after all detection has taken place.
 
 	The source of the transformation is the inverse transformation matrix determined by the RANSAC step in our detection pipeline. This automatically incorporate lens distortion, too.
@@ -242,14 +264,17 @@
 	However having reached near-perfect accuracy on the test set by optimizing for images taken from an angle the results were poorer than before. This does not mean that the step is a failure, though, but simply that the optimized parameters for the other pipeline steps are very well fitted to the given task. When researching the task further it might be a good idea to incorporate this preprocessing step upfront.
 
 	\subsection{Removing large outliers during detection}
+	\label{evaluation-prepostprocessing-filteringOutliers}
 	When testing our pipeline on an actual android device we recognized that two successive frames could yield completely different results. Mostly the differences were marginal but sometimes between two correctly classified images there was one which was detected very poorly.
 
 	\subsubsection{Moving average over intersection results}
+	\label{evaluation-prepostprocessing-filteringOutliers-movingAverage}
 	To mitigate the effects of those frames we tried applying a moving average over the intersections. The previously detected intersection counted 75\% while those from the current image contributed only 25\%, i.e. $I_t = \frac{1}{4}I + \frac{3}{4}I_{t-1}$.
 
 	While this approach removed large outliers from the detection result on wrongly classified images, it also led to worse results. That is due to large errors having such influence that the result would be skewed for several frames to come.
 
 	\subsubsection{Filtering obviously incorrect detection results}
+	\label{evaluation-prepostprocessing-filteringOutliers-filteringWrong}
 	Our next approach was to filter out obviously wrong classified detection results. We considered a result to be wrong when at least one intersection lay outside of the image or if the distance between two intersections was smaller than five pixels. We then marked the whole board as unclassified (i.e. neither black, white or empty) and did not count these steps when calculating the average over time as mentioned in \autoref{android-detector}.
 
 	After implementing this approach we hardly ever saw incorrect results when capturing a game and so we kept it in our final application.
@@ -259,7 +284,18 @@
 
 
 	\section{Overall performance and live experiences}
+	\label{evaluation-overallPerformance}
 	We furthermore chose to use Houghlines as it was the only well-performing line detector. For the detection of pieces we used the contour based algorithm due to its speed advantages for the final application as it was released to the Google Play Store\footnote{It can be installed at \url{https://play.google.com/store/apps/details?id=de.t_animal.goboardreader}}.
+	
+	By now we have only tested the quality of each individual step seperately. Finally we also evaluated, how well our whole detection pipeline performed on our testing set.
+
+	Another interesting thing is, how well the App performs under real world circumstances. To find out, we played three games and recorded them. Afterwards we counted how many mistakes were made by our detector. We counted as a mistake:
+	\begin{enumerate}
+		\item a piece which was not detected
+		\item a piece which was detected only after another move had been detected
+		\item a piece which vanished after it has been detected (but we counted a constantly appearing and vanishing piece at most once)
+		\item a piece which was taken from the board but remained for longer than one move in our detection result
+	\end{enumerate}
 
 	To test the application on real games we let KiGo generate sample games and played them in different lighting conditions. In total there were 180 moves that could be recorded in six games, also counting the handicap pieces placed on the board before a game starts.
 
