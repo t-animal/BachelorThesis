@@ -25,12 +25,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-public class DetectorActivity extends Activity implements CvCameraViewListener2 {
+public class DetectorActivity extends Activity implements CvCameraViewListener2, OnTouchListener {
 
 	private static final String TAG = "T_ANIMAL::GBR::DetectorActivity";
 
@@ -61,6 +63,8 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 		mOpenCvCameraView = (CameraManipulatingView) findViewById(R.id.detector_activity_surface_view);
 		mOpenCvCameraView.setCvCameraViewListener(this);
 		mOpenCvCameraView.enableFpsMeter();
+
+		mOpenCvCameraView.setOnTouchListener(this);
 
 		businessLogic = new BusinessLogic(this);
 	}
@@ -113,6 +117,20 @@ public class DetectorActivity extends Activity implements CvCameraViewListener2 
 	/**
 	 * Begin user interaction callbacks
 	 */
+
+	private long timeDown = 0;
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		if (event.getAction() == MotionEvent.ACTION_UP) {
+			if (event.getEventTime() - event.getDownTime() > 1500) {
+				saveNextImage(v);
+			} else {
+				// set center
+			}
+		}
+		return true;
+	}
 
 	public void saveNextImage(View v) {
 		businessLogic.saveNextImage();
