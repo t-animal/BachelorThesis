@@ -213,7 +213,6 @@ public class BusinessLogic {
 				whitePieceProb[i] -= whitePieceProb[i] == 0 ? 0 : 1;
 				blackPieceProb[i] -= blackPieceProb[i] == 0 ? 0 : 1;
 			}
-			System.out.print(whitePieceProb[i] + " " + blackPieceProb[i] + "   ");
 
 		}
 		System.out.println("===");
