@@ -79,9 +79,9 @@
 
 	\subsubsection{LSD}
 	\label{evaluation-visible-optimization-lsd}
-	As noted in \autoref{detector-visible-lsd} the Line Segment Detector needs significant postprocessing to give any reasonable results. Still it is easily outperformed by the variant using hough transformation. In \autoref{fig:linesTraining-lsd} it can easily be seen that the amount of false positives does not go below the amount of input images when roughly a quarter of all available intersections should be detected. Furthermore the average ratio of correct results to false positives is nearly over all combinations worse than its hough counterpart's. Only in the segment where both detect nearly 100\% of all correct intersections. The total number of wrong intersections ranges in the thousands here, though, making this segment unusable for the application.
+	As noted in \autoref{detector-visible-lsd} the Line Segment Detector needs significant postprocessing to give any reasonable results. Still it is easily outperformed by the variant using Hough transformation. In \autoref{fig:linesTraining-lsd} it can easily be seen that the amount of false positives does not go below the amount of input images when roughly a quarter of all available intersections should be detected. Furthermore the average ratio of correct results to false positives is nearly over all combinations worse than its Hough counterpart's. Only in the segment where both detect nearly 100\% of all correct intersections. The total number of wrong intersections ranges in the thousands here, though, making this segment unusable for the application.
 
-	We can expect the detector to perform significantly worse as the chosen parameter combination performs at a detection rate of only 20.53\% (1164 out of 5670) with 69 false positives. To achieve a detection rate similar to the one of the hough detector we would have to accept more than 10 false positives per image.
+	We can expect the detector to perform significantly worse as the chosen parameter combination performs at a detection rate of only 20.53\% (1164 out of 5670) with 69 false positives. To achieve a detection rate similar to the one of the Hough detector we would have to accept more than 10 false positives per image.
 	%TODO: was, wenn gras ausgenommen wird?
 
 	\subsubsection{FAST}
@@ -94,7 +94,7 @@
 	\label{evaluation-visible-performance}
 	\subsubsection{HOUGH}
 	\label{evaluation-visible-performance-hough}
-	The hough detector produces quite good results in the test set. Those images where no (on the left in \autoref{fig:linesTest-hough}) hardly any pieces lie on the board are detected de facto perfectly. It does have some issues with boards with pieces on them and drops significantly (to about 60\% of the performance without pieces) when there are many pieces on the board (on the right in \autoref{fig:linesTest-hough}). This was to be expected, though, and the performance is still better compared with the other two algorithms.
+	The Hough detector produces quite good results in the test set. Those images where no (on the left in \autoref{fig:linesTest-hough}) hardly any pieces lie on the board are detected de facto perfectly. It does have some issues with boards with pieces on them and drops significantly (to about 60\% of the performance without pieces) when there are many pieces on the board (on the right in \autoref{fig:linesTest-hough}). This was to be expected, though, and the performance is still better compared with the other two algorithms.
 
 	\begin{table}[b]
 		\begin{tabular}{|r|r||>{\bfseries}c|c|c|}
@@ -118,13 +118,13 @@
 			%																					  95/101	  33/48
 			\hline
 		\end{tabular}
-		\caption{Quality of the tested algorithms on our test set. The hough transformation based algorithm dominates all categories.}
+		\caption{Quality of the tested algorithms on our test set. The Hough transformation based algorithm dominates all categories.}
 		\label{tab:linesTest}
 	\end{table}
 
 	\subsubsection{LSD}
 	\label{evaluation-visible-performance-lsd}
-	As was to be expected from the data of our training set the Line Segment Detector performed significantly worse than the Hough lines detector. The relative performance was actually still lower on our testing set than on our training set, where it reached 22\% of the quality of the hough detector, while on our testing data it could only achieve 20\% -- and that is only looking at the true positive rate. In total it matched 18\% of the available intersections. We can see that the precision ranks lower, too, and that it deals less well with pieces on the board than the first examined algorithm (its true positive rate sinks to one third when there are lots of pieces on the board compared to when there are none).
+	As was to be expected from the data of our training set the Line Segment Detector performed significantly worse than the Hough lines detector. The relative performance was actually still lower on our testing set than on our training set, where it reached 22\% of the quality of the Hough detector, while on our testing data it could only achieve 20\% -- and that is only looking at the true positive rate. In total it matched 18\% of the available intersections. We can see that the precision ranks lower, too, and that it deals less well with pieces on the board than the first examined algorithm (its true positive rate sinks to one third when there are lots of pieces on the board compared to when there are none).
 
 	\subsubsection{FAST}
 	\label{evaluation-visible-performance-fast}
@@ -146,16 +146,16 @@
 
 	\subsubsection{Contours}
 	\label{evaluation-occluded-optimization-contours}
-	As described in \autoref{detector-occluded-contours} we selected rectangles around contours of blobs in the thresholded images when they were roughly quadratic. This works surprisingly well and we believe it could be improved still to perform as good as hough circle detection or even better, by using rotated rectangles. The chosen parameters yielded 84.23\% (438 of 520) detection rate with 3 false positives on the white pieces and 61.12\% (316 of 517) detection rate with 7 false positives on the black pieces. When added together this results in a 72.71\% (754 of 1037) detection rate with 10 false positives. Another optimization run on the threshold values did not increase the detection rate significantly.
+	As described in \autoref{detector-occluded-contours} we selected rectangles around contours of blobs in the thresholded images when they were roughly quadratic. This works surprisingly well and we believe it could be improved still to perform as good as Hough circle detection or even better, by using rotated rectangles. The chosen parameters yielded 84.23\% (438 of 520) detection rate with 3 false positives on the white pieces and 61.12\% (316 of 517) detection rate with 7 false positives on the black pieces. When added together this results in a 72.71\% (754 of 1037) detection rate with 10 false positives. Another optimization run on the threshold values did not increase the detection rate significantly.
 
 	\subsubsection{Hough}
 	\label{evaluation-occluded-optimization-hough}
-	The more obvious approach is to use hough circle detection to locate the pieces as mentioned in \autoref{detector-occluded-hough}. This approach correctly detected 78.27\% (407 of 520) with 5 false positives of the white pieces and 69.05\% (357 of 517) with 6 false positives of the black pieces. Summed up this is a 73.67\% (764 of 1037) detection rate with 11 false positives.
+	The more obvious approach is to use Hough circle detection to locate the pieces as mentioned in \autoref{detector-occluded-hough}. This approach correctly detected 78.27\% (407 of 520) with 5 false positives of the white pieces and 69.05\% (357 of 517) with 6 false positives of the black pieces. Summed up this is a 73.67\% (764 of 1037) detection rate with 11 false positives.
 
 	\subsection{Performance on the testing set}
 	\label{evaluation-occluded-performance}
 	\input{chapters/chapter4-figure-piecesTesting.tex}
-	Interestingly the contour based approach yields better results when there are less pieces on the board. This is probably due to how the algorithm handles two adjacent pieces which are connected. Not all of those are correctly split into two pieces and thus discarded. If this could be improved it would probably outperform its hough based counterpart.
+	Interestingly the contour based approach yields better results when there are less pieces on the board. This is probably due to how the algorithm handles two adjacent pieces which are connected. Not all of those are correctly split into two pieces and thus discarded. If this could be improved it would probably outperform its Hough based counterpart.
 
 	When summing up the results both approaches, both perform equally well on our testing set as \autoref{tab:piecesTest} shows.
 	\begin{table}[bh]
@@ -235,7 +235,7 @@
 	\label{evaluation-speed-approaches}
 	We then took speed measurements of the line detection methods. The Line Segment Detector outperforms the Hough transformation by a factor of two on our testing hardware. Unfortunately, as mentioned before its quality is also only half as good. If the postprocessing could be improved using the LSD would increase the frame rate by about 15\%. We did not evaluate FAST corner detection here, because it is simply too unfit for the task.
 
-	Originally we created the contour based approach for the piece detection to increase the speed of our detector. This goal was reached as it performs at about 129\% of the speed of the Hough circle detector. But when looking at the speed advantage of 72.9ms, it does not make a real difference considering the total runtime of about one second. As they perform with about the same quality, we still chose it over the hough based approach.
+	Originally we created the contour based approach for the piece detection to increase the speed of our detector. This goal was reached as it performs at about 129\% of the speed of the Hough circle detector. But when looking at the speed advantage of 72.9ms, it does not make a real difference considering the total runtime of about one second. As they perform with about the same quality, we still chose it over the Hough based approach.
 
 	We set the different algorithms in perspective in \autoref{fig:timeEvaluation-bars}. In \autoref{fig:timeEvaluation-pie} we show how the total runtime of 1095.84ms is built from the different parts of our final application.
 
