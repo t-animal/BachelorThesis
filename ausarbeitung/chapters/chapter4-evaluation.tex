@@ -189,67 +189,6 @@
 	\end{table}
 
 
-
-
-
-	\section{Speed on an Android device}
-	\label{evaluation-speed}
-	We evaluated all algorithms for their speed on our development phone, too. To do so, we measured the current time in milliseconds before entering the respective function and afterwards. To compensate for other apps interfering with the application and scheduling we took an average of 100 samples. 
-
-	\subsection{Getting a baseline}
-	\label{evaluation-speed-baseline}
-	It would be nice to achieve realtime results, i.e. at least 25 frames per second, i.e. one complete receiving and processing cycle should take at most 40ms. This is in part limited by the maximum speed which the framework can read images from the camera with. 
-
-	\subsection{Comparing runtime of different approaches}
-	\label{evaluation-speed-approaches}
-	The Line Segment Detector outperforms the Hough transformation by a factor of two on our testing hardware. Unfortunately, as mentioned before its quality is also only half as good. If the postprocessing could be improved using the LSD would increase the frame rate by about 15\%. We did not evaluate FAST corner detection here, because it is simply too unfit for the task.
-
-	Originally we created the contour based approach for the piece detection to increase the speed of our detector. This goal was reached as it performs at about 129\% of the speed of the circle detector. However when looking at the absolute difference of 72.9ms this does not make a real difference considering the total runtime of about one second.
-
-	... === TODO: Restlichte Zeitdinge zum vergleich noch evaluieren (Schnittpunkte, Refinement, Color detection) === ...
-	%TODO...
-
-	\pgfplotstableread[header=false]{
-	345.24 	{Hough lines}
-	168.46	{LSD lines}
-	322.58	{Hough pieces}
-	249.69	{Contour pieces}
-	51.33 {Framework}
-	}\datatable
-	\pgfplotsset{
-    select row/.style={
-        x filter/.code={\ifnum\coordindex=#1\else\def\pgfmathresult{}\fi}
-    }
-}
-	\begin{figure}
-		\pgfplotsset{width=\textwidth, height=5cm, compat=1.11}
-		\begin{tikzpicture}
-			 \begin{axis}[
-				        xbar,
-				        bar shift=0pt,
-				        xmin=0,
-				        xmax=400,
-				        ytick={0, 1, 2.5, 3.5, 5},
-				        yticklabels from table={\datatable}{1},
-				        xmajorgrids = true,
-				        width=12cm,
-				        height=5.5cm,
-				        xlabel={Time in ms},
-				        nodes near coords, nodes near coords align={horizontal},
-				  ]
-
-				\addplot[fill=gray] table [select row=4, y expr=5] {\datatable};
-				\addplot[fill=orange] table [select row=3, y expr=3.5] {\datatable};
-				\addplot[fill=magenta] table [select row=2, y expr=2.5] {\datatable};
-				\addplot[fill=blue] table [select row=1, y expr=1] {\datatable};
-				\addplot[fill=red] table [select row=0, y expr=0] {\datatable};
-			  \end{axis}
-		\end{tikzpicture}
-		\caption{Runtime of different parts of our application}
-		\label{fig:timeEvaluation}
-	\end{figure}
-
-
 	\section{Pre- and postprocessing}
 	\label{evaluation-prepostprocessing}
 
@@ -283,29 +222,120 @@
 
 
 
+
+	\section{Speed on an Android device}
+	\label{evaluation-speed}
+	We evaluated all algorithms for their speed on our development phone, too. To do so, we measured the current time in milliseconds before entering the respective function and afterwards. To compensate for other apps interfering with the application and scheduling we took an average of 100 samples.
+
+	\subsection{Getting a baseline}
+	\label{evaluation-speed-baseline}
+	It would be nice to achieve results in real time, i.e. at least 25 frames per second. From this follows that one complete receiving and processing cycle should take at most 40ms. This is in part limited by the maximum speed which the framework can read images from the camera with. Our tests show that this alone takes 51.33ms, though. That means real time speed is out of the question on current hardware.
+
+	\subsection{Comparing runtime of different approaches}
+	\label{evaluation-speed-approaches}
+	We then took speed measurements of the line detection methods. The Line Segment Detector outperforms the Hough transformation by a factor of two on our testing hardware. Unfortunately, as mentioned before its quality is also only half as good. If the postprocessing could be improved using the LSD would increase the frame rate by about 15\%. We did not evaluate FAST corner detection here, because it is simply too unfit for the task.
+
+	Originally we created the contour based approach for the piece detection to increase the speed of our detector. This goal was reached as it performs at about 129\% of the speed of the Hough circle detector. But when looking at the speed advantage of 72.9ms, it does not make a real difference considering the total runtime of about one second. As they perform with about the same quality, we still chose it over the hough based approach.
+
+	We set the different algorithms in perspective in \autoref{fig:timeEvaluation-bars}. In \autoref{fig:timeEvaluation-pie} we show how the total runtime of 1095.84ms is built from the different parts of our final application.
+
+	\pgfplotstableread[header=false]{
+	345.24 	{Hough lines}
+	168.46	{LSD lines}
+	322.58	{Hough pieces}
+	249.69	{Contour pieces}
+	208.04 {Preprocessing}
+	83.16 {Extrapolate board}
+	26.39 {Detect colors}
+	51.33 {Framework}
+	64.21 {Create output}
+	}\datatable
+	\pgfplotsset{
+    select row/.style={
+        x filter/.code={\ifnum\coordindex=#1\else\def\pgfmathresult{}\fi}
+    }
+}
+	\begin{figure}
+		\pgfplotsset{width=\textwidth, height=6cm, compat=1.11}
+		\begin{subfigure}{0.7\textwidth}
+			\begin{tikzpicture}
+				 \begin{axis}[
+					        xbar,
+					        bar shift=0pt,
+					        xmin=0,
+					        xmax=420,
+					        width=0.8\textwidth,
+					        ytick={0, 1, 2.5, 3.5, 5, 6, 7, 8, 9},
+					        yticklabels from table={\datatable}{1},
+					        xmajorgrids = true,
+					        xlabel={Time in ms},
+					        nodes near coords, nodes near coords align={horizontal},
+					  ]
+
+					\addplot[fill=gray] table [select row=8, y expr=9] {\datatable}; %framework
+					\addplot[fill=gray] table [select row=7, y expr=8] {\datatable}; %framework
+					\addplot[fill=red!60!white] table [select row=6, y expr=7] {\datatable}; %color extraction
+					\addplot[fill=blue!60!white] table [select row=5, y expr=6] {\datatable}; %extrapolate board
+					\addplot[fill=green!80!black] table [select row=4, y expr=5] {\datatable}; %preprocessing
+					\addplot[fill=orange] table [select row=3, y expr=3.5] {\datatable}; %contour pieces
+					\addplot[fill=magenta] table [select row=2, y expr=2.5] {\datatable}; %hough pieces
+					\addplot[fill=blue] table [select row=1, y expr=1] {\datatable}; %lsd
+					\addplot[fill=red] table [select row=0, y expr=0] {\datatable}; %hough lines
+				  \end{axis}
+			\end{tikzpicture}
+			\caption{Absolute runtime of all algorithms and parts}
+			\label{fig:timeEvaluation-bars}
+		\end{subfigure}
+		~
+		\begin{subfigure}{0.25\textwidth}
+			\begin{tikzpicture}
+				[
+				    pie chart,
+				    slice type={preprocessing}{green!80!black},
+				    slice type={line detection}{red},
+				    slice type={piece detection}{orange},
+				    slice type={extrapolate board}{blue!60!white},
+				    slice type={color extraction}{red!60!white},
+				    slice type={framework}{gray},
+				    pie values/.style={font={\small}},
+				    scale=2
+				]
+			    \pie{}{
+		    			18.98/preprocessing,
+		    			31.5/{line detection},
+		    			22.78/{piece detection},
+		    			7.58/{extrapolate board},
+		    			2.41/{color extraction},
+		    			10.54/framework}
+
+			\end{tikzpicture}
+			\vspace{1.5em}
+			\caption{Composition of the avg. runtime of \textasciitilde1s.}
+			\label{fig:timeEvaluation-pie}
+		\end{subfigure}
+
+		\caption{Runtime of different parts of our application}
+		\label{fig:timeEvaluation}
+	\end{figure}
+
+
+
+
 	\section{Overall performance and live experiences}
 	\label{evaluation-overallPerformance}
 	We furthermore chose to use Houghlines as it was the only well-performing line detector. For the detection of pieces we used the contour based algorithm due to its speed advantages for the final application as it was released to the Google Play Store\footnote{It can be installed at \url{https://play.google.com/store/apps/details?id=de.t_animal.goboardreader}}.
-	
+
 	By now we have only tested the quality of each individual step seperately. Finally we also evaluated, how well our whole detection pipeline performed on our testing set.
 
-	Another interesting thing is, how well the App performs under real world circumstances. To find out, we played three games and recorded them. Afterwards we counted how many mistakes were made by our detector. We counted as a mistake:
-	\begin{enumerate}
-		\item a piece which was not detected
-		\item a piece which was detected only after another move had been detected
-		\item a piece which vanished after it has been detected (but we counted a constantly appearing and vanishing piece at most once)
-		\item a piece which was taken from the board but remained for longer than one move in our detection result
-	\end{enumerate}
-
-	To test the application on real games we let KiGo generate sample games and played them in different lighting conditions. In total there were 180 moves that could be recorded in six games, also counting the handicap pieces placed on the board before a game starts.
+	Another interesting thing is, how well the App performs under real world circumstances. To test this, we let KiGo (a KDE Go application) generate sample games and reproduced them in different lighting conditions. In total there were 180 moves that could be recorded in six games, also counting the handicap pieces placed on the board before a game starts.
 
 	Three games took place on the same desk as in our training data. One of those was detected perfectly without any error. In one there was a false positive which was detected on several occasions. In the last there was a false positive white piece which vanished when a black piece was put on its location. That means 100\% of all played pieces were detected correctly.
 
-	Two more games were played under difficult lighting conditions in an inner courtyard. The opening in the ceiling cast large reflections on the black stones. To make things worse there were strong winds shaking the camera. In total there were three pieces which were not detected persistently, i.e. they vanished and reappeared several times. Two pieces were not detected at all. One move was detected too late and there were two false positives. Under these difficult conditions 90.3\% of all pieces on the board were detected correctly.
+	Two more games were played under difficult lighting conditions in an inner courtyard. The opening in the ceiling cast large reflections on the black stones and strong winds shook the camera. In total there were three pieces which were not detected persistently, i.e. they vanished and reappeared several times. Two pieces were not detected at all. One move was detected too late and there were two false positives. Under these difficult conditions 90.3\% of all pieces on the board were detected correctly.
 
-	Lastly we recreated a game on a desk near a window under neon lighting. Here we had one piece which was detected only non-persistently and one which was not detected at all. Also there was one false positive at the very end of the game, after both players had passed. That makes a 93.8\% detection ratio.
+	Lastly we recreated a game on a desk near a window under neon lighting. Here we had one piece which was not detected persistently and one which was not detected at all. That makes a 93.8\% detection ratio. Also there was one false positive at the very end of the game, after both players had passed.
 
-	After these quite good results and we tried to max out the amount of pieces we could place on the board to see how well the algorithm performed under extreme circumstances. The result was pretty good. Detection was possible until the board was nearly completely covered in pieces. We then put a piece on each intersection in a checkerboard like pattern -- alternating black and white. Even this completely abnormal configuration could be detected with near 100\% accuracy as \autoref{fig:android_perfect_recognition} shows. The results were very unstable, though. That means between a correctly classified frame lay several discarded ones, which did not contribute to the detection result but prolonged the detection time. Of course this is not a valid state of a game of Go, but it goes to show the power of using intersections when detecting densely occupied boards.
+	After these results we tried to max out the amount of pieces we could place on the board to see how well the algorithm performed under extreme circumstances. The result was pretty good. Detection was possible until the board was nearly completely covered in pieces. We then put a piece on each intersection in a checkerboard like pattern -- alternating black and white. Even this completely abnormal configuration could be detected with near 100\% accuracy as \autoref{fig:android_perfect_recognition} shows. The results were very unstable, though. That means between a correctly classified frame lay several discarded ones, which did not contribute to the detection result but prolonged the detection time. Of course this is not a valid state of a game of Go, but it goes to show the power of using intersections when detecting densely occupied boards.
 
 	\begin{figure}[h]
 		\center

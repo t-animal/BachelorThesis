@@ -48,3 +48,32 @@ lsd, hough:
 05-13 15:51:41.217	 After 200 passes avg lsd, hough time is: 1008.95
 05-13 15:53:26.114	 After 300 passes avg lsd, hough time is: 1048.97
 => Average 1019.72
+
+
+overhead in business logic
+05-14 19:24:39.391: After 100 passes avg time is: 65.28
+05-14 19:26:48.093: After 200 passes avg time is: 65.86
+05-14 19:29:00.179: After 300 passes avg time is: 63.24
+05-14 19:31:12.473: After 400 passes avg time is: 62.45
+=>Average ~64.21
+
+filling up
+05-14 19:24:39.301: After 100 passes avg Filling time is: 79.170000
+05-14 19:26:48.042: After 200 passes avg Filling time is: 78.510000
+05-14 19:29:00.123: After 300 passes avg Filling time is: 88.690000
+05-14 19:31:12.416: After 400 passes avg Filling time is: 86.260000
+=>Average ~83.16
+
+preparation, setup
+05-14 19:24:38.266: After 100 passes avg prep time is: 208.560000
+05-14 19:26:47.055: After 200 passes avg prep time is: 211.210000
+05-14 19:28:59.008: After 300 passes avg prep time is: 206.470000
+05-14 19:31:11.430: After 400 passes avg prep time is: 205.920000
+=>Average 208.04
+
+color extraction
+05-14 19:24:52.303: After 100 passes avg color time is: 24.170000
+a05-14 19:27:12.744: After 200 passes avg color time is: 24.750000
+05-14 19:29:28.965: After 300 passes avg color time is: 28.360000
+05-14 19:31:44.306: After 400 passes avg color time is: 28.280000
+=>Average 26.39
