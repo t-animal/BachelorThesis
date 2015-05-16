@@ -1,11 +1,13 @@
 %!TEX root = ../Thesis.tex
 
-\begin{figure}
+\begin{figure}[h!]
 	\pgfplotsset{width=\textwidth, height=5cm, compat=1.11}
 	\begin{subfigure}{0.32\textwidth}
 		\begin{tikzpicture}
 			\begin{axis}[
 				xticklabels={,,},
+				ylabel={TPR \& Precision},
+				xlabel={Tokens on the board},
 				axis x line=bottom,
 				axis y line=left,
 				xmin=0,
@@ -29,6 +31,8 @@
 		\begin{tikzpicture}
 			\begin{axis}[
 				xticklabels={,,},
+				ylabel={TPR \& Precision},
+				xlabel={Tokens on the board},
 				axis x line=bottom,
 				axis y line=left,
 				xmin=0,
@@ -52,6 +56,8 @@
 		\begin{tikzpicture}
 			\begin{axis}[
 				xticklabels={,,},
+				ylabel={TPR \& Precision},
+				xlabel={Tokens on the board},
 				axis x line=bottom,
 				axis y line=left,
 				xmin=0,

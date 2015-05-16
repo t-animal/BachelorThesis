@@ -2,19 +2,21 @@
 
 \chapter{Detecting the board}
 	\label{detector}
-	When looking at a Go board what first catches one's eye are the lines. However, relying solely on lines for the detection of the grid will probably fail in situations when too many tokens ocllude the lines. Therefore, our algorithm uses them only to find intersections and tries to fill in gaps by adding information about pieces. The reason to do so is that what is actually interesting are not the lines, but their intersections and a piece will always lie reasonably close to one. The only user interaction happens in the beginning of a recording session. The user has to place the camera so that the center of the board aligns with the center of the camera.
+	When looking at a Go board what first catches one's eye are the lines. However, relying solely on lines for the detection of the grid will probably fail in situations when too many tokens occlude the lines. Therefore, our algorithm uses them only to find intersections and tries to fill in gaps by adding information about pieces. The reason to do so is that what is actually interesting are not the lines, but their intersections and a piece will always lie reasonably close to one. The only user interaction happens in the beginning of a recording session. The user has to place the camera so that the center of the board aligns with the center of the camera.
 
-	The implementation is based on the OpenCV framework (version 2.4.10). If not noted otherwise all detections have been performed on an x86\_64 architecture. As described in chapter 3 this does not give different results than the execution on mobile devices (i.e. ARM architecture), for example because of differences in floating point calculations.
+	The implementation\footnote{The source is GPLv3 licensed and can be freely accessed at https://github.com/t-animal/TODO} is based on the OpenCV framework (version 2.4.10). If not noted otherwise all detections have been performed on an x86\_64 architecture. As described in chapter 3 this does not give different results than the execution on mobile devices (i.e. ARM architecture), for example because of differences in floating point calculations.
 
 	In short we do the following steps:
 	\begin{enumerate}
 		\item roughly pre-segment the board by analyzing connected components around the center of the thresholded input image
 		\item detect horizontal and vertical lines and intersect them
-		\item detect pieces on the board and consider their centers as intersections, too
+		\item detect pieces on the board and consider their centers to be intersections, too
 		\item remove duplicates
 		\item select a few intersections around the center of the image
 		\item build a submodel of the board by estimating where each selected point lies on the grid
 		\item calculate their position in space using RANSAC and apply the resulting transformation matrix to a complete model of the board
+		\item refine the locations by shifting extrapolated intersections to measured ones and redo the calculations
+		\item extract piece color information by the amount of black pixels in a window around each intersections in a thresholded version of the input image
 	\end{enumerate}
 
 	\section{Preprocessing}
@@ -27,21 +29,21 @@
 
 	\section{Detecting visible intersections}
 	\subsection{By intersecting lines}
-	Having cropped the image to the board we use line detection to find the visible grid lines, as the most obvious approach to get the intersections on the board is to detect the visible line segments, continue them into infinity and intersect the results. This way all visible intersections should be detected plus some occluded intersections where enough of a line is visible, e.g., because only one piece lies on it. When intersecting those lines that are split into several line segments by a piece, duplicates arise. We filter those in the intersection step rather than trying to find line segments that belong together.
+	Having cropped the image to the board we use line detection to find the visible grid lines. Our goal is to detect the intersections and the most obvious approach to find them is to detect the visible line segments, continue them into infinity and intersect the results. This way all visible intersections should be detected plus some occluded intersections where enough of a line is visible, for example, because only one piece lies on it. When intersecting those lines that are split into several line segments by a piece, duplicates arise. We filter those in the intersection step rather than trying to find line segments that belong together beforehand.
 
 	We evaluated two different well known line detection methods.
 	\subsubsection{Using Hough lines detection}
 	\label{detector-visible-hough}
-	Our first approach was to use probabilistic Hough lines after applying a Canny edge detector. We furthermore found, that blurring the image with a light Gaussian improves detection quality and speed.
+	Our first approach was to use Probabilistic Hough Line Transform after applying a Canny edge detector. We furthermore found, that blurring the image with a light Gaussian improves detection quality and speed.
 
-	For each line the absolute pitch to the x-axis and the y-axis of the image is calculated and compared to a specific threshold. Initially, we set this pretty high to eliminate as many false lines as possible from the image, however, it turned out that the image segmentation in the first step allows us to lower the value to one, i.e., each line is either classified as horizontal or vertical and only perfect diagonal lines are discarded.
+	For each line the absolute pitch to the x-axis and the y-axis of the image is calculated and compared to a specified threshold. Initially, we set this pretty high to eliminate as many false lines as possible from the image. Later it turned out that the image segmentation in the first step allows us to lower the value to one. That means each line is either classified as horizontal or vertical and only perfect diagonal lines are discarded.
 
 	\subsubsection{Using LSD}
 	\label{detector-visible-lsd}
 	%TODO update with  updated algorithm
 	Next, we tried to apply the Line Segment Detector \cite{von2012lsd} on the output of the Canny edge detector. We had to backport this from OpenCV 3 as it is not available in the aforementioned version. As was to be expected judging from the examples in von Gioi's paper this detector requires significant post-processing. For every square in the grid the LSD finds four line segments. Consequently two adjacent squares produce two parallel lines. This method is also prone to noisy backgrounds and produces many short, false positive lines. That is due to the nature of the detector of approximating circles with lines which comes into effect especially around black pieces, as can be seen in \autoref{fig:lsdPostprocessingFirst}.
 
-	Therefore, our first postprocessing step is to eliminate short line segments (see \autoref{fig:lsdPostprocessingLength}). Afterwards we count the number of close-by parallels of each line and keep only those with a count of at least one. Having reduced the number of false positives significantly we classify the lines the same way as described above into horizontal and vertical lines. If we would now intersect these lines, we would still have many false positives, because one line which spans the whole length of the grid on the board might be represented by several detected line segments. As we prolong them into infinity when intersecting small directional variances sum up and produce intersections at the wrong place. Thus, as last postprocessing step, we merge nearby line segments into one if they are close and parallel to each other and filter once again for line length, this time with a slightly higher threshold.
+	Therefore, our first postprocessing step is to eliminate short line segments (see \autoref{fig:lsdPostprocessingLength}). Afterwards we count the number of close-by parallels of each line and keep only those with a count of at least one. Having reduced the number of false positives significantly we classify the lines the same way as described above into horizontal and vertical lines. If we would now intersect these lines, we would still have many false positives. That is, because one line which spans the whole length of the grid on the board might be represented by several detected line segments. As we prolong them into infinity before intersecting them, small directional variances sum up and result in intersections at the wrong place. Thus, as last postprocessing step, we merge nearby line segments into one if they are close and parallel to each other and filter once again for line length, this time with a slightly higher threshold.
 
 	\begin{figure}
 	\begin{center}
@@ -76,17 +78,19 @@
 
 	\subsection{Using corner detectors}
 	\label{detector-visible-corners}
-	Another option to detect the intersection directly without line detection might be to use a corner detector. We tested the FAST \cite{rosten2006machine} detector on a slightly blurred image for this task. However it provides too many false positives to be of any use. Especially around black stones it is extremely unreliable. The ORB detector which uses FAST internally does not increase quality either.
+	Another option to detect the intersection directly without using line detection might be to use a corner detector. We tested the FAST \cite{rosten2006machine} detector on a slightly blurred image. However it provides too many false positives to be useful for this task. Especially around black pieces it returns keypoints which do not belong to the grid. The ORB detector which uses FAST internally does not increase quality either.
 
 	\section{Detecting occluded intersections}
-	Intersection positions which could previously not be detected are typically occluded by tokens. As those have to be placed on intersections, we can in turn use their location to determine the underlying intersections. Both methods (Hough circle transformation and a proprietary one) which we tested need some preprocessing, though.
+	\label{detector-occluded}
+	Intersection positions which could previously not be detected are typically occluded by tokens. As those have to be placed on intersections, we can in turn use their location to determine the underlying intersections. Both methods (Hough circle transformation and a proprietary one based on structural analysis) which we tested need some preprocessing, though.
 
 	\subsection{Preprocessing}
-	To remove the lines and have only the pieces themselves remaining we tried to threshold the image. This works quite well for the black pieces. On the other hand the white pieces cannot be reliably detected this way. The reason for this is that the contrast between white pieces and the board is too low. Therefore we turned to color images. We convert them from OpenCV's native BGR into HSV color space and threshold the value channel for black pieces. In this, we obtain good results.
+	\label{detector-occluded-preprocessing}
+	To remove the lines and have only the pieces themselves remaining we tried to threshold the image. This works quite well for the black pieces. On the other hand the white pieces cannot be reliably detected this way. The reason for this is that the contrast between them and the board is too low. Therefore we turned to color images. We convert them from OpenCV's native BGR into HSV color space and threshold the value channel for black pieces. In this, we obtain good results.
 
-	White pieces cannot be detected in the value channel because their contrast is too low. In the other channels they remain hard to detect, too, as the white balance of the camera input is constantly being adjusted by the operating system. This leads to color aberrations when a player puts down a token and his or her hand takes up lots of the image: the image will change its color temperature and white pieces become slightly blue. Often the aberration will be corrected after the hand leaves the image, but depending on the background this does not happen every time. We tried fixing the white balance upon starting to record, but it seems the camera needs to adjust its white balance from time to time. Otherwise the white pieces stand out even less good against the background. We also tried to fix white balance settings by forcing camera parameters, but we could find none which worked under all tested illuminations.
+	White pieces cannot be detected in the value channel because their contrast is too low. In the other channels they remain hard to detect, too, as the white balance of the camera input is constantly being adjusted by the operating system. This leads to color aberrations when a player puts down a token and his or her hand takes up a large portion of the image: the image will change its color temperature and white tokens become slightly blue. Often the aberration will be corrected after the hand leaves the image, but depending on the background this does not happen every time. We tried fixing the white balance upon starting to record, but it seems the camera needs to adjust its white balance from time to time. Otherwise the white pieces stand out even less against the background. We also tried to fix white balance settings by forcing camera parameters, but we could find none which worked under all tested illuminations.
 
-	Luckily the white pieces are well detectable under normal circumstances in the saturation channel (saturation of the pieces is low and the saturation of the board is high, hue is undefined) and when the color is shifted in the hue channel (saturation of the pieces and the board is low, hue of the pieces is low).
+	Luckily the white tokens are well detectable under normal circumstances in the saturation channel (saturation of the pieces is low and the saturation of the board is high, hue is undefined) and when the color is shifted in the hue channel (saturation of the pieces and the board is low, hue of the pieces is low).
 
 	Therefore, we threshold the saturation and the hue channel separately, count the non-zero responses and use the individual results only if at most 20\% of the image is below the threshold.
 
@@ -96,30 +100,32 @@
 
 	\subsection{Using Hough circles}
 	\label{detector-occluded-hough}
-	Go pieces are relatively round and can be detected using Hough circles to some extent as long as the image is taken from a relatively high angle. If the camera is positioned near to the plane in which the board lies the circles become ellipses. In order to still match the pieces the threshold in the accumulator space beyond which a circle center will be detected has to be chosen quite low. This results in many false positives where noise is located by chance in some near-circle configuration.
+	Go pieces are relatively round and can be detected using Hough circles to some extent as long as the image is taken from a relatively high angle. If the camera is positioned near to the plane in which the board lies the circles become ellipses. In order to still match the tokens we have to choose the threshold above which a circle center will be detected in the accumulator space. This results in many false positives if noise is located in some near-circle configuration by chance.
 
 	The centers of the detected circles are then added to intersections and duplicates (determined by their distance) are removed.
 
 	\subsection{Using contours}
 	\label{detector-occluded-contours}
 	%TODO updaten
-	Finding pieces with Hough transformation is slow, though, and we were not contempt with the result to speed ratio. That is why we investigated further and chose to try analyzing the image topologically using OpenCV's \emph{findContours} function.
+	Finding pieces with Hough transformation is slow, though, and we were not contempt with the result to speed ratio. That is why we investigated further and chose to try analyzing the image topologically \cite{suzuki1985topological} using OpenCV's \emph{findContours} function.
 
-	We preprocess the image the same way as before. This results in blobs for each piece whose contours can be detected nicely. Those can then be fitted well into quadratic rectangles. If we encounter a rectangle which is about twice as long in one dimension as in the other, we split it in two. We then discard all contours whose bounding box is not more or less quadratic and filter the rectangles by their size.
+	We preprocess the image the same way as before. This results in blobs for each piece whose contours can be detected nicely. If those are approximately round they can then be fitted well into quadratic rectangles. If we encounter a rectangle which is about twice as long in one dimension as in the other, we split it in two. Then we discard all contours whose bounding box is not more or less quadratic. Lastly we filter the rectangles by their size to remove too small or too large squares which typically come from noise.
 
-	The centers of the detected squares are then added to intersections just like the centers of the circles when using Hough transformation.
+	The centers of the remaining squares are then added to intersections just like the centers of the circles when using Hough transformation.
 
-	\section{Calculating missing intersections}
+	\section{Extrapolating the board}
 	\label{detector-calculate}
-	Having collected a set of probable intersections we now must fill in gaps where neither lines nor pieces have been detected. Also we need to somehow figure out which detected intersections are valid and actually are part of the board and which are simply intersections of grid lines with the outer edge of the board or other noise.
+	Having collected a set of probable intersections we now need to fill in gaps where neither lines nor pieces have been detected. Also we need to classify if a detected intersection is valid and actually a part of the board. That is we have to filter those which simply are intersections of prolonged grid lines with the outer edge of the board and other noise.
 
-	First we calculate the average angle of the horizontal lines from the previous step and rotate the image to justify them. This does not fix perspective distortion but it allows us to sort the intersections by lines, which we need later to iterate over them row-wise.
+	First we calculate the average angle of the horizontal lines from the previous step and rotate the set of intersections to justify them. This does not fix perspective distortion but it allows us to sort the intersections by rows. We need this later to iterate over them row-wise.
 
-	Then we select a number of intersections in the center of the board by selecting all intersections inside a square around the center. To do so, we assume the center of the board is the closest (detected or yet undetected) intersection to the center of the image. While this assumption can hardly be made in setups where the image is taken by bystanders or from randomly located cameras, we argue that when trying to record a game a user will be able to adjust the camera location accordingly. Another possibility could be to prompt the user for the center of the board, which is easily done via the touchscreen of the smart phone. We did not implement this approach for time reasons, but it should yield equal quality.
+	To make the iteration easier we sort them in this step. All intersections within a vertical window of 15 pixels of each other are considered to belong to one row. They are then sorted by row first and by column in second order.
 
-	If the number of selected intersections is too small, we increase the window size and try again.
+	Then we select a number of intersections in the center of the board by selecting all intersections inside a square around the image center. Hereby we assume the innermost intersection on the board to be the closest (detected or yet undetected) one to the center of the image. This assumption can hardly be made in setups where the image is taken by bystanders or from randomly located cameras. We argue, though, that when trying to record a game a user will be able to adjust the camera location accordingly. Another possibility could be to prompt the user for the center of the board, which can be easily done via the touchscreen of the smart phone. We did not implement this approach, but it should yield equal quality.
 
-	Those intersections (shown in yellow in \autoref{fig:buildModel-input}) are now modeled as a subset of actual board intersections. We determine the median distance between neighboring intersections -- using the mean yielded worse results. Then we iterate row-wise over the selected intersections from the top left to the bottom right (to facilitate this we sort the intersections before selection). For every intersection we save the current row and column (on the board, not the image) and add a key point to our model at this location. If we encounter a gap between two intersection that is larger than the median distance we increase the column count accordingly. The same happens in y-direction with the row count. If we find an intersection is an outlier to the left we increase the column count of all previous key points accordingly.
+	If the number of selected intersections is too small (we found 20 to be a well working count), we increase the window size and try again.
+
+	Those intersections (shown in yellow in \autoref{fig:buildModel-input}) are now modeled as a subset of actual board intersections. We determine the median distance between neighboring intersections. Then we iterate row-wise over the selected intersections from the top left to the bottom right. For every intersection we save the current row and column (on the board, not the image) and add a key point to our model at this location. If we encounter a gap between two intersection that is larger than the median distance we increase the column count accordingly. The same happens in y-direction with the row count. If we find an intersection is an outlier to the left we increase the column count of all previous key points accordingly.
 
 	\begin{figure}
 		\begin{subfigure}{0.45\textwidth}
@@ -137,15 +143,20 @@
 		\label{fig:buildModel}
 	\end{figure}
 
-	The interim result of this iteration is a submodel of the board with equidistant key points where every key point correspondents to a selected intersection as shown in \autoref{fig:buildModel-output}.
+	The interim result of this iteration is a model of a part the board with equidistant key points where every key point correspondents to a selected intersection as shown in \autoref{fig:buildModel-output}.
 
-	During the iteration we also add virtual intersections to fill in gaps in our intersection set (see the orange circles in \autoref{fig:buildModel-input}). This is necessary in case the board's center intersection has not been detected. From this filled up intersection set we select the intersection closest to the image center and assume it is the intersection in the center of the board. Using the center intersection row and column count we can shift our model to the correct position within the board.
+	During the iteration we also add virtual intersections to fill in gaps in our intersection set (see the orange circles in \autoref{fig:buildModel-input}). This is necessary in case the board's center intersection has not been detected. From this filled up intersection set we select the intersection closest to the image center and assume it is the center of the board. Using this intersection's row and column count we can shift our model to the correct position within the board.
 
-	Our updated interim result is now a submodel of the board located correctly inside the whole model, which we can feed into the RANSAC algorithm, as we made sure every key point corresponds to an intersection thus creating homography between the actual image and the hypothetical image of our modeled board. This serves three purposes. First, the RANSAC algorithm tolerates outliers, i.e. intersections which have been detected slightly wrong. Second, we can use the homography information to rectify subsequent images and increase detection quality. Lastly the transformation matrix can also be used to warp a complete model of the board and lay it onto the image. Now we know the location of every intersection -- including those, which have not been detected previously.
+	Our updated interim result is now a model of a part of the board located correctly inside the complete model of the board. We can use this as input for the RANSAC algorithm, as we made sure every key point corresponds to an intersection thus creating homography between the actual image and the hypothetical image of our modeled board.
 
-	\section{Postprocessing}
+	This serves three purposes. First, the RANSAC algorithm tolerates outliers, i.e. intersections which have been detected slightly displaced. Second, we can use the transformation information to rectify subsequent images and increase detection quality (see \ref{evaluation-prepostprocessing-perspectiveRectifying}). Lastly the transformation matrix can also be used to warp a complete model of the board and lay it onto the image. After doing so we know the location of every intersection in our image -- including those, which have not been detected previously.
+
+	\section{Refining intersection locations}
 	\label{detector-postprocessing}
-	After the interpolation step the mean error is still quite high, because small errors in the selected intersections result in large errors when interpolating from them. To fix these, we first shift interpolated intersections to a closeby measured intersection, if one is available. Then we re-do the interpolation step with all those intersections which have been moved, i.e. in which we can be confident. This step can be repeated several times until a desired detection quality has been reached or it yields no further improvement. This is also key to detecting larger boards, where this step can be used to first figure out a nine-by-nine subgrid and then interpolate from it to larger boards. We did not implement this, though, due to the lack of a 19x19 board.
+	After the interpolation step the mean error is still quite high, because small offsets in the selected intersections result in large errors when interpolating from them. To fix these, we first shift interpolated intersections to a closeby measured intersection, if one is available. Then we perform another interpolation step with all those intersections which have been moved, i.e. in which we can be confident. This step can be repeated several times until a desired detection quality has been reached or it yields no further improvement. This is also key to detecting larger boards, where this step can be used to first find a nine-by-nine subgrid and then interpolate from it to larger boards. We did not implement this, though, due to the lack of a 19x19 board.
+
+	\vfill
+	\pagebreak
 
 	\section{Classifying intersections}
 	\label{detector-classifying}
@@ -153,15 +164,15 @@
 	\setlength{\columnsep}{20pt}%
 	\begin{wrapfigure}{r}{0.45\textwidth}
 		\centering
-  		\vspace{-20pt}
+  		\vspace{-30pt}
 	    \includegraphics[width=0.42\textwidth]{images/colorDetection.png}
 	  	\caption{Detection windows on the thresholded, segmented image after highlight removal}
 	\end{wrapfigure}
-	We can now evaluate the board at the intersections to find whether there's a piece there or not and if so of which color it is. The first step here is to use an adaptive threshold and to segment the board using a connect component analysis similarly to the preprocessing step. The result is a binary image showing only the lines and black pieces. Highlights within the black pieces from reflections are still a problem but can be removed well enough by erosion and dilution.
+	Having located the intersections we can evaluate the image at their locations to find whether there's a piece there or not and (if applicable) its color. First we use an adaptive threshold to remove noise by a connected-component analysis similarly to the preprocessing step. The result is a binary image showing only the lines and black pieces. Highlights within the black pieces from reflections are still a problem but can be removed surprisingly well by erosion and dilution.
 
 	\endgroup
 
-	For every intersection we calculate the average pixel value in a window and compare it to two thresholds, such that \begin{equation}
+	As we have rotated the intersections in \autoref{detector-calculate} our resulting model is rotated by the same amount. We undo this rotation now to realign the model with the actual input image. Finally we calculate the average pixel value in a window around each intersection and compare it to two thresholds, such that \begin{equation}
 		\frac{\sum^{I,J}_{i=0,j=0}w(i,j)}{I*J} =
 		\begin{cases}
 		> T_{w} + C & \Rightarrow  \text{white}\\
@@ -172,5 +183,5 @@
 	where $C$ is a constant value that is added to the white threshold on the edge of the grid. This is necessary because the lines are not continued there and less black pixels from them are contributed.
 
 
-	\section{Realigning the detected positions}
-	As we don't just return the detected board but also intersection and piece locations, we have to realign them with the image. This is necessary because we rotated the detection image in \ref{detector-calculate} and cropped it in \autoref{detector-preprocessing}. To undo this, we rotate all returned locations around the center with the negative previously used angle. We also shift them by the negative offset of the cropped image inside the input image.
+	\section{Postprocessing}
+	As we don't just return the detected board but also intersection and piece locations, we have to realign them once more with the image. This is necessary because we didn't just rotate them in \autoref{detector-calculate} but also cropped the image in \autoref{detector-preprocessing}. To undo this we shift the intersections by the negative offset of the cropped image inside the input image.
