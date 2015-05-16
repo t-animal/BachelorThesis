@@ -117,14 +117,29 @@
 
 	Then we select a number of intersections in the center of the board by selecting all intersections inside a square around the center. To do so, we assume the center of the board is the closest (detected or yet undetected) intersection to the center of the image. While this assumption can hardly be made in setups where the image is taken by bystanders or from randomly located cameras, we argue that when trying to record a game a user will be able to adjust the camera location accordingly. Another possibility could be to prompt the user for the center of the board, which is easily done via the touchscreen of the smart phone. We did not implement this approach for time reasons, but it should yield equal quality.
 
-	%TODO: anzahl evaluieren und hier eintragen
 	If the number of selected intersections is too small, we increase the window size and try again.
 
-	Those intersections are now modeled as a subset of actual board intersections. We determine the median distance between neighboring intersections -- using the mean yielded worse results. Then we iterate row-wise over the selected intersections from the top left to the bottom right (to facilitate this we sort the intersections before selection). For every intersection we save the current row and column (on the board, not the image) and add a key point to our model at this location. If we encounter a gap between two intersection that is larger than the median distance we increase the column count accordingly. The same happens in y-direction with the row count. If we find an intersection is an outlier to the left we increase the column count of all previous key points accordingly.
+	Those intersections (shown in yellow in \autoref{fig:buildModel-input}) are now modeled as a subset of actual board intersections. We determine the median distance between neighboring intersections -- using the mean yielded worse results. Then we iterate row-wise over the selected intersections from the top left to the bottom right (to facilitate this we sort the intersections before selection). For every intersection we save the current row and column (on the board, not the image) and add a key point to our model at this location. If we encounter a gap between two intersection that is larger than the median distance we increase the column count accordingly. The same happens in y-direction with the row count. If we find an intersection is an outlier to the left we increase the column count of all previous key points accordingly.
 
-	The interim result of this iteration is a submodel of the board with equidistant key points where every key point correspondents to a selected intersection.
+	\begin{figure}
+		\begin{subfigure}{0.45\textwidth}
+			\includegraphics[width=\textwidth]{images/buildingModel.png}
+			\caption{Red: All detected intersections; yellow: selected intersections; orange: virtual intersections; green: the board center}
+			\label{fig:buildModel-input}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}{0.45\textwidth}
+			\includegraphics[width=\textwidth]{images/builtModel.png}
+			\caption{The resulting model. Notice that undetected intersections are left out thus creating homography. Green: the image center}
+			\label{fig:buildModel-output}
+		\end{subfigure}
+		\caption{Building the model}
+		\label{fig:buildModel}
+	\end{figure}
 
-	During the iteration we also add virtual intersections to fill in gaps in our intersection set. From this filled up intersection set we select the intersection closest to the image center and assume it is the intersection in the center of the board. Using the center intersection row and column count we can shift our model to the correct position within the board.
+	The interim result of this iteration is a submodel of the board with equidistant key points where every key point correspondents to a selected intersection as shown in \autoref{fig:buildModel-output}.
+
+	During the iteration we also add virtual intersections to fill in gaps in our intersection set (see the orange circles in \autoref{fig:buildModel-input}). This is necessary in case the board's center intersection has not been detected. From this filled up intersection set we select the intersection closest to the image center and assume it is the intersection in the center of the board. Using the center intersection row and column count we can shift our model to the correct position within the board.
 
 	Our updated interim result is now a submodel of the board located correctly inside the whole model, which we can feed into the RANSAC algorithm, as we made sure every key point corresponds to an intersection thus creating homography between the actual image and the hypothetical image of our modeled board. This serves three purposes. First, the RANSAC algorithm tolerates outliers, i.e. intersections which have been detected slightly wrong. Second, we can use the homography information to rectify subsequent images and increase detection quality. Lastly the transformation matrix can also be used to warp a complete model of the board and lay it onto the image. Now we know the location of every intersection -- including those, which have not been detected previously.
 
@@ -134,7 +149,17 @@
 
 	\section{Classifying intersections}
 	\label{detector-classifying}
+	\begingroup
+	\setlength{\columnsep}{20pt}%
+	\begin{wrapfigure}{r}{0.45\textwidth}
+		\centering
+  		\vspace{-20pt}
+	    \includegraphics[width=0.42\textwidth]{images/colorDetection.png}
+	  	\caption{Detection windows on the thresholded, segmented image after highlight removal}
+	\end{wrapfigure}
 	We can now evaluate the board at the intersections to find whether there's a piece there or not and if so of which color it is. The first step here is to use an adaptive threshold and to segment the board using a connect component analysis similarly to the preprocessing step. The result is a binary image showing only the lines and black pieces. Highlights within the black pieces from reflections are still a problem but can be removed well enough by erosion and dilution.
+
+	\endgroup
 
 	For every intersection we calculate the average pixel value in a window and compare it to two thresholds, such that \begin{equation}
 		\frac{\sum^{I,J}_{i=0,j=0}w(i,j)}{I*J} =
@@ -144,7 +169,8 @@
 		\text{otherwise} & \Rightarrow \text{empty}
 		\end{cases}
 	\end{equation}
-	where $C$ is a constant value that is added to the white threshold on the edge of the grid. This is necessary because the lines are not continued there and less black pixels from them are contributed.\
+	where $C$ is a constant value that is added to the white threshold on the edge of the grid. This is necessary because the lines are not continued there and less black pixels from them are contributed.
+
 
 	\section{Realigning the detected positions}
-	As we don't just return the detected board but also intersection and piece locations, we have to realign them with the image. This is necessary because we rotated the detection image in \ref{detector-calculate} and cropped it in \ref{detector-preprocessing}. To undo this, we rotate all returned locations around the center with the negative previously used angle. We also shift them by the negative offset of the cropped image inside the input image.
+	As we don't just return the detected board but also intersection and piece locations, we have to realign them with the image. This is necessary because we rotated the detection image in \ref{detector-calculate} and cropped it in \autoref{detector-preprocessing}. To undo this, we rotate all returned locations around the center with the negative previously used angle. We also shift them by the negative offset of the cropped image inside the input image.
