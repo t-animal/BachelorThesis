@@ -143,26 +143,32 @@
 
 	\section{Occluded intersections}
 	\label{evaluation-occluded}
+	Now that we have analyzed the performance of the line detectors let us examine the different approaches to detect pieces respectively the intersections they are placed upon.
+
+	As described in \autoref{evaluation-dataset} we had annotated all pieces with their center and radius. During evaluation we counted a token as correctly detected if its location was within 15 pixels of the annotation and its radius was off by at most 10 pixels. We did not care too much about the radius, though, as it did not really matter to us if the piece had been detected correctly in size. We rather strove to find the correct center of the token as we assumed this to be the location of an intersection.
+
 	\subsection{Optimizations on the training set}
 	\label{evaluation-occluded-optimization}
-	We optimized the parameters for thresholding and detecting light and dark pieces separately for both detection methods. We chose the final parameter set like we did for the line detection algorithms by sorting after true positive rate and selecting the best scoring algorithm below a specific threshold on false positives. We set the false positive threshold a lot lower, though, at a maximum of seven false positives for either color. That is because we found that wrongly classified pieces tended to have a greater impact on detection quality than false positives in the line detection step. Both algorithms still performed good enough to provide a significant amount of additional intersections.
+	Like we explained in \autoref{detector-occluded-preprocessing} we used thresholding to get the input to both our detection methods (our contour based approach and Hough Circle Transformation). We optimized the thresholding parameters separately from the detection parameters as otherwise our search domain would have grown too much in size. We also optimized locating dark and light pieces separately. This is unproblematic because we do not work on the same data (hue and saturation channels and value channel) making it two different, independent tasks.
 
-	Due to how we optimized our parameters we could not adjust the thresholding values for both methods or even all parameters at once. Therefore we first set the contours to very general settings and used it to find a parameter set of the thresholding step where there were not too many false positives and the detection rate was not too low.
+	We chose the final parameter set like we did for the line detection algorithms by sorting after true positive rate and selecting the best scoring algorithm yielding less false positives than a specific number. We chose this threshold a lot lower, though, at a maximum of seven false positives for either color. That is because we found that wrongly located tokens tended to have a greater impact on detection quality than false positives in the line detection step. Both algorithms still performed good enough to provide a significant amount of additional intersections.
 
 	\subsubsection{Contours}
 	\label{evaluation-occluded-optimization-contours}
-	As described in \autoref{detector-occluded-contours} we selected rectangles around contours of blobs in the thresholded images when they were roughly quadratic. This works surprisingly well and we believe it could be improved still to perform as good as Hough circle detection or even better, by using rotated rectangles. The chosen parameters yielded 84.23\% (438 of 520) detection rate with 3 false positives on the white pieces and 61.12\% (316 of 517) detection rate with 7 false positives on the black pieces. When added together this results in a 72.71\% (754 of 1037) detection rate with 10 false positives. Another optimization run on the threshold values did not increase the detection rate significantly.
+	The idea of the first algorithm, as described in \autoref{detector-occluded-contours}, is to select quadratic rectangles around contours of blobs in the thresholded images. This works surprisingly well and we believe it could be improved still to perform as good as Hough Circle Detection or even better, by using rotated rectangles. The parameter combination which we chose yielded 84.23\% (438 of 520) detection rate with 3 false positives on the white pieces and 61.12\% (316 of 517) detection rate with 7 false positives on the black pieces. When added together this results in a 72.71\% (754 of 1037) detection rate with 10 false positives.
 
 	\subsubsection{Hough}
 	\label{evaluation-occluded-optimization-hough}
 	The more obvious approach is to use Hough circle detection to locate the pieces as mentioned in \autoref{detector-occluded-hough}. This approach correctly detected 78.27\% (407 of 520) with 5 false positives of the white pieces and 69.05\% (357 of 517) with 6 false positives of the black pieces. Summed up this is a 73.67\% (764 of 1037) detection rate with 11 false positives.
 
+	The reason why both approaches perform worse on the black pieces are specular highlights. They can occur on white pieces, too, but naturally are worse on black pieces, both in appearance and influence. After thresholding they appear as holes in the pieces and as we use erosion and dilution to filter out speckles their size increases. If they are cast by a linear or planar light source they often span significant portions of the black pieces. Then they cause the piece depiction to become rectangular and considerably smaller. In extreme cases they even lead to black pieces vanishing completely.
+
 	\subsection{Performance on the testing set}
 	\label{evaluation-occluded-performance}
 	\input{chapters/chapter4-figure-piecesTesting.tex}
-	Interestingly the contour based approach yields better results when there are less pieces on the board. This is probably due to how the algorithm handles two adjacent pieces which are connected. Not all of those are correctly split into two pieces and thus discarded. If this could be improved it would probably outperform its Hough based counterpart.
+	Interestingly the contour based approach yields better results when there are less pieces on the board. This is probably due to how the algorithm handles two adjacent pieces which are connected. Not all of those are correctly split into two pieces and thus discarded, especially if the board is rotated. If this could be improved it would outperform its Hough Transformation based counterpart.
 
-	When summing up the results both approaches, both perform equally well on our testing set as \autoref{tab:piecesTest} shows.
+	When summing up the results both perform equally well on our testing set as \autoref{tab:piecesTest} shows.
 	\begin{table}[b!]
 		\begin{tabular}{lr ccc}
 		    \multicolumn{2}{c}{}											 		&\hphantom{Abst} & Contour 	& HOUGH\\
@@ -179,7 +185,8 @@
 			%																		  243/357		  252/357
 															& Precision			 	&& 99.2\% 		& 99.2\% \\
 			%																		  246/248 		  252/254
-			\bottomrule
+			\specialrule{\heavyrulewidth}{\aboverulesep}{10pt}
+
 			\multirow{2}{*}{Total}				 			& True positive rate 	&& 71.6\% 		& 71.6\% \\
 			%																		  315/440		  315/440
 															& Precision			 	&& 97.8\% 		& \textbf{99.3}\% \\
@@ -193,16 +200,23 @@
 
 	\section{Pre- and postprocessing}
 	\label{evaluation-prepostprocessing}
+	We did not just evaluated different approaches to the detection of intersections, but also looked into how we could improve detection by other means.
 
 	\subsection{Rectifying perspective distortion}
 	\label{evaluation-prepostprocessing-perspectiveRectifying}
-	The camera moves only slightly when hand-held or not at all when put on some kind of stand. Thus it should be feasible to use the orientation of the board in a previous frame to correct the orientation in the current frame. This information must only be discarded when the camera moves drastically or when the result in the current frame is very bad due to the correction. Therefore we enabled the detector to receive a transformation matrix, apply it to the input image before any operation happens and transform the results back after all detection has taken place.
+	The camera angle changes only slightly when the mobile device is hand-held or not at all when put on some kind of stand. Thus it should be feasible to use the orientation of the board in a previous frame to correct the orientation in the current frame. This information must only be discarded when the camera moves drastically or when the result in the current frame is very bad due to the correction. Therefore we enabled the detector to receive a transformation matrix, apply it to the input image before any operation happens and transform the results back after all detection has taken place.
 
-	The source of the transformation is the inverse transformation matrix determined by the RANSAC step in our detection pipeline. This automatically incorporate lens distortion, too.
+	The source of the transformation is the inverse transformation matrix determined by the RANSAC step in our detection pipeline. This automatically incorporate lens distortion, too. The matrix has to be inverted because it is the matrix transforming a perfectly aligned model onto the distorted board in our image. As we want to do the opposite (transforming a distorted board to be rectangular) the transformation has to be performed in the other direction.
 
-	We did not have video test data so to test the first approach we instead fed the transformation matrix back into a second run on the same image. Assuming the location of the camera does not change too much during two frames this substitution can be made. The first impression of using doing so were pretty promising. The images were transformed well and seemed to be taken from directly above the board.
+	We did not have video test data and could not reuse information from a previous frame. In order to still test the approach we instead fed the transformation matrix back into a second detector run on the same image. Assuming the location of the camera does not change too much during two frames this substitution can be made. The first impressions of doing so were pretty promising. The images were transformed well and seemed to be taken from directly above the board.
 
-	However having reached near-perfect accuracy on the test set by optimizing for images taken from an angle the results were poorer than before. This does not mean that the step is a failure, though, but simply that the optimized parameters for the other pipeline steps are very well fitted to the given task. When researching the task further it might be a good idea to incorporate this preprocessing step upfront.
+	However having reached near-perfect accuracy on the test set by optimizing for images taken from an angle the results were poorer than before. This does not mean that the step is a failure, though, but simply that the optimized parameters for the other pipeline steps are very well fitted for their purpose. When researching the task further it might be a good idea to incorporate this preprocessing step upfront.
+
+	\subsection{Removing specular highlights}
+	\label{evaluation-prepostprocessing-specularHighlights}
+	Specular highlights are a problem especially on black tokens. They do not only impair piece detection quality but also can be a problem when extracting the piece color. We looked into inpainting them by first determining a mask through thresholding on grayscale images with very high values. Then we tried applying Alexandru Telea's inpainting algorithm\cite{telea2004image}. We had to dismiss the idea, though, due to the speed of the method being too slow. As specular highlights are mainly a problem on black pieces we tried to simply set the color to black, which was fast but did not result in higher quality, as highlights occur on white tokens, too.
+
+	We did not look into this any further, but we think that by inpainting with the dominant color in the vicinity of the highlight, good results in reasonable time might be achieved.
 
 	\subsection{Removing large outliers during detection}
 	\label{evaluation-prepostprocessing-filteringOutliers}
@@ -212,7 +226,7 @@
 	\label{evaluation-prepostprocessing-filteringOutliers-movingAverage}
 	To mitigate the effects of those frames we tried applying a moving average over the intersections. The previously detected intersection counted 75\% while those from the current image contributed only 25\%, i.e. $I_t = \frac{1}{4}I + \frac{3}{4}I_{t-1}$.
 
-	While this approach removed large outliers from the detection result on wrongly classified images, it also led to worse results. That is due to large errors having such influence that the result would be skewed for several frames to come.
+	While this approach removed large outliers from the detection result on wrongly classified images, it also led to worse results. That is due to large errors still having such influence that the result would be skewed for several frames to come.
 
 	\subsubsection{Filtering obviously incorrect detection results}
 	\label{evaluation-prepostprocessing-filteringOutliers-filteringWrong}
@@ -227,7 +241,9 @@
 
 	\section{Speed on an Android device}
 	\label{evaluation-speed}
-	We evaluated all algorithms for their speed on our development phone, too. To do so, we measured the current time in milliseconds before entering the respective function and afterwards. To compensate for other apps interfering with the application and scheduling we took an average of 100 samples.
+	We evaluated all algorithms for their speed on our development phone, too. To do so, we measured the current time in milliseconds before entering the respective function and afterwards. To compensate for other apps interfering with the application and scheduling we took an average of 100 samples. The individual results are shown in \autoref{fig:timeEvaluation-bars}. All colored entries depict parts of our detector. The entry ''create output'' includes all steps outside of the native detector (counting responses over time and drawing the detection result on the output image). In \autoref{fig:timeEvaluation-pie} we show how the total runtime of 1095.84ms is built from the different parts of our final application.
+
+	The mobile phone we used for testing ranks in the middle class in several benchmarks\cite{antutuBench,primateBench} as its model is three years old as of this writing. That gives us confidence that our measurements are representative for a large portion of Android phones and on many current phones performance will be better.
 
 	\subsection{Getting a baseline}
 	\label{evaluation-speed-baseline}
@@ -235,11 +251,9 @@
 
 	\subsection{Comparing runtime of different approaches}
 	\label{evaluation-speed-approaches}
-	We then took speed measurements of the line detection methods. The Line Segment Detector outperforms the Hough transformation by a factor of two on our testing hardware. Unfortunately, as mentioned before its quality is also only half as good. If the postprocessing could be improved using the LSD would increase the frame rate by about 15\%. We did not evaluate FAST corner detection here, because it is simply too unfit for the task.
+	We then took speed measurements of the line detection methods. The Line Segment Detector outperforms the Hough Transformation by a factor of two on our testing hardware. Unfortunately its quality is also only half as good. If the postprocessing could be improved using the LSD would increase the frame rate by about 15\%. We did not evaluate FAST corner detection to compare it, because it is simply too unfit for the task.
 
-	Originally we created the contour based approach for the piece detection to increase the speed of our detector. This goal was reached as it performs at about 129\% of the speed of the Hough circle detector. But when looking at the speed advantage of 72.9ms, it does not make a real difference considering the total runtime of about one second. As they perform with about the same quality, we still chose it over the Hough based approach.
-
-	We set the different algorithms in perspective in \autoref{fig:timeEvaluation-bars}. In \autoref{fig:timeEvaluation-pie} we show how the total runtime of 1095.84ms is built from the different parts of our final application.
+	We also looked in detail at the piece detection algorithms. Originally we created the contour based approach for the piece detection to increase the speed of our detector. This goal was reached as it performs at about 129\% of the speed of the Hough circle detector. But when looking at the absolute speed advantage of 72.9ms, it does not make a real difference considering the total runtime of about one second. As they perform with about the same quality, we still chose it over the Hough based approach.
 
 	\pgfplotstableread[header=false]{
 	345.24 	{Hough lines}
@@ -325,13 +339,13 @@
 
 	\section{Overall performance and live experiences}
 	\label{evaluation-overallPerformance}
-	We furthermore chose to use Houghlines as it was the only well-performing line detector. For the detection of pieces we used the contour based algorithm due to its speed advantages for the final application as it was released to the Google Play Store\footnote{It can be installed at \url{https://play.google.com/store/apps/details?id=de.t_animal.goboardreader}}.
-
 	By now we have only tested the quality of each individual step seperately. Finally we also evaluated, how well our whole detection pipeline performed on our testing set.
 
-	Another interesting thing is, how well the App performs under real world circumstances. To test this, we let KiGo (a KDE Go application) generate sample games and reproduced them in different lighting conditions. In total there were 180 moves that could be recorded in six games, also counting the handicap pieces placed on the board before a game starts.
+	Another interesting thing is, how well the App performs under real world circumstances, with some camera movement and part time occlusions. To test this, we let KiGo (a KDE Go application\footnote{\url{https://www.kde.org/applications/games/kigo/} accessed on 17-May-2015}) generate sample games and reproduced them in different lighting conditions. In total there were 180 moves that could be recorded in six games, also counting the handicap pieces placed on the board before a game starts. While testing the phone was placed in a mounting device similar to the one in the appendix TODO.
 
-	Three games took place on the same desk as in our training data. One of those was detected perfectly without any error. In one there was a false positive which was detected on several occasions. In the last there was a false positive white piece which vanished when a black piece was put on its location. That means 100\% of all played pieces were detected correctly.
+	For these tests we used the final application as it was released to the Google Play Store\footnote{It can be installed at \url{https://play.google.com/store/apps/details?id=de.t_animal.goboardreader}}. In it we chose to use the Hough Line Detector as it was the only well-performing line detector. For the detection of pieces we used the contour based algorithm due to its speed advantage.
+
+	Three test games took place on the same desk as in our training data. One of those was detected perfectly without any error. In one there was a false positive which was detected on several occasions. In the last there was a false positive white piece which vanished when a black piece was put on its location. That means 100\% of all played pieces were detected correctly.
 
 	\begin{figure}[h!]
 		\center
@@ -343,4 +357,4 @@
 
 	Lastly we recreated a game on a desk near a window under neon lighting. Here we had one piece which was not detected persistently and one which was not detected at all. That makes a 93.8\% detection ratio. Also there was one false positive at the very end of the game, after both players had passed.
 
-	After these results we tried to max out the amount of pieces we could place on the board to see how well the algorithm performed under extreme circumstances. The result was pretty good. Detection was possible until the board was nearly completely covered in pieces. We then put a piece on each intersection in a checkerboard like pattern -- alternating black and white. Even this completely abnormal configuration could be detected with near 100\% accuracy as \autoref{fig:android_perfect_recognition} shows. The results were very unstable, though. That means between a correctly classified frame lay several discarded ones, which did not contribute to the detection result but prolonged the detection time. Of course this is not a valid state of a game of Go, but it goes to show the power of using intersections when detecting densely occupied boards.
+	After this we tried to max out the amount of pieces we could place on the board to see how well the algorithm performed under extreme circumstances. The result was pretty good. Detection was possible until the board was nearly completely covered in pieces. We then put a piece on each intersection in a checkerboard like pattern -- alternating black and white. Even this completely abnormal configuration could be detected with near 100\% accuracy as \autoref{fig:android_perfect_recognition} shows. The results were very unstable, though. That means between a correctly classified frame lay several discarded ones, which did not contribute to the detection result but prolonged the detection time. Of course this is not a valid state of a game of Go, but it goes to show the power of using intersections when detecting densely occupied boards.

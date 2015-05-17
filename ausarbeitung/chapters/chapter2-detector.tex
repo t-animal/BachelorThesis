@@ -96,7 +96,7 @@
 
 	This yields pretty good results, however there is still a lot of noise in the thresholded image. Consequently we apply a Gaussian blur to the source image before thresholding and remove speckles afterwards by eroding and dilating the image slightly.
 
-	After that white pieces are actually detected better than black ones, as we describe in \ref{evaluation-occluded-optimization}. Anyhow it is not very important for us to have a perfect detection ratio in this step, because the results are not used to generate the end result but only to fill in gaps in the previously detected intersections.
+	After that white pieces are actually detected better than black ones, as we describe in \autoref{evaluation-occluded-optimization}. Anyhow it is not very important for us to have a perfect detection ratio in this step, because the results are not used to generate the end result but only to fill in gaps in the previously detected intersections.
 
 	\subsection{Using Hough circles}
 	\label{detector-occluded-hough}
@@ -184,4 +184,4 @@
 
 
 	\section{Postprocessing}
-	As we don't just return the detected board but also intersection and piece locations, we have to realign them once more with the image. This is necessary because we didn't just rotate them in \autoref{detector-calculate} but also cropped the image in \autoref{detector-preprocessing}. To undo this we shift the intersections by the negative offset of the cropped image inside the input image.
+	As we don't just return the detected board but also intersection and piece locations, we have to realign them once more with the image. This is necessary because we didn't just rotate them in but also cropped the image in \autoref{detector-preprocessing}. To undo this we shift the intersections by the negative offset of the cropped image inside the input image.

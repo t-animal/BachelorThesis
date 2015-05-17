@@ -54,6 +54,6 @@
 	\end{figure}
 	The detection result still has to be displayed to the user. While often computer vision applications draw directly onto the analyzed image we decided to show the detected information separately and only debugging output on the image. This way we balance showcasing a possible way how an app might be responding to the user and also give an insight of whether and how the detector works.
 
-	Android offers methods to draw custom views via \texttt{Canvas} and \texttt{Paint} objects similarly to OpenCV. We wanted to give a comparable experience when using the detector on a desktop computer and via the app we decided. Thus we decided to draw the result by cropping the input image and draw the result next to it using OpenCV when in detection mode.
+	Android offers methods to draw custom views via \texttt{Canvas} and \texttt{Paint} objects similarly to OpenCV. We wanted to give a comparable experience when using the detector on a desktop computer and via the app. Thus we decided to draw the result by cropping the input image and draw the result next to it using OpenCV when in detection mode.
 
 	We furthermore implemented a replay mode in which previously recorded games can be stepped through move by move. This allows direct control over the detection result and is a simple way to recapitulate a game.
