@@ -25,6 +25,7 @@
 \usepackage{pgfplotstable}
 \input{package/pieChart.tex}
 \usepackage{booktabs}
+% \usepackage{svg-inkscape}
 
 % \usepgfplotslibrary{external}
 % \tikzexternalize[prefix=plotcache/]
@@ -35,10 +36,6 @@
 %    Kodiermethode achten (z.B. Linux: latin1)!
 \usepackage{fontspec}
 \usepackage{CJKutf8}
-\setmainfont[   Path = fonts/,
-                BoldFont = BookmanOldStyleBold.ttf,
-                BoldItalicFont = BookmanOldStyleBoldItalic.ttf,
-                ItalicFont = BookmanOldStyleItalic.ttf]{BookmanOldStyle.ttf}
 
 
 % ++ es werden keine underfull hboxes als Fehler ausgegeben,
@@ -50,6 +47,74 @@
 
 \bibliographystyle{package/galpha1a}
 \begin{document}
+
+\begin{titlepage}
+
+\begin{center}
+
+\textsc{\LARGE Friedrich-Alexander Universität \\ Erlangen-Nürnberg}\\[1.5cm]
+
+\textsc{\Large Bachelor Thesis in Computer Science}\\[0.5cm]
+
+
+% Title
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+\HRule \\[0.4cm]
+{ \huge \bfseries Implementation of an Android app for the recording of Go games by tracking their state}\\[0.15cm]
+
+\HRule \\[1.5cm]
+
+\begin{minipage}{0.5\textwidth}
+\begin{flushleft} \large
+\emph{Author:}\\
+\ \ \ \ Tilman \textsc{Adler}\\
+\ \ \ \ born 16.12.1989 in Nürnberg
+\end{flushleft}
+\end{minipage}
+\hfill
+\begin{minipage}{0.4\textwidth}
+\begin{flushright} \large
+\emph{Supervisor:} \\
+Vincent \textsc{Christlein}\\
+~
+\end{flushright}
+\end{minipage}
+
+\vspace{2cm}
+
+% Author and supervisor
+\begin{minipage}{0.4\textwidth}
+\begin{flushleft} \large
+\emph{Started:}\\
+\ \ \ \ 01.01.2015\\
+\emph{Finished:}\\
+\ \ \ \ 01.06.2015
+\end{flushleft}
+\end{minipage}
+\hfill
+\begin{minipage}{0.5\textwidth}
+\begin{flushright} \large
+\emph{Written at:} \\
+Chair for Pattern Recognition (CS 5)\\
+Department of Computer Science\\
+FAU Erlangen-Nürnberg
+\end{flushright}
+\end{minipage}
+
+\vspace{2.4cm}
+
+% Unterer Teil der Seite
+\includegraphics[width=0.6\textwidth]{./images/logo-techfak-blau.png}
+
+\end{center}
+
+\end{titlepage}
+
+\setmainfont[   Path = fonts/,
+                BoldFont = BookmanOldStyleBold.ttf,
+                BoldItalicFont = BookmanOldStyleBoldItalic.ttf,
+                ItalicFont = BookmanOldStyleItalic.ttf]{BookmanOldStyle.ttf}
+
 \clearpage
   \begin{deckblatt}
     \Titel{Implementation of an Android app for the recording of Go games by tracking their state}
@@ -122,8 +187,16 @@ We further describe how we chose parameters for the used algorithms and how we t
 
 \appendix
 \cleardoublepage
+% \renewcommand{\thesection}{\Alph{subsection}}
 %\include{chapters/glossar}   % Glossar (\chapter{Glossar}  TEXT)
 %\cleardoublepage
+\chapter*{Simple mount for Nexus 4}
+\begin{figure}
+    \center
+    \includegraphics{images/halter.pdf}
+    \caption{A simple mount which can be printed out (at twice the size), cut out of thick cardboard or acrylic glass and put together as needed}
+    \label{attachment-mount}
+\end{figure}
 
 \include{includes/bt-lof} % Bilderverzeichnis
 \cleardoublepage

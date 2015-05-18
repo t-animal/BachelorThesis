@@ -4,7 +4,7 @@
 	\label{detector}
 	When looking at a Go board what first catches one's eye are the lines. However, relying solely on lines for the detection of the grid will probably fail in situations when too many tokens occlude the lines. Therefore, our algorithm uses them only to find intersections and tries to fill in gaps by adding information about pieces. The reason to do so is that what is actually interesting are not the lines, but their intersections and a piece will always lie reasonably close to one. The only user interaction happens in the beginning of a recording session. The user has to place the camera so that the center of the board aligns with the center of the camera.
 
-	The implementation\footnote{The source is GPLv3 licensed and can be freely accessed at https://github.com/t-animal/TODO} is based on the OpenCV framework (version 2.4.10). If not noted otherwise all detections have been performed on an x86\_64 architecture. As described in chapter 3 this does not give different results than the execution on mobile devices (i.e. ARM architecture), for example because of differences in floating point calculations.
+	The implementation\footnote{The source code is GPLv3 licensed and can be freely accessed at https://github.com/t-animal/TODO} is based on the OpenCV framework (version 2.4.10). If not noted otherwise all detections have been performed on an x86\_64 architecture. As described in chapter 3 this does not give different results than the execution on mobile devices (i.e. ARM architecture), for example because of differences in floating point calculations.
 
 	In short we do the following steps:
 	\begin{enumerate}
@@ -78,7 +78,7 @@
 
 	\subsection{Using corner detectors}
 	\label{detector-visible-corners}
-	Another option to detect the intersection directly without using line detection might be to use a corner detector. We tested the FAST \cite{rosten2006machine} detector on a slightly blurred image. However it provides too many false positives to be useful for this task. Especially around black pieces it returns keypoints which do not belong to the grid. The ORB detector which uses FAST internally does not increase quality either.
+	Another option to detect the intersections directly without using line detection might be to use a corner detector. We tested the FAST \cite{rosten2006machine} detector on a slightly blurred image. However it provides too many false positives to be useful for this task. Especially around black pieces it returns keypoints which do not belong to the grid. The ORB detector which uses FAST internally does not increase quality either.
 
 	\section{Detecting occluded intersections}
 	\label{detector-occluded}
@@ -100,7 +100,7 @@
 
 	\subsection{Using Hough circles}
 	\label{detector-occluded-hough}
-	Go pieces are relatively round and can be detected using Hough circles to some extent as long as the image is taken from a relatively high angle. If the camera is positioned near to the plane in which the board lies the circles become ellipses. In order to still match the tokens we have to choose the threshold above which a circle center will be detected in the accumulator space. This results in many false positives if noise is located in some near-circle configuration by chance.
+	Go pieces are relatively round and can be detected using Hough circles to some extent as long as the image is taken from a relatively high angle. If the camera is positioned near to the plane in which the board lies the circles become ellipses. In order to still match the tokens we have to choose the threshold above which a circle center will be detected in the accumulator space quite low. This results in many false positives if noise is located in some near-circle configuration by chance.
 
 	The centers of the detected circles are then added to intersections and duplicates (determined by their distance) are removed.
 
@@ -115,7 +115,7 @@
 
 	\section{Extrapolating the board}
 	\label{detector-calculate}
-	Having collected a set of probable intersections we now need to fill in gaps where neither lines nor pieces have been detected. Also we need to classify if a detected intersection is valid and actually a part of the board. That is we have to filter those which simply are intersections of prolonged grid lines with the outer edge of the board and other noise.
+	Having collected a set of probable intersections we now need to fill in gaps where neither lines nor pieces have been detected. Also we need to classify if a detected intersection is valid and actually a part of the board. That is, we have to filter those which simply are intersections of prolonged grid lines with the outer edge of the board and other noise.
 
 	First we calculate the average angle of the horizontal lines from the previous step and rotate the set of intersections to justify them. This does not fix perspective distortion but it allows us to sort the intersections by rows. We need this later to iterate over them row-wise.
 
@@ -147,9 +147,9 @@
 
 	During the iteration we also add virtual intersections to fill in gaps in our intersection set (see the orange circles in \autoref{fig:buildModel-input}). This is necessary in case the board's center intersection has not been detected. From this filled up intersection set we select the intersection closest to the image center and assume it is the center of the board. Using this intersection's row and column count we can shift our model to the correct position within the board.
 
-	Our updated interim result is now a model of a part of the board located correctly inside the complete model of the board. We can use this as input for the RANSAC algorithm, as we made sure every key point corresponds to an intersection thus creating homography between the actual image and the hypothetical image of our modeled board.
+	Our updated interim result is now a model of a part of the board located correctly inside the complete model of the board. We can use this as input for the RANSAC algorithm\cite{fischler1981random}, as we made sure every key point corresponds to an intersection thus creating homography between the actual image and the hypothetical image of our modeled board.
 
-	This serves three purposes. First, the RANSAC algorithm tolerates outliers, i.e. intersections which have been detected slightly displaced. Second, we can use the transformation information to rectify subsequent images and increase detection quality (see \ref{evaluation-prepostprocessing-perspectiveRectifying}). Lastly the transformation matrix can also be used to warp a complete model of the board and lay it onto the image. After doing so we know the location of every intersection in our image -- including those, which have not been detected previously.
+	This serves three purposes. First, RANSAC tolerates outliers, i.e. intersections which have been detected slightly displaced. Second, we can use the transformation information to rectify subsequent images and increase detection quality (see \autoref{evaluation-prepostprocessing-perspectiveRectifying}). Lastly the transformation matrix can also be used to warp a complete model of the board and lay it onto the image. After doing so we know the location of every intersection in our image -- including those, which have not been detected previously.
 
 	\section{Refining intersection locations}
 	\label{detector-postprocessing}
@@ -185,3 +185,7 @@
 
 	\section{Postprocessing}
 	As we don't just return the detected board but also intersection and piece locations, we have to realign them once more with the image. This is necessary because we didn't just rotate them in but also cropped the image in \autoref{detector-preprocessing}. To undo this we shift the intersections by the negative offset of the cropped image inside the input image.
+
+	The results still have to be smoothed over time. We decided to do this outside of the detection step, though. This has the advantage that the detector is agnostic of how its used -- to simply analyze a single image or as a part of a larger recognition software. We describe this accumulation step in	\autoref{android-detector-usingResults} instead.
+
+	We try to return only results which are sane. Thus we discard any result where one or more intersection lies outside of the input image or two intersections are too close to each other.

@@ -5,7 +5,7 @@
 	\label{introduction-motivation}
 	The game of Go (Japanese \begingroup\setmainfont{Droid Sans Japanese}\small\begin{CJK}{UTF8}{min}囲碁\end{CJK}\endgroup ) is ancient. It is actually older than Christianity and chess. However even though its rules are simpler than the rules of chess it is -- outside of Asia -- not nearly as wide-spread as the latter. When learning Go one comes to a certain point where one single error often decides the whole game. Often the winning player will be able to remove many of his or her opponent's pieces from the board resulting in a devastating defeat. This can be quite frustrating. Other mistakes don't manifest until some moves after they have been made, which makes it hard to learn from them.
 
-	The solution to this is obvious: Record a game and analyze it later, maybe resume it at the questionable move and see if it would have turned out otherwise. While there are advanced players who can ''store'' an entire game in their memory most have to rely on a notation on paper, pocket computers or mobile apps, especially new players. As this process drains on concentration many players tend to not note games.
+	The solution to this is obvious: Record a game and analyze it later, maybe resume it at the questionable move and see if it would have turned out otherwise. While there are advanced players who can remember an entire game after playing it most have to rely on a notation on paper, pocket computers or mobile apps, especially new players. As this process drains on concentration many players tend to not note games.
 
 	There are ways to save board games in an automated fashion, not requiring any interaction by the players. For chess there are specialized boards (DGT chess boards) starting at around 20€, which usually have special (magnetic) pieces\cite{bulsink2001device} or small holes with light sensors. They record a game and send the data to a computer, mobile device or other hardware for display and analysis. However for Go there is -- to our knowledge -- no such thing. Also, the need for specialized hardware makes a solution like this very unappealing.
 
@@ -13,7 +13,7 @@
 
 	The ubiquity of mobile devices with built in cameras lets one solution appear very attractive: Have a mobile application record the game, analyze it via a computer vision application and save the result when it detects a new move. This	work intends to provide such a solution and show the efforts taken to create it.
 
-	After presenting related work and possibly related patents we will first describe the part of the application that does the actual detection and go on to the integration of it in an Android app. Thereafter we will discuss impact of different algorithms that have been evaluated regarding detection quality and speed. We also provide an assessment to what extent the goal of an automated recording device for Go games has been reached. We will conclude with an outlook on possibilities for future work improving upon the solution at hand and a summary of this work.
+	After presenting related work and possibly related patents we will first describe the part of the application that does the actual detection and go on to the integration of it in an Android app. Thereafter we will discuss the impact of different algorithms that have been evaluated regarding detection quality and speed. We also provide an assessment to what extent the goal of an automated recording device for Go games has been reached. We will conclude with an outlook on possibilities for future work improving upon the solution at hand and a summary of this work.
 
 
 	\section{Related work}
@@ -30,7 +30,7 @@
 	While the author assumes the approach can be used on consecutive frames one problem when using only line detection remains: during later phases of the game many stones will be placed especially in the center of the image. The lines are occluded and there's no way left to detect the board.
 	\\
 
-	Alexander K. Seewald \cite{seewald2010automatic} solved this by detecting the intersections using the SIFT algorithm. His approach specifically targeted endgame situations. The keypoints are then classified (as before but additionally as ''empty inside the grid ┼'', ''empty on the edge ┬'' and ''empty on the corners ┐'') by an SVD and further refined by estimating the board position using the corners and classifying the previously missed stones by average brightness.
+	Alexander K. Seewald \cite{seewald2010automatic} solved this by detecting the intersections using the SIFT algorithm. His approach specifically targeted endgame situations. The keypoints are then classified (as before but additionally as ''empty inside the grid ┼'', ''empty on the edge ┬'' and ''empty on the corners ┐'') by an SVM. The results are then further refined by estimating the board position using the corners and classifying the previously missed stones by average brightness.
 	%TODO: SVM oder SVD?
 
 	While he solved the problem of detecting end game states this came at the price of performance. With five seconds runtime on a PC for an 8 by 8 grid this solution seems unpractical for slower mobile processors.
