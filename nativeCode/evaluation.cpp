@@ -304,10 +304,13 @@ void Evaluater::checkOverallCorrectness(const char* board, vector<Point2f> inter
 	int matchedCount=0;
 	int falsePositive=0;
 	int missed=0;
+	int discarded=0;
 	for(int c=0; c<81; c++){
 		char color = board[c];
-		if(color == 'u')
+		if(color == 'u'){
+			discarded+=81;
 			break;
+		}
 
 		bool matched = false;
 		vector<Point2f> annot = (color == 'b'?blackIntersects:(color=='w'?whiteIntersects:emptyIntersects));
@@ -335,6 +338,7 @@ void Evaluater::checkOverallCorrectness(const char* board, vector<Point2f> inter
 	fs << "sum_wrong" << missed + falsePositive;
 	fs << "sum_missed" << missed;
 	fs << "sum_falsePos" << falsePositive;
+	fs << "sum_discarded" << discarded;
 
 	saveParameters(fs);
 

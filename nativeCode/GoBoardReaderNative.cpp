@@ -35,6 +35,7 @@ void detect(Mat &input, vector<Point2f> &intersections, vector<Point2f> &selecte
 	Rect bounding;
 	vector<Vec4i> horz, vert;
 	Point2f originalCenter(src.cols/2, src.rows/2);
+	Size originalSize(src.cols, src.rows);
 
 	warpPerspective(src, src, transformationMatrix, src.size(), INTER_LINEAR | WARP_INVERSE_MAP);
 	vector<Point2f> tmp1;
@@ -50,7 +51,6 @@ void detect(Mat &input, vector<Point2f> &intersections, vector<Point2f> &selecte
 	adaptiveThreshold(threshed, threshed, 255, ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 45, 1);
 	if(globEval != NULL) globEval->saveStepTime("Created working copies");
 
-
 	//segment board from background
 	BoardSegmenter boardSegmenter(threshed);
 	boardSegmenter.calculateBoundingBox(bounding);
@@ -59,7 +59,6 @@ void detect(Mat &input, vector<Point2f> &intersections, vector<Point2f> &selecte
 
 	Point2f shiftedOrigCenter(originalCenter.x-bounding.x, originalCenter.y-bounding.y);
 	Point2f center(src.cols/2, src.rows/2);
-
 
 	//create pipeline
 	LineDetector lineDetector(bgr, 1, 1);
@@ -138,8 +137,23 @@ void detect(Mat &input, vector<Point2f> &intersections, vector<Point2f> &selecte
 	gapsFiller.refine(intersections, filledIntersections);
 	gapsFiller.refine(intersections, filledIntersections);
 	gapsFiller.refine(intersections, filledIntersections);
+	gapsFiller.refine(intersections, filledIntersections);
 	if(globEval != NULL) globEval->saveStepTime("Refined filling 8x");
 
+	//check for plausible results, discard if not so
+	Point2f lastI = filledIntersections[filledIntersections.size()-1];
+	for(auto i : filledIntersections){
+		if(i.x < 0 || i.x > originalSize.width || i.y < 0 || i.y > originalSize.height){
+			filledIntersections.clear();
+			return;
+		}
+		if(norm(lastI-i) < 5){
+			filledIntersections.clear();
+			return;
+		}
+		lastI = i;
+	}
+	if(globEval != NULL) globEval->saveStepTime("Checked plausability");
 
 	//rotate these back
 	rotate(intersections, intersections, center, angle*-1);
@@ -170,7 +184,6 @@ void detect(Mat &input, vector<Point2f> &intersections, vector<Point2f> &selecte
 			board[i*9+j] = (char)pieces[80-i-j*9];
 		}
 	}
-
 
 	invert(transformationMatrix, transformationMatrix);
 	//shift intersections back, save transformation matrix
@@ -212,6 +225,7 @@ void loadAndProcessImage(char *filename) {
 	vector<Point2f> selectedIntersections, intersections, filledIntersections;
 	vector<Point3f> darkCircles, lightCircles;
 	char board[81];
+	memset(board, 'u', sizeof(board));
 	Mat_<double> transformationMatrix = Mat::eye(Size(3,3), CV_64F);
 
 	Evaluater eval(filename);
@@ -285,7 +299,7 @@ void loadAndProcessImage(char *filename) {
 
 	namedWindow("output", WINDOW_NORMAL);
 	imshow("output", output);
-	waitKey();
+//	waitKey();
 }
 
 int main(int argc, char** argv) {
@@ -301,23 +315,24 @@ int main(int argc, char** argv) {
 extern "C" {
 	JNIEXPORT void JNICALL Java_de_t_1animal_goboardreader_BusinessLogic_detect(
 			JNIEnv * jenv, jobject obj, jlong src, jlong java_intersections, jlong java_selectedIntersections,
-			jlong java_filledIntersections, jlong java_darkCircles, jlong java_lightCircles, jintArray java_board,
+			jlong java_filledIntersections, jlong java_darkCircles, jlong java_lightCircles, jcharArray java_board,
 			jlong java_prevIntersections) {
 
 		vector<Point2f> selectedIntersections, intersections, filledIntersections;
 		vector<Point3f> darkCircles, lightCircles;
 
 		char board[81];
+		memset(board, 'u', sizeof(board));
 		Mat_<double> transformationMatrix = Mat::eye(Size(3,3), CV_64F);
 
 		detect(*(Mat*) src, intersections, selectedIntersections, filledIntersections, darkCircles, lightCircles, board,
 				transformationMatrix, (Mat_<Point2f>*) java_prevIntersections);
 
-		jint *jboard = jenv->GetIntArrayElements(java_board, NULL);
+		jchar *jboard = jenv->GetCharArrayElements(java_board, NULL);
 		for(int i=0; i<81; i++){
 			jboard[i] = board[i];
 		}
-		jenv->ReleaseIntArrayElements(java_board, jboard, NULL);
+		jenv->ReleaseCharArrayElements(java_board, jboard, NULL);
 
 
 //		LOGD("outside intersectionsCount: %d", filledIntersections.size());
