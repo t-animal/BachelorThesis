@@ -295,6 +295,54 @@ void Evaluater::checkPieceCorrectness(const vector<Point3f> &blackPieces, const 
 	cout << output << endl;
 }
 
+
+
+void Evaluater::checkOverallCorrectness(const char* board, vector<Point2f> intersections) {
+	if (!evaluatable)
+		return;
+
+	int matchedCount=0;
+	int falsePositive=0;
+	int missed=0;
+	for(int c=0; c<81; c++){
+		char color = board[c];
+		if(color == 'u')
+			break;
+
+		bool matched = false;
+		vector<Point2f> annot = (color == 'b'?blackIntersects:(color=='w'?whiteIntersects:emptyIntersects));
+		for(auto i:intersections){
+			for(auto a:annot){
+				if(norm(i-a) < 15){
+					matched = true;
+					break;
+				}
+			}
+		}
+		if(matched)
+			matchedCount++;
+		else if(color == '0')
+			missed++;
+		else
+			falsePositive++;
+	}
+
+	string output;
+	FileStorage fs = getMemoryStorage();
+
+	fs << "sum_available" << (int) (blackIntersects.size()+whiteIntersects.size()+emptyIntersects.size());
+	fs << "sum_matched" << matchedCount;
+	fs << "sum_wrong" << missed + falsePositive;
+	fs << "sum_missed" << missed;
+	fs << "sum_falsePos" << falsePositive;
+
+	saveParameters(fs);
+
+	output = fs.releaseAndGetString();
+
+	cout << output << endl;
+}
+
 void Evaluater::checkColorCorrectness(uchar board[], vector<Point2f> &intersections, int xOffset, int yOffset){
 	int correct=0, wrong = 0, checked=0;
 	for(int i=0; i<81; i++){

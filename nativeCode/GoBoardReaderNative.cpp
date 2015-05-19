@@ -253,7 +253,7 @@ void loadAndProcessImage(char *filename) {
 	imshow("grayImage", grayDisplay);
 
 	eval.setImage(colorDisplay);
-	eval.checkOverallCorrectness(filledIntersections);
+	eval.checkOverallCorrectness(board, filledIntersections);
 
 	Mat output(Size(src.cols, src.rows*2), CV_8UC4);
 	Mat upperOutput = output(Rect(0, 0, src.cols, src.rows));
