@@ -132,6 +132,14 @@ void detect(Mat &input, vector<Point2f> &intersections, vector<Point2f> &selecte
 	if(globEval != NULL) globEval->saveStepTime("Filled all gaps");
 
 	gapsFiller.refine(intersections, filledIntersections);
+	gapsFiller.refine(intersections, filledIntersections);
+	gapsFiller.refine(intersections, filledIntersections);
+	gapsFiller.refine(intersections, filledIntersections);
+	gapsFiller.refine(intersections, filledIntersections);
+	gapsFiller.refine(intersections, filledIntersections);
+	gapsFiller.refine(intersections, filledIntersections);
+	if(globEval != NULL) globEval->saveStepTime("Refined filling 8x");
+
 
 	//rotate these back
 	rotate(intersections, intersections, center, angle*-1);
