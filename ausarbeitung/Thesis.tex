@@ -25,7 +25,7 @@
 \usepackage{pgfplotstable}
 \input{package/pieChart.tex}
 \usepackage{booktabs}
-% \usepackage{svg-inkscape}
+\usepackage{todonotes}
 
 % \usepgfplotslibrary{external}
 % \tikzexternalize[prefix=plotcache/]
@@ -48,6 +48,10 @@
 \bibliographystyle{package/galpha1a}
 \begin{document}
 
+\setlength{\marginparwidth}{2.5cm}
+\listoftodos
+\cleardoublepage
+
 \begin{titlepage}
 
 \begin{center}
@@ -60,9 +64,9 @@
 % Title
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 \HRule \\[0.4cm]
-{ \huge \bfseries Implementation of an Android app for the recording of Go games by tracking their state}\\[0.15cm]
+{ \huge \bfseries Implementation of an Android app for the recording of Go games by tracking their state}
 
-\HRule \\[1.5cm]
+\HRule \\[2cm]
 
 \begin{minipage}{0.5\textwidth}
 \begin{flushleft} \large
@@ -80,7 +84,7 @@ Vincent \textsc{Christlein}\\
 \end{flushright}
 \end{minipage}
 
-\vspace{2cm}
+\vspace{2.5cm}
 
 % Author and supervisor
 \begin{minipage}{0.4\textwidth}
@@ -101,10 +105,10 @@ FAU Erlangen-Nürnberg
 \end{flushright}
 \end{minipage}
 
-\vspace{2.4cm}
+\vspace{2.5cm}
 
 % Unterer Teil der Seite
-\includegraphics[width=0.6\textwidth]{./images/logo-techfak-blau.png}
+\includegraphics[width=0.5\textwidth]{./images/logo-techfak-blau.png}
 
 \end{center}
 
@@ -130,9 +134,10 @@ FAU Erlangen-Nürnberg
 
 \cleardoublepage
 
+\begin{otherlanguage}{ngerman}
 Ich versichere, dass ich die Arbeit ohne fremde Hilfe und ohne Benutzung
 anderer als der angegebenen Quellen angefertigt habe und dass die Arbeit
-in gleicher oder "ahnlicher Form noch keiner anderen Pr"ufungsbeh"orde
+in glei\-cher oder "ahnlicher Form noch keiner anderen Pr"ufungsbeh"orde
 vorgelegen hat und von dieser als Teil einer Pr"ufungsleistung
 angenommen wurde. Alle Ausf"uhrungen, die w"ortlich oder sinngem"a"s
 "ubernommen wurden, sind als solche gekennzeichnet.
@@ -141,7 +146,10 @@ angenommen wurde. Alle Ausf"uhrungen, die w"ortlich oder sinngem"a"s
 Die Richtlinien des Lehrstuhls f"ur Studien- und Diplomarbeiten
 habe ich gelesen und anerkannt, insbesondere die Regelung des
 Nutzungsrechts. \\[15mm]
-Erlangen, den \today \hspace{6.0cm} \\[10mm]
+
+\noindent (Tilman Adler)\\[15mm]
+Erlangen, den 01. Juni 21015 \hspace{6.0cm} \\[10mm]
+\end{otherlanguage}
 
 \cleardoublepage
 
@@ -187,15 +195,14 @@ We further describe how we chose parameters for the used algorithms and how we t
 
 \appendix
 \cleardoublepage
-% \renewcommand{\thesection}{\Alph{subsection}}
 %\include{chapters/glossar}   % Glossar (\chapter{Glossar}  TEXT)
 %\cleardoublepage
-\chapter*{Simple mount for Nexus 4}
+\chapter{Simple mount for Nexus 4}
+\label{appendix-mount}
 \begin{figure}
     \center
     \includegraphics{images/halter.pdf}
     \caption{A simple mount which can be printed out (at twice the size), cut out of thick cardboard or acrylic glass and put together as needed}
-    \label{attachment-mount}
 \end{figure}
 
 \include{includes/bt-lof} % Bilderverzeichnis

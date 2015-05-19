@@ -9,7 +9,7 @@
 
 	There are ways to save board games in an automated fashion, not requiring any interaction by the players. For chess there are specialized boards (DGT chess boards) starting at around 20€, which usually have special (magnetic) pieces\cite{bulsink2001device} or small holes with light sensors. They record a game and send the data to a computer, mobile device or other hardware for display and analysis. However for Go there is -- to our knowledge -- no such thing. Also, the need for specialized hardware makes a solution like this very unappealing.
 
-	What makes the situation worse is that while there is a notation called Kifu (Japanese \begingroup\setmainfont{Droid Sans Japanese}\small\begin{CJK}{UTF8}{min}棋譜\end{CJK}\endgroup ) for the recording of games it is -- again outside of Asia -- not very widespread and no numerical system as in chess (where the columns and rows are determined by a number and a letter) has been generally accepted. Ideally a recording system would save the moves in an independent fashion that makes it easy to transfer into the existing systems' formats. Another option would be to choose one system and save it in its data format. Once such a system exists there are other applications that can be thought of. For example playing against a computer or via the internet another human and using real pieces in the process. Anyhow it might lead to more players successfully learning how to play Go (well) and thus contribute to its spread in the western world, if just a little. %TODO: Uebergang
+	What makes the situation worse is that while there is a notation called Kifu (Japanese \begingroup\setmainfont{Droid Sans Japanese}\small\begin{CJK}{UTF8}{min}棋譜\end{CJK}\endgroup ) for the recording of games it is -- again outside of Asia -- not very widespread and no numerical system as in chess (where the columns and rows are determined by a number and a letter) has been generally accepted. Ideally a recording system would save the moves in an independent fashion that makes it easy to transfer into the existing systems' formats. Another option would be to choose one system and save it in its data format. Once such a system exists there are other applications that can be thought of. For example playing against a computer or via the internet another human and using real pieces in the process. Anyhow it might lead to more players successfully learning how to play Go (well) and thus contribute to its spread in the western world, if just a little.
 
 	The ubiquity of mobile devices with built in cameras lets one solution appear very attractive: Have a mobile application record the game, analyze it via a computer vision application and save the result when it detects a new move. This	work intends to provide such a solution and show the efforts taken to create it.
 
@@ -31,12 +31,11 @@
 	\\
 
 	Alexander K. Seewald \cite{seewald2010automatic} solved this by detecting the intersections using the SIFT algorithm. His approach specifically targeted endgame situations. The keypoints are then classified (as before but additionally as ''empty inside the grid ┼'', ''empty on the edge ┬'' and ''empty on the corners ┐'') by an SVM. The results are then further refined by estimating the board position using the corners and classifying the previously missed stones by average brightness.
-	%TODO: SVM oder SVD?
 
 	While he solved the problem of detecting end game states this came at the price of performance. With five seconds runtime on a PC for an 8 by 8 grid this solution seems unpractical for slower mobile processors.
 
 	\section{Related patents}
 	\label{introduction-patents}
 
-	... === TODO === ...
+	\todo[inline]{Related patents fehlt noch komplett!}
 

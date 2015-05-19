@@ -47,7 +47,7 @@
 		\label{fig:sampeImages}
 	\end{figure}
 
-	Our set consists of: 29 images taken in cold neon light on a plain gray desk; 26 images taken in the same light on a textured, brown carpet; 25 images taken on a sunny day in the shadow on a stone surface; 17 images in warm artificial light on a textured paper background. Furthermore we have taken 5 images in the sun on an evening while the board lay in grass. See \autoref{fig:sampeImages} for some examples from the image set\footnote{Our image set can be downloaded from http://t-animal.de/projects/bachelorThesis/ TODO}.
+	Our set consists of: 29 images taken in cold neon light on a plain gray desk; 26 images taken in the same light on a textured, brown carpet; 25 images taken on a sunny day in the shadow on a stone surface; 17 images in warm artificial light on a textured paper background. Furthermore we have taken 5 images in the sun on an evening while the board lay in grass. See \autoref{fig:sampeImages} for some examples from the image set\todo{Hier korrekte URL einfuegen und veroeffentlichen}\footnote{Our image set can be downloaded from http://t-animal.de/projects/bachelorThesis/}.
 
 	The images were recorded by starting the app normally. But instead of calling the detector the input image was saved on the internal memory of the device. We did not take images using a camera or camera app to stay as close to the expectable input as possible.
 
@@ -343,9 +343,9 @@
 	\label{evaluation-overallPerformance}
 	By now we have only tested the quality of each individual step seperately. Finally we also evaluated, how well our whole detection pipeline performed on our testing set.
 
-	...===TODO===...
+	\todo[inline]{Evaluation auf komplettes imageset fehlt komplett!}
 
-	Another interesting thing is, how well the App performs under real world circumstances, with some camera movement and part time occlusions. To test this, we let KiGo (a KDE Go application\footnote{\url{https://www.kde.org/applications/games/kigo/} accessed on 17-May-2015}) generate sample games and reproduced them in different lighting conditions. In total there were 180 moves that could be recorded in six games, also counting the handicap pieces placed on the board before a game starts. While testing the phone was placed in a mounting device similar to the one in the appendix TODO.
+	Another interesting thing is, how well the App performs under real world circumstances, with some camera movement and part time occlusions. To test this, we let KiGo (a KDE Go application\footnote{\url{https://www.kde.org/applications/games/kigo/} accessed on 17-May-2015}) generate sample games and reproduced them in different lighting conditions. In total there were 180 moves that could be recorded in six games, also counting the handicap pieces placed on the board before a game starts. While testing the phone was placed in a mounting device similar to the one in \autoref{appendix-mount}.
 
 	For these tests we used the final application as it was released to the Google Play Store\footnote{It can be installed at \url{https://play.google.com/store/apps/details?id=de.t_animal.goboardreader}}. In it we chose to use the Hough Line Detector as it was the only well-performing line detector. For the detection of pieces we used the contour based algorithm due to its speed advantage.
 
