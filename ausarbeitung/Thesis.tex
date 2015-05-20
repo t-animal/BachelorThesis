@@ -26,6 +26,8 @@
 \input{package/pieChart.tex}
 \usepackage{booktabs}
 \usepackage{todonotes}
+\usepackage[md]{titlesec}
+\usepackage{geometry}
 
 % \usepgfplotslibrary{external}
 % \tikzexternalize[prefix=plotcache/]
@@ -53,20 +55,17 @@
 \cleardoublepage
 
 \begin{titlepage}
+\newgeometry{textheight=25cm, margin=3cm, top=3.2cm, bottom=0cm}
 
 \begin{center}
-
-\textsc{\LARGE Friedrich-Alexander Universität \\ Erlangen-Nürnberg}\\[1.5cm]
-
-\textsc{\Large Bachelor Thesis in Computer Science}\\[0.5cm]
-
+\textsc{\LARGE Friedrich-Alexander Universität \\ Erlangen-Nürnberg}\\[1cm]
+\textsc{\Large Bachelor Thesis in Computer Science}\\[1.1cm]
 
 % Title
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 \HRule \\[0.4cm]
-{ \huge \bfseries Implementation of an Android app for the recording of Go games by tracking their state}
-
-\HRule \\[2cm]
+{ \huge \bfseries Implementation of an Android app for the recording of Go games by tracking their state }
+\HRule \\[2.5cm]
 
 \begin{minipage}{0.5\textwidth}
 \begin{flushleft} \large
@@ -84,10 +83,10 @@ Vincent \textsc{Christlein}\\
 \end{flushright}
 \end{minipage}
 
-\vspace{2.5cm}
+\vspace{1.8cm}
 
 % Author and supervisor
-\begin{minipage}{0.4\textwidth}
+\begin{minipage}{0.3\textwidth}
 \begin{flushleft} \large
 \emph{Started:}\\
 \ \ \ \ 01.01.2015\\
@@ -96,7 +95,7 @@ Vincent \textsc{Christlein}\\
 \end{flushleft}
 \end{minipage}
 \hfill
-\begin{minipage}{0.5\textwidth}
+\begin{minipage}{0.6\textwidth}
 \begin{flushright} \large
 \emph{Written at:} \\
 Chair for Pattern Recognition (CS 5)\\
@@ -105,19 +104,33 @@ FAU Erlangen-Nürnberg
 \end{flushright}
 \end{minipage}
 
-\vspace{2.5cm}
+\vspace{3.5cm}
 
 % Unterer Teil der Seite
-\includegraphics[width=0.5\textwidth]{./images/logo-techfak-blau.png}
+\begin{minipage}{0.25\textwidth}
+\flushright{\includegraphics[height=2.5cm]{./images/lmelogo.pdf}}
+\end{minipage}
+\qquad
+\begin{minipage}{0.6\textwidth}
+\vspace{7mm}
+\flushleft{\includegraphics[height=2.5cm]{./images/fau-logo-tech.pdf}}
+\end{minipage}
 
 \end{center}
 
+\restoregeometry
 \end{titlepage}
 
 \setmainfont[   Path = fonts/,
                 BoldFont = BookmanOldStyleBold.ttf,
                 BoldItalicFont = BookmanOldStyleBoldItalic.ttf,
                 ItalicFont = BookmanOldStyleItalic.ttf]{BookmanOldStyle.ttf}
+
+
+% \setmainfont[   Path = fonts/,
+%                 BoldFont = Mercury_Text_G1_Bold_SC.ttf,
+%                 BoldItalicFont = Mercury_Text_G1_Bold_Italic.ttf,
+%                 ItalicFont = Mercury_Text_G1_Italic.ttf]{Mercury_Text_G1_Roman.ttf}
 
 \clearpage
   \begin{deckblatt}
