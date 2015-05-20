@@ -1,0 +1,237 @@
+%%
+%% This is file `beamerinnerthemeFAU.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% faubeamer.dtx  (with options: `innertheme')
+%% This is a generated file.
+%% 
+%% Copyright (C) 2013 Sergiu Dotenco
+%% 
+%% This file may be distributed and/or modified under the conditions of
+%% the LaTeX Project Public License, either version 1.2 of this license
+%% or (at your option) any later version.  The latest version of this
+%% license is in:
+%% 
+%%    http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.2 or later is part of all distributions of LaTeX version
+%% 1999/12/01 or later.
+%% 
+\mode
+<presentation>
+\RequirePackage[absolute,overlay]{textpos}
+\RequirePackage{calc}
+\RequirePackage{etoolbox}[2010/04/10]
+\RequirePackage{graphicx}
+\RequirePackage{xifthen}
+\setbeamersize{text margin left=8.8mm,text margin right=5.3mm}
+\newcommand\beamerfau@declarenormalimages{%
+  \pgfdeclareimage[width=\paperwidth,height=68.1mm]%
+    {fauschloss}{art/4_3_title}
+  \pgfdeclareimage[width=\paperwidth,height=27.9mm]%
+    {fauschlosscropped}{art/4_3_chapter}
+}
+
+\newcommand\beamerfau@declarewideimages{%
+  \pgfdeclareimage[width=\paperwidth,height=63.8mm]%
+    {fauschloss}{art/16_9_title}
+  \pgfdeclareimage[width=\paperwidth,height=26.2mm]%
+    {fauschlosscropped}{art/16_9_chapter}
+}
+\ifboolexpr{%
+  test {\ifdimcomp{\beamer@paperwidth}{=}{16cm}} and
+  test {\ifdimcomp{\beamer@paperheight}{=}{10cm}}}
+  {\gdef\beamerfau@aspectratio{1610}}
+{%
+\ifboolexpr{%
+  test {\ifdimcomp{\beamer@paperwidth}{=}{16cm}} and
+  test {\ifdimcomp{\beamer@paperheight}{=}{9cm}}}
+  {\gdef\beamerfau@aspectratio{169}}
+{%
+\ifboolexpr{%
+  test {\ifdimcomp{\beamer@paperwidth}{=}{14cm}} and
+  test {\ifdimcomp{\beamer@paperheight}{=}{9cm}}}
+  {\gdef\beamerfau@aspectratio{149}}
+{%
+\ifboolexpr{%
+  test {\ifdimcomp{\beamer@paperwidth}{=}{12.5cm}} and
+  test {\ifdimcomp{\beamer@paperheight}{=}{10cm}}}
+  {\gdef\beamerfau@aspectratio{54}}
+{%
+\ifboolexpr{%
+  test {\ifdimcomp{\beamer@paperwidth}{=}{13.5cm}} and
+  test {\ifdimcomp{\beamer@paperheight}{=}{9cm}}}
+  {\gdef\beamerfau@aspectratio{32}}
+{%
+\ifboolexpr{%
+  test {\ifdimcomp{\beamer@paperwidth}{=}{12.8cm}} and
+  test {\ifdimcomp{\beamer@paperheight}{=}{9.6cm}}}
+  {\gdef\beamerfau@aspectratio{43}}{}
+}}}}}
+\AtBeginDocument{%
+  \ifnum\beamerfau@aspectratio>54%
+    \beamerfau@declarewideimages%
+  \else%
+    \beamerfau@declarenormalimages%
+  \fi
+  \ifx\beamerfau@declarelogos\@undefined%
+    \pgfdeclareimage[height=10.4mm]{faulogo}{art/fau-logo-tech}%
+    \pgfdeclareimage[height=10.4mm]{lmelogo}{art/lmelogo}%
+  \else%
+    \beamerfau@declarelogos%
+  \fi
+}
+\defbeamertemplate<beamer>{page logos}{default}{%
+  \begin{textblock*}{\paperwidth}(\z@,\paperheight-18.9mm)
+    \begin{minipage}[b][18mm][c]{\paperwidth}
+      \hspace*{\fill}
+      \ifbeamertemplateempty{logo}{}{%
+        \resizebox{!}{10.4mm}{\insertlogo}%
+        \hspace{2.65mm}%
+      }%
+      \pgfuseimage{lmelogo}%
+      \hspace{5.3mm}%
+      \pgfuseimage{faulogo}%
+      \hspace*{\beamer@rightmargin}%
+    \end{minipage}
+  \end{textblock*}
+}
+\setbeamertemplate{page logos}[default]
+\defbeamertemplate<beamer>{title page}{4:3}{
+  \begin{textblock*}{\paperwidth}(\z@,\z@)
+    \pgfuseimage{fauschloss}
+  \end{textblock*}
+  % separator rule
+  \begin{textblock*}{\linewidth}(\z@,66.1mm)
+    {\usebeamercolor[fg]{separator rule}\rule{\paperwidth}{2mm}}
+  \end{textblock*}
+  % title
+  \begin{textblock*}{\linewidth}(\beamer@leftmargin,17.5mm)
+    \begin{minipage}[b][22.7mm][t]{\linewidth}
+      \usebeamercolor[fg]{title page}%
+      \usebeamerfont{title}%
+      \raggedright\inserttitle\par
+      \ifx\insertsubtitle\@empty \else
+        \usebeamerfont{subtitle}%
+        \raggedright\insertsubtitle\par
+      \fi
+    \end{minipage}
+  \end{textblock*}
+  % author, date
+  \begin{textblock*}{\linewidth}(\beamer@leftmargin,47.6mm)
+    \begin{minipage}[b][15.1mm][b]{\linewidth}
+      \raggedright
+      \usebeamercolor[fg]{title page}%
+      \usebeamerfont{author}%
+      \ifx\insertauthor\empty\else
+        \insertauthor
+      \fi
+      \ifx\insertdate\empty\else
+        \newline\insertdate
+      \fi
+      \ifx\insertinstitute\empty\else
+        \newline\insertinstitute
+      \fi
+    \end{minipage}
+  \end{textblock*}
+  \usebeamertemplate***{page logos}
+}
+
+\defbeamertemplate<beamer>{title page}{16:9}{
+  \begin{textblock*}{\paperwidth}(\z@,\z@)
+    \pgfuseimage{fauschloss}
+  \end{textblock*}
+  % separator rule
+  \begin{textblock*}{\linewidth}(\z@,61.825mm)
+    {\usebeamercolor[fg]{separator rule}\rule{\paperwidth}{2mm}}
+  \end{textblock*}
+  % title
+  \begin{textblock*}{\paperwidth-7mm*2}(7mm,12mm)
+    \begin{minipage}[b][22.7mm][t]{\linewidth}
+      \usebeamercolor[fg]{title page}%
+      \usebeamerfont{title}%
+      \raggedright\inserttitle\par
+    \end{minipage}
+  \end{textblock*}
+  % author, date
+  \begin{textblock*}{\linewidth}(7mm,41.7mm)
+    \begin{minipage}[b][15.1mm][b]{\linewidth}
+      \raggedright
+      \usebeamercolor[fg]{title page}%
+      \usebeamerfont{author}%
+      \ifx\insertauthor\empty\else
+        \insertauthor
+      \fi
+      \ifx\insertdate\empty\else
+        \newline\insertdate
+      \fi
+      \ifx\insertinstitute\empty\else
+        \newline\insertinstitute
+      \fi
+    \end{minipage}
+  \end{textblock*}
+  \usebeamertemplate***{page logos}
+}
+\ifnum\beamerfau@aspectratio>54
+  \setbeamertemplate{title page}[16:9]
+\else
+  \setbeamertemplate{title page}[4:3]
+\fi
+\defbeamertemplate<beamer>{chaptertitle}{default}{
+  \begin{textblock*}{\linewidth}(\beamer@leftmargin,45.5mm)
+    \begin{beamercolorbox}{frametitle}
+      \usebeamercolor[fg]{frametitle}%
+      \usebeamerfont{frametitle}%
+      \insertframetitle
+    \end{beamercolorbox}
+    \par\bigskip
+    \begin{beamercolorbox}{framesubtitle}
+      \usebeamercolor[fg]{framesubtitle}%
+      \usebeamerfont{framesubtitle}%
+      \normalfont\insertframesubtitle%
+    \end{beamercolorbox}
+  \end{textblock*}
+}
+\setbeamertemplate{chaptertitle}[default]
+\defbeamertemplate<beamer>{chapterhead}{default}{%
+  \begin{textblock*}{\paperwidth}(\z@,\z@)
+    \pgfuseimage{fauschlosscropped}
+  \end{textblock*}
+  \ifnum\beamerfau@aspectratio>54
+    \@tempdimc=24.175mm
+  \else
+    \@tempdimc=25.9mm
+  \fi
+  \begin{textblock*}{\paperwidth}(\z@,\@tempdimc)
+    {\usebeamercolor[fg]{separator rule}\rule{\paperwidth}{2mm}}
+  \end{textblock*}
+}
+\setbeamertemplate{chapterhead}[default]
+\setbeamertemplate{chapterhead}[default]
+\define@key{beamerframe}{chapter}[true]{%
+  \setkeys{beamerframe}{plain,c,noframenumbering}%
+  % HACK: called before \beamer@framebox is eventually used
+  \appto\beamer@undolabels{%
+    \setbox\beamer@frametitlebox=\vbox{%
+      \unvbox\beamer@frametitlebox%
+      \usebeamertemplate***{chaptertitle}%
+    }%
+  }
+  \let\beamerfau@beamer@frametemplate@plain\beamer@frametemplate@plain
+  \appto\beamer@frametemplate@plain{%
+    \usebeamertemplate***{chapterhead}%
+    \ifthenelse{\equal{#1}{no logos}}{}{%
+      \usebeamertemplate{page logos}%
+    }%
+    \let\beamer@frametemplate@plain\beamerfau@beamer@frametemplate@plain
+  }
+}
+
+\setbeamertemplate{itemize items}[circle]
+\mode
+<all>
+\endinput
+%%
+%% End of file `beamerinnerthemeFAU.sty'.

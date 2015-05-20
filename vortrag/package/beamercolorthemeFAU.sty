@@ -1,0 +1,65 @@
+%%
+%% This is file `beamercolorthemeFAU.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% faubeamercolor.dtx  (with options: `light')
+%% This is a generated file.
+%% 
+%% Copyright (C) 2013 Sergiu Dotenco
+%% 
+%% This file may be distributed and/or modified under the conditions of
+%% the LaTeX Project Public License, either version 1.2 of this license
+%% or (at your option) any later version.  The latest version of this
+%% license is in:
+%% 
+%%    http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.2 or later is part of all distributions of LaTeX version
+%% 1999/12/01 or later.
+%% 
+\usepackage{etoolbox}[2011/01/03]
+\mode
+<presentation>
+\definecolor{faublue}{RGB}{0,51,102}
+\colorlet{faublue1}{faublue}
+\colorlet{faublue2}{faublue}
+\definecolor{faugrey}{RGB}{150,150,150}
+\colorlet{faualert}{red!80!black}
+\colorlet{fauexample}{green!50!black}
+\colorlet{arrayrule}{faugrey!65}
+\colorlet{odd row}{faugrey!35}
+\colorlet{even row}{white}
+\ifx\arrayrulecolor\@undefined \else
+  \arrayrulecolor{arrayrule}%
+\fi
+\@ifpackageloaded{colortbl}{%
+  \ifx\rowcolors\@undefined \else
+    \AtBeginEnvironment{tabular}{\rowcolors{0}{even row}{odd row}}%
+  \fi
+}{}
+\setbeamercolor{normal text}{fg=black,bg=white}
+\setbeamercolor{separator rule}{fg=faublue}
+\setbeamercolor{structure}{fg=faublue}
+\setbeamercolor{headline rule}{parent=structure}
+\mode<beamer>{\setbeamercolor{title page}{fg=white}}
+\mode<handout>{\setbeamercolor{title page}{parent=structure}}
+\setbeamercolor{titlelike}{parent=structure}
+\setbeamercolor{frametitle}{parent=titlelike}
+\setbeamercolor{alerted text}{fg=faualert}
+\setbeamercolor{example text}{fg=fauexample}
+\setbeamercolor{footline}{fg=faugrey}
+\setbeamercolor{page number in head/foot}{fg=faugrey}
+\setbeamercolor{enumerate item}{fg=faublue}
+\setbeamercolor{enumerate subitem}{fg=faublue}
+\setbeamercolor{enumerate subsubitem}{fg=faublue}
+\setbeamercolor{itemize item}{fg=faublue}
+\setbeamercolor{itemize subitem}{fg=faublue}
+\setbeamercolor{itemize subsubitem}{fg=faublue}
+\setbeamercolor{description item}{fg=faublue}
+\setbeamercolor{description subitem}{fg=faublue}
+\setbeamercolor{description subsubitem}{fg=faublue}
+\endinput
+%%
+%% End of file `beamercolorthemeFAU.sty'.
