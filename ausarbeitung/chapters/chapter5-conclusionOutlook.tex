@@ -6,7 +6,9 @@ We could show that it is possible to detect a Go board, extract the current game
 
 The quality of our detector is comparable to other work in this field. It can outperform these when there is a large number of pieces on the board. This allows us to start the detection mid-game or to stop it and continue it later and permits some movement of the camera. We can show that under extreme circumstances our application can detect the current game state. This goes so far that even boards which are completely covered in pieces can be classified.
 
-Speedwise we can reach near real time performance on desktop hardware. On weaker mobile processors we reach about one frame per second, which beats previously existing algorithms.
+Speed wise we can reach near real time performance on desktop hardware. On weaker mobile processors we reach about one frame per second, which beats previously existing algorithms.
+
+Our contribution is a faster and reliable method for the detection of Go boards, which can handle densely occupied boards, too. We also showcased a possible end user product by embedding the developed detector in an android app.
 
 \section{Outlook}
 Due to the lack of a larger board we could not test our algorithm on more than a 9-by-9-grid. We are confident that our approach can be applied to other sizes, too, with minimal adjustments.
