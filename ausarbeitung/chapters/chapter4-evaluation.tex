@@ -47,8 +47,7 @@
 		\label{fig:sampeImages}
 	\end{figure}
 
-	Our set consists of: 29 images taken in cold neon light on a plain gray desk; 26 images taken in the same light on a textured, brown carpet; 25 images taken on a sunny day in the shadow on a stone surface; 17 images in warm artificial light on a textured paper background. Furthermore we have taken 5 images in the sun on an evening while the board lay in grass. See \autoref{fig:sampeImages} for some examples from the image set\todo{Hier korrekte URL einfuegen und veroeffentlichen}\footnote{Our image set can be downloaded from http://t-animal.de/projects/bachelorThesis/}.
-	\todo{Die Anzahl ergibt 102! Korrigieren}
+	Our set consists of: 29 images taken in cold neon light on a plain gray desk; 26 images taken in the same light on a textured, brown carpet; 25 images taken on a sunny day in the shadow on a stone surface; 16 images in warm artificial light on a textured paper background. Furthermore we have taken 5 images in evening sunlight with the the board lying in grass. See \autoref{fig:sampeImages} for some examples from the image set\footnote{Our complete image set can be downloaded from \url{http://t-animal.de/projects/bachelorThesis/}}.
 
 	The images were recorded by starting the app normally. But instead of calling the detector the input image was saved on the internal memory of the device. We did not take images using a camera or camera app to stay as close to the expectable input as possible.
 
@@ -97,7 +96,6 @@
 	\subsection{Performance on the testing set}
 	\label{evaluation-visible-performance}
 	To evaluate the performance of the three possible approaches we tested them on some images which had not been included in the training set.
-	\todo{Tabelle noch eine total-zeile hinzufuegen}
 
 	\begin{table}[b!]
 		\begin{tabular}{lrc>{\bfseries}ccc}
@@ -247,7 +245,7 @@
 	\label{evaluation-speed}
 	We evaluated all algorithms for their speed on our development phone, too. To do so, we measured the current time in milliseconds before entering the respective function and afterwards. To compensate for other apps interfering with the application and scheduling we took an average of 100 samples. The individual results are shown in \autoref{fig:timeEvaluation-bars}. All colored entries correspond to parts of our detector. The entry ``create output'' includes all steps outside of the native detector (counting responses over time and drawing the detection result on the output image). In \autoref{fig:timeEvaluation-pie} we show how the total runtime of 1095.84ms is built from the different parts of our final application.
 
-	The mobile phone we used for measurements is ranked in the middle class in several benchmarks\cite{antutuBench,primateBench} as its model is three years old as of this writing. That gives us confidence that our measurements are representative for a large portion of Android phones and on many current phones performance will be better.
+	The mobile phone we used for measurements is ranked mid range in several benchmarks\cite{antutuBench,primateBench} as its model is three years old as of this writing. That gives us confidence that our measurements are representative for a large portion of Android phones and on many current phones performance will be better.
 
 	\subsection{Getting a baseline}
 	\label{evaluation-speed-baseline}
@@ -345,31 +343,32 @@
 	\label{evaluation-overallPerformance}
 	By now we have only tested the quality of each individual step seperately. Finally we also evaluated, how well our whole detection pipeline performed on our testing and training set.
 
-	To do so, we checked if all intersections were correctly classified regarding their location and color. An intersection was only counted as correct if both criteria were met. Results which had been marked as incorrect by our detector in \autoref{detector-postprocessing} did not count towards the incorrect counter. Five images out of 70 \todo{Checken, ob das beim Testset korrekt ist! Sind das da nicht 30/71?} have been marked so. After subtracting them there were only 3 false positives on our training set and no false negative\todo{rausfinden, ob das wirklich false positives/truepositives etc sind}, i.e., an intersection classified incorrectly as empty.  That makes a true positive rate of 100\% and a false positive rate of only 0.570‰.
-	\todo[inline]{Evaluation auf komplettes imageset noch nicht komplett!}
+	To do so, we checked if all intersections were correctly classified regarding their location and color. An intersection was only counted as correct if both criteria were met. Results which had been marked as incorrect by our detector (see \autoref{detector-postprocessing}) were not part of our calculations. Five images out of 70 in our training set have been marked so. After subtracting them all but 48 intersections were detected at the correct location. Out of the correctly located intersections 105 were classified incorrectly. When calculating the final number of correct (in location and color) intersections this makes a detection rate of 97.1\% correct intersections.
 
+	Looking at the results from the test set our detector performed better. It discarded relatively less images and the locations in the other images were detected perfectly without any errors. 30 tokens have been missed and the intersection was regarded empty, though. Two more intersections were wrongly classified. This makes a total accuracy of 98.6\%.
+
+	\newcommand*\leftlap[2]{\hphantom{#1}\llap{#2}}
+	\newcommand*\rightlap[2]{\rlap{#2}\hphantom{#1}}
 	\begin{table}
 	\center
-		\begin{tabular}{rlcc}
-			  &\hphantom{Abst}	 & 			Trainingset	& Testset \\
+		\begin{tabular}{rlccc}
+			  &\	 		 			& 	Trainingset 	 &\hphantom{Ab}& Testset 	\\
 			\toprule
-			Number of images	&&					31 	& 70		  \\
-			Results marked incorrect &&				 5 	& ?	\\
-			Accuracy 			&&	99.9\% (5262/5265)	& 100\% (????/????) \\
-			True positive rate	&&	100\% (????/????)	& 100\% (????/????) \\
-			False positive rate &&	0.570‰ (3/5265)		& 100\% (????/????) \\
+			Number of images			&&	70					 &&		31				\\
+			Results marked incorrect 	&&	 5					 &&		 2				\\
+			Accuracy localizing			&&	99.1\% (5217/5265)	 && \leftlap{98.6}{100}\% (2349/2349) \\
+			Accuracy classifying		&&	98.0\% (5112/5217)	 && 98.6\% (2317/2349)	\\
+			Accuracy for both chained	&&	97.1\% (5112/5265)	 && 98.6\% (2317/2349) 	\\
 			\bottomrule
-
 		\end{tabular}
 		\caption{Quality of our complete detection pipeline on our image sets}
 	\end{table}
-	\todo{tabelle noch gar auffuellen}
 
 	Another interesting thing is, how well the App performs under real world circumstances, with some camera movement and part time occlusions. To test this, we let KiGo (a KDE Go application\footnote{\url{https://www.kde.org/applications/games/kigo/} accessed on 17-May-2015}) generate sample games and reproduced them in different lighting conditions. In total there were 180 moves that could be recorded in six games, also counting the handicap pieces placed on the board before a game starts. While testing the phone was placed in a mounting device similar to the one in \autoref{appendix-mount}.
 
 	For these tests we used the final application as it was released to the Google Play Store\footnote{It can be installed at \url{https://play.google.com/store/apps/details?id=de.t_animal.goboardreader}}. In it we chose to use the Hough Line Detector because it was the only well-performing line detector. For the detection of pieces we used the contour based algorithm due to its speed advantage.
 
-	Three test games took place on the same desk as in our training data. One of those was detected perfectly without any error. In one there was a false positive which was detected on several occasions. In the last there was a false positive white piece which vanished when a black piece was put on its location. That means 100\% of all played pieces were detected correctly.
+	Three test games took place on the same desk as in our training data. One of those was detected perfectly without any error. In one there was an intersection which was wrongly classified as occupied on several occasions. In the last game an empty intersection was classified as white but this was corrected when a black piece was put on its location. That means 100\% of all played pieces were detected correctly in those three games, only empty intersections were problematic.
 
 	\begin{figure}[h!]
 		\center
@@ -377,8 +376,9 @@
 		\caption{The performance on a hand-held Nexus 4 and a completely covered board}
 		\label{fig:android_perfect_recognition}
 	\end{figure}
-	Two more games were played under difficult lighting conditions in an inner courtyard. The opening in the ceiling cast large reflections on the black stones and strong winds shook the camera. In total there were three pieces which were not detected persistently, i.e. they vanished and reappeared several times. Two pieces were not detected at all. One move was detected too late and there were two false positives. Under these difficult conditions 90.3\% of all pieces on the board were detected correctly.
+	Two more games were played under difficult lighting conditions in an inner courtyard. The opening in the ceiling cast large reflections on the black stones and strong winds shook the camera. In total there were three pieces which were not detected persistently, i.e. they vanished and reappeared several times. Two tokens were not detected at all. One move was detected too late and there were empty intersections which were classified wrongly. Under these difficult conditions 90.3\% of all pieces on the board were detected correctly.
 
-	Lastly we recreated a game on a desk near a window under neon lighting. Here we encountered one piece which was not detected persistently and one which was not detected at all. That makes a 93.8\% detection ratio. Also there was one false positive at the very end of the game, after both players had passed.
+	Lastly we recreated a game on a desk near a window under neon lighting. Here we encountered one piece which was not detected persistently and one which was not detected at all. That makes a 93.8\% detection ratio. Also there was one piece which was detected but not played at the very end of the game, after both players had already passed.
+	\todo{direkt mit scher2008making vergleichen}
 
 	After this we tried to max out the amount of pieces we could place on the board to see how well the algorithm performed under extreme circumstances. The result was pretty good. Detection was possible until the board was nearly completely covered in pieces. We then put a piece on each intersection in a checkerboard like pattern -- alternating black and white. Even this completely abnormal configuration could be detected with near 100\% accuracy as \autoref{fig:android_perfect_recognition} shows. The results were very unstable, though. That means between a correctly classified frame lay several discarded ones, which did not contribute to the detection result but prolonged the detection time. Of course this is not a valid state of a game of Go, but it goes to show the power of using intersections when detecting densely occupied boards.
