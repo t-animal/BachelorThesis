@@ -20,7 +20,7 @@
 	\label{introduction-work}
 	The detection and augmenting of board games in general is illustrated by Eray Molla and Vincent Lepetit \cite{molla2010augmented}, who demonstrate the successful tracking of colored pawns on a Monopoly™ board.
 
-	More closely related is  Steven Scher's, Ryan Crabb's and Jamie Davis's work \cite{scher2008making} who collect samples of a Go-board using a fixed camera in regular intervals. They detect the grid in the first image using Hough transformation and assume it to be fixed. Afterwards they classify intersections (as ''black'', ''white'' or ''empty'') by template images and use a Markov model to remove errors in the single images. To this, they model the detected state of every image and transitions in between according to the game rules.
+	More closely related is  Steven Scher's, Ryan Crabb's and Jamie Davis's work \cite{scher2008making} who collect samples of a Go-board using a fixed camera in regular intervals. They detect the grid in the first image using Hough transformation and assume it to be fixed. Afterwards they classify intersections (as ``lack'', ``white'' or ``empty'') by template images and use a Markov model to remove errors in the single images. To this, they model the detected state of every image and transitions in between according to the game rules.
 
 	This approach yields high accuracy when capturing whole games and performing the detection asynchronously. On a mobile device this is not ideal as it drains the battery at a time the user does not expect it to. Also movement of the camera or the board is not supported at all as detection of the grid is only performed on the first image. However smart phones as a multi purpose device should be relocatable at least within a certain range. The user, for example, might have to take a call and then replace the phone. Thereafter the grid might not be detectable as easy any longer.
 	\\
@@ -30,7 +30,7 @@
 	While the author assumes the approach can be used on consecutive frames one problem when using only line detection remains: during later phases of the game many stones will be placed especially in the center of the image. The lines are occluded and there's no way left to detect the board.
 	\\
 
-	Alexander K. Seewald \cite{seewald2010automatic} solved this by detecting the intersections using the SIFT algorithm. His approach specifically targeted endgame situations. The keypoints are then classified (as before but additionally as ''empty inside the grid ┼'', ''empty on the edge ┬'' and ''empty on the corners ┐'') by an SVM. The results are then further refined by estimating the board position using the corners and classifying the previously missed stones by average brightness.
+	Alexander K. Seewald \cite{seewald2010automatic} solved this by detecting the intersections using the SIFT algorithm. His approach specifically targeted endgame situations. The keypoints are then classified (as before but additionally as ``empty inside the grid ┼'', ``empty on the edge ┬'' and ``empty on the corners ┐'') by an SVM. The results are then further refined by estimating the board position using the corners and classifying the previously missed stones by average brightness.
 
 	While he solved the problem of detecting end game states this came at the price of performance. With five seconds runtime on a PC for an 8 by 8 grid this solution seems unpractical for slower mobile processors.
 
