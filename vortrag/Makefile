@@ -2,6 +2,7 @@
 
 all: Vortrag.pdf
 
+export TEXINPUTS = .//:
 Vortrag.pdf: Vortrag.tex
 	latexmk -pdf -pdflatex="xelatex -halt-on-error  --synctex=1" -use-make $<
 
