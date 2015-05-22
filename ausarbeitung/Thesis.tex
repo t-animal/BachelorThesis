@@ -10,7 +10,6 @@
 %    Die Verwendung der option "german" bindet german.sty ein.
 %    For english papers, use the "english" option and talk to your advisor.
 \documentclass[english,bt]{package/lmedoc}
-%\documentclass[english,bt]{lmedoc}
 
 \usepackage{hyperref}
 \usepackage{graphicx}
@@ -26,113 +25,104 @@
 \input{package/pieChart.tex}
 \usepackage{booktabs}
 \usepackage{todonotes}
-\usepackage[md]{titlesec}
 \usepackage{geometry}
-
-% \usepgfplotslibrary{external}
-% \tikzexternalize[prefix=plotcache/]
-
-% ++ Umlaut Unterstuetzung
-%    Paket "inputenc" kann verwendet werden, um z.B. Umlaute oder das scharfe S
-%    direkt (als Nicht-ASCII-Zeichen) einzubinden. Dabei auf die korrekte
-%    Kodiermethode achten (z.B. Linux: latin1)!
 \usepackage{fontspec}
 \usepackage{CJKutf8}
-
 
 % ++ es werden keine underfull hboxes als Fehler ausgegeben,
 %    da das ja nur heißt, dass die Seite noch nicht ganz voll ist
 \hbadness=10000
+\clubpenalty = 10000
+\widowpenalty = 10000
+\displaywidowpenalty = 10000
 
+\usepackage{etoolbox}
+\newtoggle{lookNice}
+\togglefalse{lookNice}
+
+\iftoggle{lookNice}{
+    \usepackage[md]{titlesec}
+}
 
 \pagenumbering{roman}
 
 \bibliographystyle{package/galpha1a}
 \begin{document}
 
-\setlength{\marginparwidth}{2.5cm}
-\listoftodos
-\cleardoublepage
+\iftoggle{lookNice}{
+    \setlength{\marginparwidth}{2.5cm}
+    \begin{titlepage}
+    \newgeometry{textheight=25cm, margin=3cm, top=3.2cm, bottom=0cm}
 
-\begin{titlepage}
-\newgeometry{textheight=25cm, margin=3cm, top=3.2cm, bottom=0cm}
+    \begin{center}
+    \textsc{\LARGE Friedrich-Alexander Universität \\ Erlangen-Nürnberg}\\[1cm]
+    \textsc{\Large Bachelor Thesis in Computer Science}\\[1.1cm]
 
-\begin{center}
-\textsc{\LARGE Friedrich-Alexander Universität \\ Erlangen-Nürnberg}\\[1cm]
-\textsc{\Large Bachelor Thesis in Computer Science}\\[1.1cm]
+    % Title
+    \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+    \HRule \\[0.4cm]
+    { \huge \bfseries Implementation of an Android app for the recording of Go games by tracking their state }
+    \HRule \\[2.5cm]
 
-% Title
-\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
-\HRule \\[0.4cm]
-{ \huge \bfseries Implementation of an Android app for the recording of Go games by tracking their state }
-\HRule \\[2.5cm]
+    \begin{minipage}{0.5\textwidth}
+    \begin{flushleft} \large
+    \emph{Author:}\\
+    \ \ \ \ Tilman \textsc{Adler}\\
+    \ \ \ \ born 16.12.1989 in Nürnberg
+    \end{flushleft}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.4\textwidth}
+    \begin{flushright} \large
+    \emph{Supervisor:} \\
+    Vincent \textsc{Christlein}\\
+    ~
+    \end{flushright}
+    \end{minipage}
 
-\begin{minipage}{0.5\textwidth}
-\begin{flushleft} \large
-\emph{Author:}\\
-\ \ \ \ Tilman \textsc{Adler}\\
-\ \ \ \ born 16.12.1989 in Nürnberg
-\end{flushleft}
-\end{minipage}
-\hfill
-\begin{minipage}{0.4\textwidth}
-\begin{flushright} \large
-\emph{Supervisor:} \\
-Vincent \textsc{Christlein}\\
-~
-\end{flushright}
-\end{minipage}
+    \vspace{1.8cm}
 
-\vspace{1.8cm}
+    % Author and supervisor
+    \begin{minipage}{0.3\textwidth}
+    \begin{flushleft} \large
+    \emph{Started:}\\
+    \ \ \ \ 01.01.2015\\
+    \emph{Finished:}\\
+    \ \ \ \ 01.06.2015
+    \end{flushleft}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.6\textwidth}
+    \begin{flushright} \large
+    \emph{Written at:} \\
+    Chair for Pattern Recognition (CS 5)\\
+    Department of Computer Science\\
+    FAU Erlangen-Nürnberg
+    \end{flushright}
+    \end{minipage}
 
-% Author and supervisor
-\begin{minipage}{0.3\textwidth}
-\begin{flushleft} \large
-\emph{Started:}\\
-\ \ \ \ 01.01.2015\\
-\emph{Finished:}\\
-\ \ \ \ 01.06.2015
-\end{flushleft}
-\end{minipage}
-\hfill
-\begin{minipage}{0.6\textwidth}
-\begin{flushright} \large
-\emph{Written at:} \\
-Chair for Pattern Recognition (CS 5)\\
-Department of Computer Science\\
-FAU Erlangen-Nürnberg
-\end{flushright}
-\end{minipage}
+    \vspace{3.5cm}
 
-\vspace{3.5cm}
+    % Unterer Teil der Seite
+    \begin{minipage}{0.25\textwidth}
+    \flushright{\includegraphics[height=2.5cm]{./images/lmelogo.pdf}}
+    \end{minipage}
+    \qquad
+    \begin{minipage}{0.6\textwidth}
+    \vspace{7mm}
+    \flushleft{\includegraphics[height=2.5cm]{./images/fau-logo-tech.pdf}}
+    \end{minipage}
 
-% Unterer Teil der Seite
-\begin{minipage}{0.25\textwidth}
-\flushright{\includegraphics[height=2.5cm]{./images/lmelogo.pdf}}
-\end{minipage}
-\qquad
-\begin{minipage}{0.6\textwidth}
-\vspace{7mm}
-\flushleft{\includegraphics[height=2.5cm]{./images/fau-logo-tech.pdf}}
-\end{minipage}
+    \end{center}
 
-\end{center}
+    \restoregeometry
+    \end{titlepage}
 
-\restoregeometry
-\end{titlepage}
-
-\setmainfont[   Path = fonts/,
-                BoldFont = BookmanOldStyleBold.ttf,
-                BoldItalicFont = BookmanOldStyleBoldItalic.ttf,
-                ItalicFont = BookmanOldStyleItalic.ttf]{BookmanOldStyle.ttf}
-
-
-% \setmainfont[   Path = fonts/,
-%                 BoldFont = Mercury_Text_G1_Bold_SC.ttf,
-%                 BoldItalicFont = Mercury_Text_G1_Bold_Italic.ttf,
-%                 ItalicFont = Mercury_Text_G1_Italic.ttf]{Mercury_Text_G1_Roman.ttf}
-
-\clearpage
+    \setmainfont[   Path = fonts/,
+                    BoldFont = BookmanOldStyleBold.ttf,
+                    BoldItalicFont = BookmanOldStyleBoldItalic.ttf,
+                    ItalicFont = BookmanOldStyleItalic.ttf]{BookmanOldStyle.ttf}
+}{
   \begin{deckblatt}
     \Titel{Implementation of an Android app for the recording of Go games by tracking their state}
     \Name{Adler}
@@ -143,7 +133,7 @@ FAU Erlangen-Nürnberg
     \Start{01.01.2015}
     \Ende{01.06.2015}
   \end{deckblatt}
-
+}
 
 \cleardoublepage
 
