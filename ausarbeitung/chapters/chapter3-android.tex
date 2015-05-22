@@ -2,7 +2,7 @@
 
 \chapter{Creating the Android app}
 \label{android}
-	So far we have only described our detection algorithm, but not how to gather the data or how to interact with the user. Our goal was to create a simple user experience showcasing the algorithm rather than building a full featured app. Still we wanted to hide the technical details as far as useful to stay reasonably close to a usable end product.
+	So far we have only described our detection algorithm, but not how we gather the data and interact with the user. Our goal was to create a simple user experience showcasing the algorithm rather than building a full featured app. Still we wanted to hide the technical details as far as useful to stay reasonably close to a usable end product.
 
 	The app was deployed and developed for a \textit{Nexus 4} (also known as \textit{LG-E960}) running \textit{Android Lollipop 5.0.1} build LRX22C.
 
@@ -44,6 +44,13 @@
 
 	All other parameters are there to output information from the detector. Among them are lists of detected intersections, pieces and intersections -- all of which are there rather for debugging purposes than to give useful information to the user.
 
+	\begin{figure}[t!]
+		\center
+		\includegraphics[width=0.7\textwidth]{images/android_ui.png}
+		\caption{The app showing some debugging information and the detection result in a split screen while recording a game}
+		\label{fig:android_ui}
+	\end{figure}
+
 	\subsection{Using the detection result}
 	\label{android-detector-usingResults}
 	Interestingly the computed intersections of two consecutive frames somewhat differ. On the one hand this very convenient: It helps dealing with specular highlights as the classification windows are constantly being shifted slightly. On the other hand sometimes the detection result will deteriorate completely. Even though the detector does some sanity checks, displaying and saving the detection results directly would result in pieces ``flickering'' between being detected and not. To counteract this we count the number of times an intersection was classified as white or black in the last ten frames. If this counter reaches 5 or higher we assume a correct result and display it. If the game is being recorded we also save two consecutive piece configurations in a list if they differ in at least one location.
@@ -52,12 +59,6 @@
 
 	\section{User interaction design}
 	\label{android-ui}
-	\begin{figure}[h]
-		\center
-		\includegraphics[width=0.7\textwidth]{images/android_ui.png}
-		\caption{The app showing some debugging information and the detection result in a split screen while recording a game}
-		\label{fig:android_ui}
-	\end{figure}
 	The detection result still has to be displayed to the user. While often computer vision applications draw directly onto the analyzed image we decided to show the detected information separately and only debugging output on the image. This way we balance showcasing a possible way how an app might be responding to the user and also give an insight of whether and how the detector works.
 
 	Android offers methods to draw custom views via \texttt{Canvas} and \texttt{Paint} objects similarly to OpenCV. However we wanted to give a comparable experience when using the detector on a desktop computer and via the app. Thus we decided to draw the result by cropping the input image and draw the result next to it using OpenCV when in detection mode.

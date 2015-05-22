@@ -161,7 +161,7 @@ Erlangen, den 01. Juni 21015 \hspace{6.0cm} \\[10mm]
 "Ubersicht
 \normalfont
 
-In dieser Arbeit untersuchen wir mögliche Arten, ein Go-Brett und den aktuellen Spielstand auf einem mobilen Gerät mit dem Betriebssystem Android zu detektieren. Wir evaluieren verschiedene Algorithmen, nämlich Hough-Transformation und LSD, um die Linien eines solchen Bretts zu erkennen. Wir betrachten Hough-Transformation und strukturelle Analyse um die Steine, die darauf liegen, zu finden. Wir verwenden dann die Schnittpunkte der Linien und die Lage der Steine um das gesamte Brett zu extrapolieren und seine Orientierung herauszufinden. Abschließend analysieren wir das Bild an den hochgerechneten Koordinaten um zu detektieren, ob und welche Steine dort liegen.
+In dieser Arbeit untersuchen wir mögliche Arten, ein Go-Brett und den aktuellen Spielstand auf einem Android Mobiltelefon zu detektieren. Wir evaluieren verschiedene Algorithmen, nämlich \emph{Hough-Transformation} und \emph{LSD}, um die Linien eines solchen Bretts zu erkennen. Wir betrachten \emph{Hough-Transformation} und strukturelle Analyse um die Steine, die darauf liegen, zu finden. Wir verwenden dann die Schnittpunkte der Linien und die Lage der Steine um das gesamte Brett zu extrapolieren und seine Orientierung herauszufinden. Abschließend analysieren wir das Bild an den hochgerechneten Koordinaten um zu detektieren, ob und welche Steine dort liegen.
 
 Wir beschreiben weiterhin, wie wir Parameter für verwendete Algorithmen wählten und unser Programm mit einem Satz dazu erstellter Bilder testeten und vergleichen die verschiedenen Algorithmen.
 \end{center}
@@ -174,7 +174,7 @@ Wir beschreiben weiterhin, wie wir Parameter für verwendete Algorithmen wählte
 Abstract
 \normalfont
 
-In this work we examine possible ways to detect a Go board and the current game state on an Android powered mobile device. We evaluate different algorithms, namely Hough transformation and LSD, for detecting the lines of such a board.  We look at hough transformation and structural analysis for finding pieces that lay on it. We then use the intersections of the lines and the location of the pieces to extrapolate the whole board and find its orientation. Lastly we analyze the image at the extrapolated coordinates to detect if there is a piece there and of which color it is.
+In this work we examine possible ways to detect a Go board and the current game state on an Android powered mobile device. We evaluate different algorithms, namely \emph{Hough Transformation} and \emph{LSD}, for detecting the lines of such a board.  We look at \emph{Hough Transformation} and structural analysis for finding pieces that lay on it. We then use the intersections of the lines and the location of the pieces to extrapolate the whole board and find its orientation. Lastly we analyze the image at the extrapolated coordinates to detect if a piece present there and of which color it is.
 
 We further describe how we chose parameters for the used algorithms and how we tested our program using a set of images that we created for that purpose. Lastly compare the different algorithms.
 \end{center}
@@ -202,11 +202,13 @@ We further describe how we chose parameters for the used algorithms and how we t
 %\cleardoublepage
 \chapter{Simple mount for Nexus 4}
 \label{appendix-mount}
-\begin{figure}
+\vspace{2cm}
+\begin{figure}[h!]
     \center
     \includegraphics{images/halter.pdf}
     \caption{A simple mount which can be printed out (at twice the size), cut out of thick cardboard or acrylic glass and put together as needed}
 \end{figure}
+\cleardoublepage
 
 \include{includes/bt-lof} % Bilderverzeichnis
 \cleardoublepage
