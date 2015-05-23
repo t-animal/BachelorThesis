@@ -8,6 +8,10 @@
 \usepackage{tikz}
 \usepackage{url}
 \usepackage{subfigure}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
 
 \setbeamerfont{caption}{size=\footnotesize}
 \setbeamertemplate{caption}{\raggedright\insertcaption\par}
@@ -247,22 +251,251 @@
 
 \section{Evaluation}
 \frame[squeeze]{\tableofcontents[currentsection]}
-\subsection{Detection Quality}
-\begin{frame}{Detection Quality}~\end{frame}
+\subsection{Image Set}
+\begin{frame}{Image Set}
+	\begin{itemize}
+		\item We took 101 photos with different lighting and backgrounds
+		\item 70 were used for empirical parameter optimization; 31 for testing
+	\end{itemize}
+
+	\begin{figure}
+		\begin{subfigure}{}
+			\includegraphics[width=0.3\columnwidth]{images/warmLight_many_leftMedium.png}
+		\end{subfigure}
+		~
+		\begin{subfigure}{}
+				\includegraphics[width=0.3\columnwidth]{images/neonDesk_empty_centerAbove.png}
+		\end{subfigure}
+		~
+		\begin{subfigure}{}
+				\includegraphics[width=0.3\columnwidth]{images/shadowStone_some_rightAbove.png}
+		\end{subfigure}
+		\\
+		\begin{subfigure}{}
+				\includegraphics[width=0.3\columnwidth]{images/neonFloor_many_centerLow.png}
+		\end{subfigure}
+		~
+		\begin{subfigure}{}
+				\includegraphics[width=0.3\columnwidth]{images/neonFloor_many_centerLow_rotated.png}
+		\end{subfigure}
+		~
+		\begin{subfigure}{}
+			\includegraphics[width=0.3\columnwidth]{images/sunnyGrass_empty_centerLow.png}
+		\end{subfigure}
+	\end{figure}
+
+\end{frame}
+\subsection{Detection Quality --- Visible Intersections}
+\begin{frame}{Detection Quality}{Line detection algorithms}
+	\begin{table}
+		\centering
+		\begin{tabular}{llc>{\bfseries}ccc}
+		    \multicolumn{2}{c}{}									&\hphantom{A} & Hough 	& LSD 		& FAST     \\
+
+			\toprule
+			Empty board 			   		& Sensitivity 			&& 100\%	& 30.3\%  	& 0.685\%  \\
+			%
+											& Precision			 	&& 99.4\% 	& 94.2\%  	& 83.3\%  \\
+			%																					  245/260	  5/6
+			\midrule
+			Some pieces (7-13)				& Sensitivity	 		&& 95.6\% 	& 11.4\% 	& 1.97\%   \\
+			%
+											& Precision 			&& 98.6\% 	& 91.2\%  	& 53.3\%  \\
+			%																					  114/125	  16/30
+			\midrule
+			Many pieces (27-34) 			& Sensitivity		 	&& 58.6\% 	& 9.02\% 	& 3.80\%   \\
+			%
+											& Precision			 	&& 95.5\% 	& 94.0\%  	& 68.8\%  \\
+			%																					  95/101	  33/48
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	Sensitivity and precision on our test set. We evaluated correct ($\leq 15\text{px}$ off) intersections.
+\end{frame}
+
+\begin{frame}{Detection Quality}{Line detection algorithms}
+	\vspace{-15pt}
+	\include{figure-linesTesting}
+	\vspace{-15pt}
+	Sensitivity (light color filled circles) and precision (dark color filled circles) per image in our test set.
+\end{frame}
+
+\subsection{Detection Quality --- Occluded Intersections}
+\begin{frame}{Detection Quality}{Piece detection algorithms}
+	\vspace{-10pt}
+	\begin{table}
+		\centering
+		\begin{tabular}{ll ccc}
+		    \multicolumn{2}{c}{}											&\hphantom{A} & Contour 	& HOUGH	\\
+			\toprule
+			No pieces 								   		& Sensitivity 	&& N/A 				& N/A  			\\
+															& Precision		&& 1 false positive & \bf{N/A} 		\\
+			\midrule
+			Some pieces (7-13)								& Sensitivity 	&& \bf{86.7\%} 	& 75.90\%			\\
+			%												  72/83 		  63/83
+															& Precision 	&& 98.6\% 		& \bf{100\%}		\\
+			%												  72/73 		  63/63
+			\midrule
+			Many pieces (27-34) 							& Sensitivity 	&& 40.0\% 		& \bf{70.6\%} 		\\
+			%												  243/357		  252/357
+															& Precision		&& 99.2\% 		& 99.2\%			\\
+			%												  246/248 		  252/254
+			\specialrule{\heavyrulewidth}{\aboverulesep}{7pt}
+
+			Total				 							& Sensitivity 	&& 71.6\% 		& 71.6\% 			\\
+			%												  315/440		  315/440
+															& Precision		&& 97.8\% 		& \textbf{99.3}\% 	\\
+			%												  315/322 		  315/317
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	Sensitivity and precision on our test set. We evaluated correct ($\leq 15\text{px}$ off) piece location and roughly correct piece size.
+\end{frame}
+
+\begin{frame}{Detection Quality}{Piece detection algorithms}
+	\vspace{-15pt}
+	\include{figure-piecesTesting}
+	\vspace{-15pt}
+	Sensitivity (light color filled circles) and precision (dark color filled circles) per image in our test set.
+\end{frame}
+
 \subsection{Speed}
-\begin{frame}{Speed}~\end{frame}
+\include{pieChart}
+\begin{frame}[fragile]{Speed}
+	\center
+	\pgfplotstableread[header=false]{
+		345.24 	{Hough lines}
+		168.46	{LSD lines}
+		322.58	{Hough pieces}
+		249.69	{Contour pieces}
+		208.04 {Preprocessing}
+		83.16 {Extrapolate board}
+		26.39 {Detect colors}
+		51.33 {Framework}
+		64.21 {Create output}
+		}\datatable
+		\pgfplotsset{
+	    select row/.style={
+	        x filter/.code={\ifnum\coordindex=#1\else\def\pgfmathresult{}\fi}
+	    }
+	}
+	\begin{figure}
+		\pgfplotsset{width=1.1\textwidth, height=6cm, compat=1.11}
+		\begin{subfigure}{}
+			\begin{tikzpicture}
+				 \begin{axis}[
+					        xbar,
+					        bar shift=0pt,
+					        xmin=0,
+					        xmax=430,
+					        width=0.8\textwidth,
+					        ytick={0, 1, 2.5, 3.5, 5, 6, 7, 8, 9},
+					        yticklabels from table={\datatable}{1},
+					        ytick pos=left,
+					        xmajorgrids = true,
+					        xlabel={Time in ms},
+					        width=0.74\textwidth,
+					        nodes near coords, nodes near coords align={horizontal}
+					  ]
+
+					\addplot[fill=gray] table [select row=8, y expr=9] {\datatable}; %framework
+					\addplot[fill=gray] table [select row=7, y expr=8] {\datatable}; %framework
+					\addplot[fill=red!60!white] table [select row=6, y expr=7] {\datatable}; %color extraction
+					\addplot[fill=blue!60!white] table [select row=5, y expr=6] {\datatable}; %extrapolate board
+					\addplot[fill=green!80!black] table [select row=4, y expr=5] {\datatable}; %preprocessing
+					\addplot[fill=orange] table [select row=3, y expr=3.5] {\datatable}; %contour pieces
+					\addplot[fill=magenta] table [select row=2, y expr=2.5] {\datatable}; %hough pieces
+					\addplot[fill=blue] table [select row=1, y expr=1] {\datatable}; %lsd
+					\addplot[fill=red] table [select row=0, y expr=0] {\datatable}; %hough lines
+				  \end{axis}
+			\end{tikzpicture}
+		\end{subfigure}
+		% ~
+		% \begin{subfigure}{}
+		% 	\vspace{15pt}
+		% 	\begin{tikzpicture}
+		% 		[
+		% 		    pie chart,
+		% 		    slice type={preprocessing}{green!80!black},
+		% 		    slice type={line detection}{red},
+		% 		    slice type={piece detection}{orange},
+		% 		    slice type={extrapolate board}{blue!60!white},
+		% 		    slice type={color extraction}{red!60!white},
+		% 		    slice type={framework}{gray},
+		% 		    pie values/.style={font={\small}},
+		% 		    scale=2
+		% 		]
+		% 	    \pie{}{
+		%     			18.98/preprocessing,
+		%     			31.5/{line detection},
+		%     			22.78/{piece detection},
+		%     			7.58/{extrapolate board},
+		%     			2.41/{color extraction},
+		%     			10.54/framework}
+
+		% 	\end{tikzpicture}
+		% 	\vspace{1.5em}
+		% \end{subfigure}
+	\end{figure}
+	Average duration of parts of the pipeline over 100 iterations on a \emph{Nexus 4}
+\end{frame}
+
+\newcommand*\leftlap[2]{\hphantom{#1}\llap{#2}}
+\newcommand*\rightlap[2]{\rlap{#2}\hphantom{#1}}
+\begin{frame}{Overall Quality}{Accuracy of our final detector on our image sets}
+	\begin{table}
+	\center
+		\begin{tabular}{rlccc}
+			  &\	 		 			& 	Trainingset 	 && Testset 				\\
+			\toprule
+			Number of images			&&	70					 &&		31							\\
+			Discarded results		 	&&	 5					 &&		 2							\\
+			Accuracy localizing			&&	99.1\% (5217/5265)	 && \leftlap{98.6}{100}\% (2349/2349) \\
+			Accuracy classifying		&&	98.0\% (5112/5217)	 && 98.6\% (2317/2349)				\\
+			Accuracy for both			&&	97.1\% (5112/5265)	 && 98.6\% (2317/2349) 				\\
+			\bottomrule
+		\end{tabular}
+	\end{table}
+	\vfill
+	Similar quality is shown in tests where real games were played and recorded.
+\end{frame}
 
 \section{Conclusion}
 \subsection{Our Contribution}
-\begin{frame}{Our Contribution}~\end{frame}
+\begin{frame}{Our Contribution}
+	\begin{columns}
+		\begin{column}{0.5\textwidth}
+			\begin{itemize}
+				\item We present a reliable method for the detection of Go boards
+				\item Our method is fast enough to be used on smartphones
+				\item We can detect boards with dense token distribution
+				\item We showcase a possible approach for an end user product
+			\end{itemize}
+		\end{column}
+		\begin{column}{0.4\textwidth}
+			\includegraphics[width=\columnwidth]{images/android_perfect_recognition.png}
+		\end{column}
+	\end{columns}
+\end{frame}
 \subsection{Future Work}
-\begin{frame}{Future Work}~ \end{frame}
+\begin{frame}{Future Work}
+	Possible areas of future work could be:
+	\begin{itemize}
+		\item extending the approach to a 19x19 grid or grids of arbitrary size
+		\item autonomously detecting the center of the board
+		\item improving correction of specular highlights
+	\end{itemize}
+\end{frame}
+
 \subsection{Live Presentation?}
-\begin{frame}{Live presentation}{Because seeing is believing}\end{frame}
+\begin{frame}{Live presentation}{Because seeing is believing}
+	\centering
+	If there is still time...
+\end{frame}
 
 \section*{Questions}
-\centering
 \begin{frame}
+	\centering
   \huge Thank you for your attention.\\[1.5cm] Questions?
 \end{frame}
 

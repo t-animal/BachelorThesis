@@ -1,0 +1,79 @@
+Only opencv:
+05-13 15:16:54.100	 After 100 passes avg framework time is: 49.44
+05-13 15:16:59.421	 After 200 passes avg framework time is: 53.22
+05-13 15:17:04.902	 After 300 passes avg framework time is: 54.81
+05-13 15:17:09.841	 After 400 passes avg framework time is: 49.39
+05-13 15:17:15.120	 After 500 passes avg framework time is: 52.79
+05-13 15:17:20.299	 After 600 passes avg framework time is: 51.79
+05-13 15:17:25.016	 After 700 passes avg framework time is: 47.17
+05-13 15:17:30.065	 After 800 passes avg framework time is: 50.49
+05-13 15:17:35.543	 After 900 passes avg framework time is: 54.78
+05-13 15:17:40.626	 After 1000 passes avg framework time is: 50.83
+05-13 15:17:46.098	 After 1100 passes avg framework time is: 54.72
+=> Average ~51.33
+
+hough lines:
+05-13 15:41:42.138	 After 100 passes avg hough lines time is: 338.630000
+05-13 15:43:30.230	 After 200 passes avg hough lines time is: 352.580000
+05-13 15:45:20.446	 After 300 passes avg hough lines time is: 344.520000
+=> Average ~345.24
+
+lsd lines:
+05-13 15:49:59.609	 After 100 passes avg lsd lines time is: 167.040000
+05-13 15:51:40.646	 After 200 passes avg lsd lines time is: 164.440000
+05-13 15:53:25.614	 After 300 passes avg lsd lines time is: 173.900000
+=> Average ~168.46
+
+
+hough pieces:
+05-13 15:49:59.897	 After 100 passes avg hough pieces time is: 315.590000
+05-13 15:51:40.951	 After 200 passes avg hough pieces time is: 316.860000
+05-13 15:53:25.933	 After 300 passes avg hough pieces time is: 335.280000
+=> Average ~322.58
+
+contour pieces:
+05-13 15:41:42.400	 After 100 passes avg contour pieces time is: 251.910000
+05-13 15:43:30.515	 After 200 passes avg contour pieces time is: 252.050000
+05-13 15:45:20.678	 After 300 passes avg contour pieces time is: 245.110000
+=> Average ~249.69
+
+
+hough,contours:
+05-13 15:44:14.951	 After 300 passes avg hough, contour time is: 1076.41
+05-13 15:46:06.478	 After 400 passes avg hough, contour time is: 1115.26
+=> Average ~1095.84
+
+lsd, hough:
+05-13 15:50:00.322	 After 100 passes avg lsd, hough time is: 1001.24
+05-13 15:51:41.217	 After 200 passes avg lsd, hough time is: 1008.95
+05-13 15:53:26.114	 After 300 passes avg lsd, hough time is: 1048.97
+=> Average 1019.72
+
+
+overhead in business logic
+05-14 19:24:39.391: After 100 passes avg time is: 65.28
+05-14 19:26:48.093: After 200 passes avg time is: 65.86
+05-14 19:29:00.179: After 300 passes avg time is: 63.24
+05-14 19:31:12.473: After 400 passes avg time is: 62.45
+=>Average ~64.21
+
+filling up
+05-14 19:24:39.301: After 100 passes avg Filling time is: 79.170000
+05-14 19:26:48.042: After 200 passes avg Filling time is: 78.510000
+05-14 19:29:00.123: After 300 passes avg Filling time is: 88.690000
+05-14 19:31:12.416: After 400 passes avg Filling time is: 86.260000
+=>Average ~83.16
+
+preparation, setup
+05-14 19:24:38.266: After 100 passes avg prep time is: 208.560000
+05-14 19:26:47.055: After 200 passes avg prep time is: 211.210000
+05-14 19:28:59.008: After 300 passes avg prep time is: 206.470000
+05-14 19:31:11.430: After 400 passes avg prep time is: 205.920000
+=>Average 208.04
+
+color extraction
+05-14 19:24:52.303: After 100 passes avg color time is: 24.170000
+a05-14 19:27:12.744: After 200 passes avg color time is: 24.750000
+05-14 19:29:28.965: After 300 passes avg color time is: 28.360000
+05-14 19:31:44.306: After 400 passes avg color time is: 28.280000
+=>Average 26.39
