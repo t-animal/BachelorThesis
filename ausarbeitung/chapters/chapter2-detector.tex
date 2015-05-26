@@ -114,17 +114,17 @@
 
 	\section{Extrapolating the board}
 	\label{detector-calculate}
-	Having collected a set of probable intersections we now need to fill in gaps where neither lines nor pieces have been detected. Also, we need to classify if a detected intersection is valid and actually a part of the board. That is, we have to filter those which simply are intersections of prolonged grid lines with the outer edge of the board and other noise.
+	Having collected a set of probable intersections we now need to fill in gaps where neither lines nor pieces have been detected. Also, we need to classify if a detected intersection is valid and a part of the board. That is, we have to filter those which simply are intersections of prolonged grid lines with the outer edge of the board and other noise.
 
-	First we calculate the average angle of the horizontal lines from the previous step and rotate the set of intersections to justify them. This does not fix perspective distortion but it allows us to sort the intersections by rows. We need this later to iterate over them row-wise.
+	First we calculate the average angle of the horizontal lines from the previous step and rotate the set of intersections to justify them. This does not fix perspective distortion but it allows us to sort the intersections by rows.
 
-	To make the iteration easier we sort them in this step. All intersections within a vertical window of 15 pixels of each other are considered to belong to one row. They are then sorted by row first and by column in second order.
+	All intersections within a vertical window of 15 pixels of each other are considered to belong to one row. They are then sorted by row first and by column in second order.
 
-	Then we select a number of intersections in the center of the board by selecting all intersections inside a square around the image center. Hereby we assume the innermost intersection on the board to be the closest (detected or yet undetected) one to the center of the image. This assumption can hardly be made in setups where the image is taken by bystanders or from randomly located cameras. We argue, though, that when trying to record a game a user will be able to adjust the camera location accordingly. Another possibility could be to prompt the user for the center of the board, which can be easily done via the touchscreen of the smart phone. We did not implement this approach, but it should yield equal quality.
+	Then we select a number of intersections in the center of the board by selecting all intersections inside a square around the image center. Hereby, we assume the innermost intersection on the board to be the closest (detected or yet undetected) one to the center of the image. This assumption can hardly be made in setups where the image is taken by bystanders or from randomly located cameras. We argue, though, that when trying to record a game a user will be able to adjust the camera location accordingly. Another possibility could be to prompt the user for the center of the board, which can be easily done via the touchscreen of the smart phone. We did not implement this approach, but it should yield equal quality.
 
 	If the number of selected intersections is too small (we found 20 to be a well working count), we increase the window size and try again.
 
-	Those intersections (shown in yellow in \autoref{fig:buildModel-input}) are now modeled as a subset of actual board intersections. We determine the median distance between neighboring intersections (using the average worked less well). Then we iterate row-wise over the selected intersections from the top left to the bottom right. For every intersection we save the current row and column (on the board, not the image) and add a key point to our model at this location. If we encounter a gap between two intersection that is larger than the median distance we increase the column count accordingly. The same happens in y-direction with the row count. If we find an intersection is an outlier to the left we increase the column count of all previous key points accordingly.
+	Those intersections (shown in yellow in \autoref{fig:buildModel-input}) are now modeled as a subset of actual board intersections. We determine the median distance between neighboring intersections (using the average worked less well). Then we iterate row-wise over the selected intersections from the top left to the bottom right. For every intersection we save the current row and column (on the board, not the image) and add a key point to our model at this location. If we encounter a gap between two intersections that is larger than the median distance we increase the column count accordingly. The same happens in y-direction with the row count. If we find an intersection is an outlier to the left we increase the column count of all previous key points accordingly.
 
 	\begin{figure}
 		\begin{subfigure}{0.45\textwidth}
@@ -135,7 +135,7 @@
 		\hfill
 		\begin{subfigure}{0.45\textwidth}
 			\includegraphics[width=\textwidth]{images/builtModel.png}
-			\caption{The resulting model. Notice that undetected intersections are left out thus creating homography. Green: the image center}
+			\caption{The resulting model. Notice that undetected intersections are left out creating homography. Green: the image center}
 			\label{fig:buildModel-output}
 		\end{subfigure}
 		\caption{Building the model}
@@ -146,13 +146,13 @@
 
 	During the iteration we also add virtual intersections to fill in gaps in our intersection set (see the orange circles in \autoref{fig:buildModel-input}). This is necessary in case the board's center intersection has not been detected. From this filled up intersection set we select the intersection closest to the image center and assume it is the center of the board. Using this intersection's row and column count we can shift our model to the correct position within the board.
 
-	Our updated interim result is now a model of a part of the board located correctly inside the complete model of the board. We can use this as input for the RANSAC algorithm \cite{fischler1981random}, as we made sure every key point corresponds to an intersection. Thus we created homography between the actual image and the hypothetical image of our modeled board.
+	Our updated interim result is now a model of a part of the board located correctly inside the complete model of the board. We can use this as input for the RANSAC algorithm \cite{fischler1981random}, as we made sure every key point corresponds to an intersection. Thus we can estimate a homography between the actual image and the hypothetical image of our modeled board.
 
-	This serves three purposes. First, RANSAC tolerates outliers, i.e. intersections which have been detected slightly displaced. Second, we can use the transformation information to rectify subsequent images and increase detection quality (see \autoref{evaluation-prepostprocessing-perspectiveRectifying}). Lastly the transformation matrix can also be used to warp a complete model of the board and lay it onto the image. After doing so we know the location of every intersection in our image -- including those, which have not been detected previously.
+	This serves three purposes. First, RANSAC tolerates outliers, i.e., intersections which have been detected slightly displaced. Second, we can use the transformation information to rectify subsequent images and increase detection quality (see \autoref{evaluation-prepostprocessing-perspectiveRectifying}). Lastly, the transformation matrix can also be used to warp a complete model of the board and lay it onto the image. After doing so we know the location of every intersection in our image -- including those, which have not been detected previously.
 
 	\section{Refining intersection locations}
 	\label{detector-postprocessing}
-	After the interpolation step the mean error is still quite high, because small offsets in the selected intersections result in large errors when interpolating from them. To fix these, we first shift interpolated intersections to a closeby measured intersection, if one is available. Then we perform another interpolation step with all those intersections which have been moved, i.e. in which we can be confident. This step can be repeated several times until a desired detection quality has been reached or it yields no further improvement. This is also key to detecting larger boards, where this step can be used to first find a nine-by-nine subgrid and then interpolate from it to larger boards. We did not implement this, though, due to the lack of a 19x19 board.
+	After the interpolation step the mean error is still quite high, because small offsets in the selected intersections result in large errors when interpolating from them. To fix these, we first shift interpolated intersections to a closeby measured intersection, if one is available. Then we perform another interpolation step with all those intersections which have been moved, i.e., in which we can be confident. This step can be repeated several times until a desired detection quality has been reached or it yields no further improvement. This is also key to detecting larger boards, where this step can be used to first find a nine-by-nine subgrid and then interpolate from it to larger boards. We did not implement this, though, due to the lack of a 19x19 board.
 
 	\iftoggle{lookNice}{\vfill \pagebreak}{}
 
@@ -166,23 +166,23 @@
 	    \includegraphics[width=0.42\textwidth]{images/colorDetection.png}
 	  	\caption{Detection windows on the thresholded, segmented image after highlight removal}
 	\end{wrapfigure}
-	Having located the intersections we can evaluate the image at their positions to find whether there is a piece there or not and (if applicable) its color. First we use an adaptive threshold. To remove noise within the rectangles we perform a connected-component analysis similarly to the preprocessing step. The result is a binary image showing only the lines and black pieces. Highlights within the black pieces from reflections are still a problem but can be removed surprisingly well by erosion and dilution.
+	Having located the intersections we can evaluate the image at their positions to find whether there is a piece or not and (if applicable) its color. First, we use an adaptive threshold. To remove noise within the rectangles we perform a connected-component analysis similarly to the preprocessing step. The result is a binary image showing only the lines and black pieces. Highlights within the black pieces from reflections are still a problem but can be removed surprisingly well by erosion and dilation.
 
 	\endgroup
 
-	As we have rotated the intersections in \autoref{detector-calculate} our resulting model is rotated by the same amount. We undo this rotation now to realign the model with the actual input image. Finally we calculate the average pixel value in a window around each intersection and compare it to two thresholds, such that \begin{equation}
-		\frac{\sum^{I,J}_{i=0,j=0}w(i,j)}{I*J} =
+	Since we have rotated the intersections in \autoref{detector-calculate} our resulting model is rotated by the same amount. We undo this rotation now to realign the model with the actual input image. Finally we calculate the average pixel value in a window around each intersection and compare it to two thresholds, $T_w$ and $T_b$, such that \begin{equation}
+		\frac{\sum^{I}_{i=0}\sum^{J}_{j=0}w(i,j)}{I*J} =
 		\begin{cases}
 		> T_{w} + C & \Rightarrow  \text{white}\\
 		< T_{b} & \Rightarrow \text{black}\\
 		\text{otherwise} & \Rightarrow \text{empty}
 		\end{cases}
 	\end{equation}
-	where $C$ is a constant value that is added to the white threshold on the edge of the grid. The reason behind this is that the lines are not continued there and less black pixels from them are contributed.
+	where $C$ is a constant value that is added to the white threshold on the edge of the grid. The reason behind this is that the lines are not continued there and less black pixels are contributed by them.
 
 
 	\section{Postprocessing}
-	As we do not just return the detected board but also intersection and piece locations, we have to realign them once more with the image. This is necessary because we didn't just rotate them in but also cropped the image in \autoref{detector-preprocessing}. To undo this we shift the intersections by the negative offset of the cropped image inside the input image.
+	As we not only return the detected board but also intersections and piece locations, we have to realign them once more with the image. This is necessary because we have not just rotated them but also cropped the image in \autoref{detector-preprocessing}. To undo this, we shift the intersections by the negative offset of the cropped image inside the input image.
 
 	The results still have to be smoothed over time. We decided to do this outside of the detection step, though. This has the advantage that the detector is agnostic of how its used -- to simply analyze a single image or as a part of a larger recognition software. For details about this accumulation step see \autoref{android-detector-usingResults}.
 
