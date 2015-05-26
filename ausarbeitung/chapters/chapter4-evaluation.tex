@@ -51,7 +51,7 @@
 
 	The images were recorded by starting the app normally. But instead of calling the detector the input image was saved on the internal memory of the device. We did not take images using a camera or camera app to stay as close to the expectable input as possible.
 
-	While in the beginning we saved images to PNG we later switched to persisting the images into YAML format and retook the previous images. This has the advantage that we can be absolutely sure that the input to our test instances is the same as is would be on a phone, as no PNG encoding and decoding takes place. Also we first had problems because the OpenCV for Android function which persists images in PNG format presumably does not recognize that the camera image is encoded in RGB (see \autoref{android-detector}). This lead to different results on our desktop hardware than on our Android device.
+	In the beginning we saved images to PNG. Later we switched to persisting the images into YAML format and retook the previous images. This has the advantage that we can be absolutely sure that the input to our test instances is the same as is would be on a phone, as no PNG encoding and decoding takes place. Also we first had problems because the OpenCV for Android function which persists images in PNG format presumably does not recognize that the camera image is encoded in RGB (see \autoref{android-detector}). This lead to different results on our desktop hardware than on our Android device.
 
 	31 of the images were randomly chosen as a test set evenly spread over all lighting conditions as well as piece and angle configurations. The grass images with pieces on the board were not part of the test set as they soon turned out to be very difficult. We included them in the training set, though. This set was used to improve our detector.
 
@@ -85,17 +85,17 @@
 	\label{evaluation-visible-optimization-lsd}
 	As noted in \autoref{detector-visible-lsd} the Line Segment Detector needs significant postprocessing to give any reasonable results. Still it is easily outperformed by the variant using \emph{Hough transformation}. In \autoref{fig:linesTraining-lsd} one can see that the amount of false positives does not drop below the number of input images for any parameter combination yielding more than about 25\% detection rate. Furthermore the average ratio of correct results to false positives is nearly all the time worse than its \emph{Hough} counterpart's. Only in the rightmost segment the ratio is better. The total number of wrong intersections ranges in the thousands here, though, making this segment unusable for the application.
 
-	The chosen parameter combination performs at a detection rate of only 20.53\% (1164 out of 5670) with 69 false positives. To achieve a detection rate similar to the one of the \emph{Hough detector} we would have to accept more than 10 false positives per image on average.
+	The chosen parameter combination performs at a detection rate of only 20.53\% (1164 out of 5670) with 69 false positives. To achieve a detection rate similar to the one of the \emph{Hough} detector we would have to accept more than 10 false positives per image on average.
 
 	\subsubsection{FAST}
 	\label{evaluation-visible-optimization-fast}
-	The last tested algorithm is the \emph{FAST} corner detector. It performs even worse when used for detection of the intersections. It is the only detector that resulted in more false positives than correct intersections in some combination. The ratio of false positives to correctly classified intersections is never better than the one line intersections detected by \emph{LSD} or \emph{Hough transformation}.
+	The last tested algorithm is the \emph{FAST} corner detector. It performs even worse when used for detection of the intersections. It is the only detector that resulted in more false positives than correct intersections in some combination. The ratio of false positives to correctly classified intersections is never better than when using \emph{LSD} or \emph{Hough transformation}.
 
 	The chosen parameter combination yields a mere 2.7\% (155 out of 5670) correctly detected intersections with 70 wrongly placed ones. Overall the detector seems to stick too much to the lines themselves and places many keypoints around them and at the border of the black pieces.
 
 	\subsection{Performance on the test set}
 	\label{evaluation-visible-performance}
-	To evaluate the performance of the three possible approaches we tested them on some images which had not been included in the training set.
+	To evaluate the performance of the three possible approaches we tested them on 31 images which had not been included in the training set.
 
 	\begin{table}[b!]
 		\centering
@@ -125,11 +125,11 @@
 
 	\subsubsection{HOUGH}
 	\label{evaluation-visible-performance-hough}
-	The \emph{Hough} detector produces quite good results on these images. Those where no tokens occlude the board (on the left in \autoref{fig:linesTest-hough}) are detected de facto perfectly. It does have some issues when some piecs lie on the board and its detection rate drops significantly (to about 60\% of the performance without pieces) when there are many pieces on the board (on the right in \autoref{fig:linesTest-hough}). This was to be expected, though, and its performance is still better than the other two algorithms'.
+	The \emph{Hough} detector produces quite good results on these images. When no tokens occlude the board (on the left in \autoref{fig:linesTest-hough}) the intersections are detected de facto perfectly. It does have some issues when some pieces lie on the board and its detection rate drops significantly (to about 60\% of the performance without pieces) when there are many pieces on the board (on the right in \autoref{fig:linesTest-hough}). This was to be expected, though, and its performance is still better than the other two algorithms'.
 
 	\subsubsection{LSD}
 	\label{evaluation-visible-performance-lsd}
-	The Line Segment Detector based approach detected only about 18\% of the available intersections in our test set. That means its performance is significantly worse than the \emph{Hough Lines Detector}'s, its true positive rate being only one fifth. That means its relative quality was even lower on the test set than on the training set (where it reached 22\% of the quality of its counterpart).
+	The Line Segment Detector based approach detected only about 18\% of the available intersections in our test set. That means its performance is significantly worse than the \emph{Hough Lines Detector}'s, its true positive rate being only one fifth. Consequently its relative quality was even lower on the test set than on the training set (where it reached 22\% of the quality of its counterpart).
 
 	At first glance the precision (the dark blue circles in \autoref{fig:linesTest-lsd}) seems to be quite high. This is a result of how we chose the algorithms' parameters, though. When comparing it to the first evaluated approach we see a clear decrease in precision, too.
 

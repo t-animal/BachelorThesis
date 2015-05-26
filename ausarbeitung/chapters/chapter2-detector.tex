@@ -2,7 +2,7 @@
 
 \chapter{Detecting the board}
 	\label{detector}
-	When looking at a Go board the lines catch one's eye first and foremost. However, relying solely on lines for the detection of the grid will probably fail in situations when too many tokens occlude the lines. Therefore, our algorithm uses them only to find intersections and tries to fill in the gaps by adding information about pieces. The reason to do so is that what is actually interesting are not the lines, but their intersections and a piece will always lie reasonably close to one. The only user interaction happens in the beginning of a recording session. The user has to place the camera so that the center of the board aligns with the center of the camera.
+	The lines of a Go board catch one's eye first and foremost when looking at it. However, relying solely on lines for the detection of the grid will probably fail in situations when too many tokens occlude them. Therefore, our algorithm uses them only to find intersections and tries to fill in the gaps by adding information about pieces. The reason behind this is that what is actually interesting are not the lines, but their intersections and a piece will always lie reasonably close to one. The only user interaction happens in the beginning of a recording session. The user has to place the camera so that the center of the board aligns with the center of the camera.
 
 	The implementation\footnote{The source code is GPLv3 licensed and can be freely accessed at https://github.com/t-animal/GoBoardReader} is based on the OpenCV framework (version 2.4.10). If not noted otherwise all detections have been performed on an x86\_64 architecture. As described in chapter 3 this does not give different results than the execution on mobile devices (i.e. ARM architecture), for example because of differences in floating point calculations.
 
@@ -16,14 +16,14 @@
 		\item build a submodel of the board by estimating where each selected point lies on the grid
 		\item calculate their position in space using RANSAC and apply the resulting transformation matrix to a complete model of the board
 		\item refine the locations by shifting extrapolated intersections to measured ones and redo the calculations
-		\item extract piece color information by the amount of black pixels in a window around each intersections in a thresholded version of the input image
+		\item extract piece color information by the amount of black pixels in a window around each intersection in a thresholded version of the input image
 	\end{enumerate}
 
 	\section{Preprocessing}
 	\label{detector-preprocessing}
-	Mobile devices don't have the same computing power as desktop hardware. Therefore our first step is to reduce the image size without losing relevant information. To do so, we threshold the grayscale input image using a mean adaptive threshold with a low constant value \emph{C} and a window size of what we expected to be roughly the width of one square on the board (approximately 45px, as measured in one of our sample images).
+	Mobile devices do not have the same computing power as desktop hardware. Therefore our first step is to reduce the image size without losing relevant information. To do so, we threshold the grayscale input image using a mean adaptive threshold with a low constant value \emph{C} and a window size of what we expected to be roughly the width of one square on the board (approximately 45px, as measured in one of our sample images).
 
-	Under the assumption that at a least part of the board is in the center of the image we can segment it from the background with high confidence by a simple connected-component analysis with a black rectangle in the image center. On our test case this fails only in one situation in which the board lies in grass in the evening. Shadows connect the board with the background and the whole image is segmented. On a flat surface this is not a problem and we found no image where we crop off too much and thus make the board undetectable.
+	Assuming that at a least part of the board is in the center of the image we can segment it from the background with high confidence by a simple connected-component analysis with a black rectangle in the image center. On our test case this fails only in one situation in which the board lies in grass in the evening. Shadows connect the board with the background and the whole image is segmented. On a flat surface this is not a problem and we found no image where we crop off too much and thus make the board undetectable.
 
 	This step does not just improve speed but also detection performance because interfering background information like patterned wood table tops can be cut off.
 
@@ -43,7 +43,7 @@
 	%TODO update with  updated algorithm
 	Next, we tried to apply von Gioi's Line Segment Detector \cite{von2012lsd} on the output of the \emph{Canny edge detector}. We had to backport this from OpenCV 3 as it is not available in the aforementioned version. As was to be expected judging from the examples in von Gioi's paper this detector requires significant post-processing. For every square in the grid the \emph{LSD} finds four line segments. Consequently two adjacent squares produce two parallel lines. This method is also prone to noisy backgrounds and produces many short, false positive lines. That is due to the nature of the detector of approximating circles with lines which comes into effect especially around black pieces, as can be seen in \autoref{fig:lsdPostprocessingFirst}.
 
-	Therefore, our first postprocessing step is to eliminate short line segments (see \autoref{fig:lsdPostprocessingLength}). Afterwards we count the number of close-by parallels of each line and keep only those with a count of at least one. Having reduced the number of false positives significantly we classify the lines the same way as described above into horizontal and vertical lines. If we would now intersect these lines, we would still have many false positives. That is, because one line which spans the whole length of the grid on the board might be represented by several detected line segments. As we prolong them into infinity before intersecting them, small directional variances sum up and result in intersections at the wrong place. Thus, as last postprocessing step, we merge nearby line segments into one if they are close and parallel to each other and filter once again for line length, this time with a slightly higher threshold.
+	Therefore, our first postprocessing step is to eliminate short line segments (see \autoref{fig:lsdPostprocessingLength}). Afterwards we count the number of close-by parallels of each line and keep only those with a count of at least one. Having reduced the number of false positives significantly we classify the lines the same way as described above into horizontal and vertical lines. If we intersected these lines now, we would still have many false positives. That is, because one line which spans the whole length of the grid on the board might be represented by several detected line segments. As we prolong them into infinity before intersecting them, small directional variances sum up and result in intersections at the wrong place. Thus, as last postprocessing step, we merge nearby line segments into one if they are close and parallel to each other and filter once again for line length, this time with a slightly higher threshold.
 
 	\begin{figure}
 	\begin{center}
@@ -100,7 +100,7 @@
 
 	\subsection{Using Hough circles}
 	\label{detector-occluded-hough}
-	Go pieces are relatively round and can be detected using \emph{Hough circles} to some extent as long as the image is taken from a relatively high angle. If the camera is positioned near to the plane in which the board lies the circles become ellipses. In order to still match the tokens we have to choose the threshold above which a circle center will be detected in the accumulator space quite low. This results in many false positives if noise is located in some near-circle configuration by chance.
+	Go pieces respectively their representation in the thresholded imares are relatively round and can be detected using \emph{Hough circles} to some extent as long as the image is taken from a relatively high angle. If the camera is positioned near to the plane in which the board lies the circles become ellipses. In order to still match the tokens we have to choose the threshold, above which a circle center will be detected in the accumulator space, quite low. This results in many false positives if noise is located in some near-circle configuration by chance.
 
 	The centers of the detected circles are then added to intersections and duplicates (determined by their distance) are removed.
 
@@ -114,7 +114,7 @@
 
 	\section{Extrapolating the board}
 	\label{detector-calculate}
-	Having collected a set of probable intersections we now need to fill in gaps where neither lines nor pieces have been detected. Also we need to classify if a detected intersection is valid and actually a part of the board. That is, we have to filter those which simply are intersections of prolonged grid lines with the outer edge of the board and other noise.
+	Having collected a set of probable intersections we now need to fill in gaps where neither lines nor pieces have been detected. Also, we need to classify if a detected intersection is valid and actually a part of the board. That is, we have to filter those which simply are intersections of prolonged grid lines with the outer edge of the board and other noise.
 
 	First we calculate the average angle of the horizontal lines from the previous step and rotate the set of intersections to justify them. This does not fix perspective distortion but it allows us to sort the intersections by rows. We need this later to iterate over them row-wise.
 
@@ -124,7 +124,7 @@
 
 	If the number of selected intersections is too small (we found 20 to be a well working count), we increase the window size and try again.
 
-	Those intersections (shown in yellow in \autoref{fig:buildModel-input}) are now modeled as a subset of actual board intersections. We determine the median distance between neighboring intersections. Then we iterate row-wise over the selected intersections from the top left to the bottom right. For every intersection we save the current row and column (on the board, not the image) and add a key point to our model at this location. If we encounter a gap between two intersection that is larger than the median distance we increase the column count accordingly. The same happens in y-direction with the row count. If we find an intersection is an outlier to the left we increase the column count of all previous key points accordingly.
+	Those intersections (shown in yellow in \autoref{fig:buildModel-input}) are now modeled as a subset of actual board intersections. We determine the median distance between neighboring intersections (using the average worked less well). Then we iterate row-wise over the selected intersections from the top left to the bottom right. For every intersection we save the current row and column (on the board, not the image) and add a key point to our model at this location. If we encounter a gap between two intersection that is larger than the median distance we increase the column count accordingly. The same happens in y-direction with the row count. If we find an intersection is an outlier to the left we increase the column count of all previous key points accordingly.
 
 	\begin{figure}
 		\begin{subfigure}{0.45\textwidth}
@@ -142,11 +142,11 @@
 		\label{fig:buildModel}
 	\end{figure}
 
-	The interim result of this iteration is a model of a part the board with equidistant key points where every key point correspondents to a selected intersection as shown in \autoref{fig:buildModel-output}.
+	The interim result of this iteration is a model of a part of the board with equidistant key points where every key point correspondents to a selected intersection as shown in \autoref{fig:buildModel-output}.
 
 	During the iteration we also add virtual intersections to fill in gaps in our intersection set (see the orange circles in \autoref{fig:buildModel-input}). This is necessary in case the board's center intersection has not been detected. From this filled up intersection set we select the intersection closest to the image center and assume it is the center of the board. Using this intersection's row and column count we can shift our model to the correct position within the board.
 
-	Our updated interim result is now a model of a part of the board located correctly inside the complete model of the board. We can use this as input for the RANSAC algorithm\cite{fischler1981random}, as we made sure every key point corresponds to an intersection thus creating homography between the actual image and the hypothetical image of our modeled board.
+	Our updated interim result is now a model of a part of the board located correctly inside the complete model of the board. We can use this as input for the RANSAC algorithm \cite{fischler1981random}, as we made sure every key point corresponds to an intersection. Thus we created homography between the actual image and the hypothetical image of our modeled board.
 
 	This serves three purposes. First, RANSAC tolerates outliers, i.e. intersections which have been detected slightly displaced. Second, we can use the transformation information to rectify subsequent images and increase detection quality (see \autoref{evaluation-prepostprocessing-perspectiveRectifying}). Lastly the transformation matrix can also be used to warp a complete model of the board and lay it onto the image. After doing so we know the location of every intersection in our image -- including those, which have not been detected previously.
 
@@ -178,12 +178,12 @@
 		\text{otherwise} & \Rightarrow \text{empty}
 		\end{cases}
 	\end{equation}
-	where $C$ is a constant value that is added to the white threshold on the edge of the grid. This is necessary because the lines are not continued there and less black pixels from them are contributed.
+	where $C$ is a constant value that is added to the white threshold on the edge of the grid. The reason behind this is that the lines are not continued there and less black pixels from them are contributed.
 
 
 	\section{Postprocessing}
-	As we don't just return the detected board but also intersection and piece locations, we have to realign them once more with the image. This is necessary because we didn't just rotate them in but also cropped the image in \autoref{detector-preprocessing}. To undo this we shift the intersections by the negative offset of the cropped image inside the input image.
+	As we do not just return the detected board but also intersection and piece locations, we have to realign them once more with the image. This is necessary because we didn't just rotate them in but also cropped the image in \autoref{detector-preprocessing}. To undo this we shift the intersections by the negative offset of the cropped image inside the input image.
 
 	The results still have to be smoothed over time. We decided to do this outside of the detection step, though. This has the advantage that the detector is agnostic of how its used -- to simply analyze a single image or as a part of a larger recognition software. For details about this accumulation step see \autoref{android-detector-usingResults}.
 
-	We try to return only results which are sane. Thus we discard any result where one or more intersection lies outside of the input image or two intersections are too close to each other. In the first case it is obviously impossible to classify the intersection. As we use windows for the classification step they would overlap if piece locations are too close, so no accurate value could be determined. Therefore we do not use these results in any way.
+	We try to return only results which are sane. Thus we discard any result where one or more intersection lies outside of the input image or two intersections are too close to each other. In the first case it is obviously impossible to classify the intersection. In the second no accurate value could be determined, because we use windows for the classification step they would overlap if piece locations are too close. Therefore we do not use these results in any way.
