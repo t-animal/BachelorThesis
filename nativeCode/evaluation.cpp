@@ -305,6 +305,7 @@ void Evaluater::checkOverallCorrectness(const char* board, vector<Point2f> inter
 	int falsePositive=0;
 	int missed=0;
 	int discarded=0;
+	int wrongLoc=0;
 	for(int c=0; c<81; c++){
 		char color = board[c];
 		if(color == 'u'){
@@ -314,37 +315,55 @@ void Evaluater::checkOverallCorrectness(const char* board, vector<Point2f> inter
 
 		bool matched = false;
 		vector<Point2f> annot = (color == 'b'?blackIntersects:(color=='w'?whiteIntersects:emptyIntersects));
-		for(auto i:intersections){
-			for(auto a:annot){
+		Point2f i = intersections[80-c%9*9-c/9];
+		for(auto a:annot){
+			if(norm(i-a) < 15){
+				matched = true;
+				break;
+			}
+		}
+
+
+		if(matched)
+			matchedCount++;
+		else{
+			for(auto a:allIntersects){
 				if(norm(i-a) < 15){
 					matched = true;
 					break;
 				}
 			}
+			if(matched)
+				if(color == '0')
+					missed++;
+				else
+					falsePositive++;
+			else
+				wrongLoc++;
 		}
-		if(matched)
-			matchedCount++;
-		else if(color == '0')
-			missed++;
-		else
-			falsePositive++;
 	}
 
 	string output;
 	FileStorage fs = getMemoryStorage();
 
+	if(matchedCount+missed+falsePositive!=81)
+		cout << filename << endl;
+
 	fs << "sum_available" << (int) (blackIntersects.size()+whiteIntersects.size()+emptyIntersects.size());
+	fs << "sum_occupied" << (int) (blackIntersects.size()+whiteIntersects.size());
+	fs << "sum_empty" << (int) emptyIntersects.size();
 	fs << "sum_matched" << matchedCount;
 	fs << "sum_wrong" << missed + falsePositive;
 	fs << "sum_missed" << missed;
 	fs << "sum_falsePos" << falsePositive;
 	fs << "sum_discarded" << discarded;
+	fs << "sum_wrongLoc" << wrongLoc;
 
 	saveParameters(fs);
 
 	output = fs.releaseAndGetString();
 
-	cout << output << endl;
+	cout << "#" << output << endl;
 }
 
 void Evaluater::checkColorCorrectness(uchar board[], vector<Point2f> &intersections, int xOffset, int yOffset){
