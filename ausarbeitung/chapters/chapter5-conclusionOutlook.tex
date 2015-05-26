@@ -15,4 +15,8 @@ Due to the lack of a larger board we could not test our algorithm on more than a
 
 Another area of work could be to automatically detect the center of the board. This would remove any need for user interaction and allow the application to be run completely autonomously.
 
-There are still some issues with specular highlights, which could also be improved upon. If they could be painted in well and fast, it could improve piece detection as well as color detection.
+There are still some issues with specular highlights, which could also be improved upon. If they could be painted in well and fast, it could improve piece detection as well as color detection. Another option would be to improve the color detection step, because it is more prone to errors from specular highlights. One possibility could be to switch from rectangular windows to some more sophisticated shape like circles or discs. Obviously this would not improve piece detection, but both inpainting and different evaluation shapes might be combined.
+
+Even though our detector's quality is comparable to the one in Scher's, Crab's and Davis's paper \cite{scher2008making} combining both could remove persistent errors. The modeling and path finding step from their approach could be added to our detector, especially as it was developed for a more general use. It should not take too much time and could be performed right after the detection was stopped.
+
+Smartphones offer a multitude of additional sensory information, which might be used to improve the detection quality. For example, if the camera height above the board is known, one could calculate a transformation matrix as in \autoref{evaluation-prepostprocessing-perspectiveRectifying} based on the tilt of the phone. This can be determined using the built in accelerometers or gyroscopes.
