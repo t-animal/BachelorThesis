@@ -30,7 +30,7 @@
 	The author assumes that the approach can be used on consecutive frames, but one problem remains when using only line detection: during later phases of the game many pieces will be placed especially in the center of the image. The lines are occluded by tokens and there is no way left to detect the board.
 	\\
 
-	Alexander K. Seewald \cite{seewald2010automatic} solved this by detecting the intersections using the \emph{SIFT algorithm}. His approach specifically targeted endgame situations. The keypoints are then classified (as before but additionally as ``empty inside the grid ┼'', ``empty on the edge ┬'' and ``empty on the corners ┐'') by an SVM. The results are then further refined by estimating the board position using the corners and classifying the previously missed tokens by average brightness.
+	Alexander K. Seewald \cite{seewald2010automatic} solved this by detecting the intersections using the \emph{SIFT algorithm}. His approach specifically targeted endgame situations. The keypoints are then classified (as before but additionally as ``empty inside the grid'', ``empty on the edge'' and ``empty on the corners'') by an SVM. The results are then further refined by estimating the board position using the corners and classifying the previously missed tokens by average brightness.
 
 	While he solved the problem of detecting end game states this came at the price of performance. With five seconds runtime on a PC for an 8 by 8 grid, this solution seems unpractical for slower mobile processors.
 
