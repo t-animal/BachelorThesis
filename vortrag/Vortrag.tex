@@ -50,7 +50,7 @@
 				\item This is a 9x9 Go board (there's also 11x11, 13x13 and 19x19)
 				\visible<2->{\item Players alternately put pieces on the intersections}
 				\visible<6->{\item The player with the most area wins}
-				\visible<7->{\item \color{gray}Plus: Pieces can be captured, not all moves are allowed}
+				%\visible<7->{\item \color{gray}Plus: Pieces can be captured, not all moves are allowed}
 			\end{itemize}
 		\end{column}
 
@@ -144,7 +144,7 @@
 	\end{columns}
 \end{frame}
 
-\subsection{Detection of Lines}
+\subsection{Detection of Lines and Pieces}
 \begin{frame}{Detection of Lines}{using Hough Lines Transformation}
 	\begin{columns}
 		\begin{column}{0.5\textwidth}
@@ -195,7 +195,6 @@
 	\end{columns}
 \end{frame}
 
-\subsection{Detection of Pieces}
 \begin{frame}{Detection of Pieces}{Thresholding}
 	\begin{columns}
 		\begin{column}{0.6\textwidth}
@@ -285,7 +284,8 @@
 	\end{figure}
 
 \end{frame}
-\subsection{Detection Quality --- Visible Intersections}
+
+\subsection{Detection Quality}
 \begin{frame}{Detection Quality}{Line detection algorithms}
 	\begin{table}
 		\centering
@@ -320,7 +320,6 @@
 	Sensitivity (light color filled circles) and precision (dark color filled circles) per image in our test set.
 \end{frame}
 
-\subsection{Detection Quality --- Occluded Intersections}
 \begin{frame}{Detection Quality}{Piece detection algorithms}
 	\vspace{-10pt}
 	\begin{table}
@@ -487,7 +486,7 @@
 	\end{itemize}
 \end{frame}
 
-\subsection{Live Presentation?}
+\subsection{Live Presentation}
 \begin{frame}{Live presentation}{Because seeing is believing}
 	\centering
 	If there is still time...
