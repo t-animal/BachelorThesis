@@ -35,6 +35,7 @@
 \institute{Pattern Recognition Lab (CS 5)}
 
 \author{Tilman \textsc{Adler}}
+\date{June 1, 2015}
 \begin{document}
 
 \frame[plain]{\titlepage}
@@ -196,18 +197,35 @@
 \end{frame}
 
 \begin{frame}{Detection of Pieces}{Thresholding}
+	\vspace{-1.5cm}
 	\begin{columns}
 		\begin{column}{0.6\textwidth}
+			\vspace{1cm}
+
 			To segment the tokens from the background we use thresholding\\[0.5cm]
 
 			White pieces are a problem due to color aberration\\
 			$\Rightarrow$ Threshold in HSV space, use combined results from saturation and hue channel\\[0.5cm]
 
-			To detect the pieces we use \emph{Hough Transformation} or fit rectangles around the blobs and filter for squares
+			\visible<3>{To detect the pieces we use \emph{Hough Transformation} or fit rectangles around the blobs and filter for squares}
 		\end{column}
-		\begin{column}{0.3\textwidth}
-			\includegraphics[width=\columnwidth]{images/pieces_thresh_s.png}\\
-			\includegraphics[width=\columnwidth]{images/pieces_thresh_v.png}
+		\begin{column}{0.28\textwidth}
+			\only<1>{
+				\includegraphics[width=\columnwidth]{images/pieces_input_h.png}\\
+				\includegraphics[width=\columnwidth]{images/pieces_input_s.png}\\
+				\includegraphics[width=\columnwidth]{images/pieces_input_v.png}%
+			}%
+			\only<2>{
+				\includegraphics[width=\columnwidth]{images/pieces_input_aberrat_h.png}\\
+				\includegraphics[width=\columnwidth]{images/pieces_input_aberrat_s.png}\\
+				\includegraphics[width=\columnwidth]{images/pieces_input_aberrat_v.png}%
+			}%
+			\only<3>{
+				\includegraphics[width=\columnwidth]{images/pieces_thresh_s.png}\\
+				\includegraphics[width=\columnwidth]{images/pieces_thresh_v.png}\\
+				\includegraphics[width=\columnwidth]{images/dummy.png}%
+			}%
+			\vfill
 		\end{column}
 	\end{columns}
 \end{frame}
